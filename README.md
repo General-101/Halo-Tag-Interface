@@ -3,9 +3,13 @@ Python script for parsing and writing Halo 1 and Halo 2 tag files
 
 ## Usage
 tag_interface.py has some example functions on running on a single file or a directory. All you have to worry about in most instances is setting:
+
 read_path - Absolute path to a valid Halo 1 or Halo 2 tag file.
+
 output_path - Absolute path to a location to write the result of the script.
+
 engine_tag - Set it to the engine you're working with. Either EngineTag.H1.value or EngineTag.H2Latest.value
+
 file_endian - Set the endian of the file. Halo 1 is generally big endian while Halo 2 is little endian though this may not apply to all fields within. Definitions may define an override through the attribute "endian_override"
 
 Once you've configured your variables just run the script through "python tag_interface.py"
