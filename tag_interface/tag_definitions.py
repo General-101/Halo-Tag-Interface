@@ -31,7 +31,7 @@ import xml.etree.ElementTree as ET
 
 from copy import deepcopy
 
-DUMP_XML = True
+DUMP_XML = False
 
 WHITELIST_TAGS = {"Angle", "AngleBounds", "ArgbColor", "Array", "Block", "ByteFlags", "CharBlockIndex",
     "CharEnum", "CharInteger", "CustomLongBlockIndex", "CustomShortBlockIndex", "Data",

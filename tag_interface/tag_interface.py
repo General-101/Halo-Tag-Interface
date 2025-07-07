@@ -94,10 +94,10 @@ HAS_LEGACY_HEADER = False
 
 DUMP_JSON = False
 
-GENERATE_CHECKSUM = False
-CONVERT_RADIANS = False
-PRESERVE_STRINGS = True
-PRESERVE_PADDING = True
+GENERATE_CHECKSUM = True
+CONVERT_RADIANS = True
+PRESERVE_STRINGS = False
+PRESERVE_PADDING = False
 
 def read_field_header(tag_stream, field_endian="<", is_legacy=False):
     pack_string = "4s3i"
@@ -213,19 +213,16 @@ def is_padding_legacy(tag_header):
     elif tag_header["engine tag"] == EngineTag.H2V3.value:
         HAS_LEGACY_PADDING = True
 
-def set_result(field_key, tag_block_fields, result):
-    def replace_neg_zero(val):
-        # Replace -0.0 float with string '-0', leave others unchanged
-        if isinstance(val, float) and val == 0.0 and copysign(1.0, val) == -1.0:
-            return "-0"
-        return val
+def replace_neg_zero(val):
+    if isinstance(val, float) and val == 0.0 and copysign(1.0, val) == -1.0:
+        val = "-0"
+    return val
 
+def set_result(field_key, tag_block_fields, result):
     if isinstance(result, (list, tuple)):
-        # Rebuild the sequence, replacing -0.0 floats with "-0" strings
         new_result = type(result)(replace_neg_zero(item) for item in result)
         tag_block_fields[field_key] = new_result
     else:
-        # Single value, replace if it's -0.0 float
         tag_block_fields[field_key] = replace_neg_zero(result)
 
 def set_enum_result(field_key, field_node, tag_block_fields, result):
@@ -268,27 +265,37 @@ def set_data_result(field_key, tag_block_fields, tag_stream, result):
 def set_encoded_result(field_key, tag_block_fields, result):
     tag_block_fields[field_key] = base64.b64encode(result).decode('utf-8')
 
+def restore_neg_zero(val):
+    if val == "-0":
+        val =  -0.0
+    return val
+
 def get_result(field_key, tag_block_fields):
     result = tag_block_fields.get(field_key)
-    def restore_neg_zero(val):
-        if val == "-0":
-            val =  -0.0
-        return val
 
     if isinstance(result, (list, tuple)):
         result = type(result)(restore_neg_zero(item) for item in result)
     else:
-        # Single value, replace if it's -0.0 float
         result = restore_neg_zero(result)
 
     return result
+
+def uppercase_struct_letters(struct_string):
+    struct_letters = 'bhiqnl'
+    result = []
+    for char in struct_string:
+        if char in struct_letters:
+            result.append(char.upper())
+        else:
+            result.append(char)
+    return ''.join(result)
 
 def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_value, field_node, tag_block_fields, block_idx=0):
     result = None
     field_tag = field_node.tag
     field_attrib = field_node.attrib
     field_key = field_node.get("name")
-
+    unsigned_key = field_node.get("unsigned")
     endian_override = FIELD_ENDIAN
     field_endian = field_node.get("endianOverride")
     if field_endian:
@@ -300,10 +307,13 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
     if field_tag == "Angle":
         field_default = 0.0
         field_size = 4
+        struct_string = '%sf' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sf' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string , block_stream.read(field_size)))[0]
                 if CONVERT_RADIANS:
                     result = degrees(result)
             set_result(field_key, tag_block_fields, result)
@@ -312,51 +322,60 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             if result is not None:
                 if CONVERT_RADIANS:
                     result = radians(result)
-                block_stream.write(struct.pack('%sf' % endian_override, result))
+                block_stream.write(struct.pack(struct_string, result))
             else:
-                block_stream.write(struct.pack('%sf' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "AngleBounds":
         field_default = (0.0, 0.0)
         field_size = 8
+        struct_string = '%s2f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%sff' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
                 if CONVERT_RADIANS:
                     result = tuple(degrees(x) for x in result)
             set_bounds_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None:
                 result = result.values()
                 if CONVERT_RADIANS:
-                    result = map(radians, result.values())
-                block_stream.write(struct.pack('%s2f' % endian_override, *result))
+                    result = map(radians, result)
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%s2f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "ArgbColor":
         field_default = (0, 0, 0, 0)
         field_size = 4
+        struct_string = '%s4b' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s4b' % endian_override, block_stream.read(field_size)) 
+                result = struct.unpack(struct_string, block_stream.read(field_size)) 
             set_color_result(field_key, tag_block_fields, result, True)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s4b' % endian_override, *result.values()))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result.values()))
             else:    
-                block_stream.write(struct.pack('%s4b' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "Block":
         field_default = (0, 0, 0)
         field_size = 12
+        struct_string = '%siii' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             tag_block_fields["TagBlock_%s" % field_key] = {"unk1": 0, "unk2": 0}
             tag_block_fields["TagBlockHeader_%s" % field_key] = {"name": "tbfd", "version": 0, "size": 0}
             if not unread_data_size < field_size:
-                result = struct.unpack('%siii' % endian_override, block_stream.read(12))
+                result = struct.unpack(struct_string, block_stream.read(12))
             set_block_result(field_key, tag_block_fields)
             block_count, unk1, unk2 = result
             tag_block_fields["TagBlock_%s" % field_key] = {"unk1": unk1, "unk2": unk2}
@@ -404,10 +423,10 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             tag_block = tag_block_fields.get("TagBlock_%s" % field_key)
             if tag_block:
                 unk1, unk2 = tag_block.values()
-            if result:
-                block_stream.write(struct.pack('%siii' % endian_override, len(result), unk1, unk2))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, len(result), unk1, unk2))
             else:
-                block_stream.write(struct.pack('%siii' % endian_override, 0, unk1, unk2))
+                block_stream.write(struct.pack(struct_string, 0, unk1, unk2))
 
             latest_field_set = None
             for layout in field_node:
@@ -455,169 +474,201 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
     elif field_tag == "ByteFlags":
         field_default = 0
         field_size = 1
+        struct_string = '%sb' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sb' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sb' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:
-                block_stream.write(struct.pack('%sb' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CharBlockIndex":
         field_default = 0
         field_size = 1
+        struct_string = '%sb' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sb' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sb' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:
-                block_stream.write(struct.pack('%sb' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CharEnum":
         field_default = 0
         field_size = 1
+        struct_string = '%sb' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sb' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_enum_result(field_key, field_node, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sb' % endian_override, result["value"]))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result["value"]))
             else:
-                block_stream.write(struct.pack('%sb' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CharInteger":
         field_default = 0
         field_size = 1
+        struct_string = '%sb' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sb' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sb' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:
-                block_stream.write(struct.pack('%sb' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CustomLongBlockIndex":
         field_default = 0
         field_size = 4
+        struct_string = '%si' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%si' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%si' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:    
-                block_stream.write(struct.pack('%si' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CustomShortBlockIndex":
         field_default = 0
         field_size = 2
+        struct_string = '%sh' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sh' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sh' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:    
-                block_stream.write(struct.pack('%sh' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "Data":
         field_default = (0, 0, 0, 0, 0)
         field_size = 20
+        struct_string = '%siiiii' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             tag_block_fields[field_key] = {"length": 0, "unk1": 0, "unk2": 0, "unk3": 0, "unk4": 0, "encoded": ""}
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%siiiii' % endian_override, block_stream.read(20))
+                result = struct.unpack(struct_string, block_stream.read(20))
 
             set_data_result(field_key, tag_block_fields, tag_stream, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None:
                 length, unk1, unk2, unk3, unk4, encoded = result.values()
                 byte_data = base64.b64decode(encoded)
                 
-                block_stream.write(struct.pack('%siiiii' % endian_override, len(byte_data), unk1, unk2, unk3, unk4))
+                block_stream.write(struct.pack(struct_string, len(byte_data), unk1, unk2, unk3, unk4))
                 pos = block_stream.tell()
                 block_stream.seek(0, io.SEEK_END)  
                 block_stream.write(byte_data)
                 block_stream.seek(pos)
                 
             else:
-                block_stream.write(struct.pack('%siiiii' % endian_override, 0, 0, 0, 0, 0))
+                block_stream.write(struct.pack(struct_string, 0, 0, 0, 0, 0))
     elif field_tag == "LongBlockIndex":
         field_default = 0
         field_size = 4
+        struct_string = '%si' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_default:
-                result = (struct.unpack('%si' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%si' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:    
-                block_stream.write(struct.pack('%si' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "LongEnum":
         field_default = 0
         field_size = 4
+        struct_string = '%si' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%si' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_enum_result(field_key, field_node, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%si' % endian_override, result["value"]))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result["value"]))
             else:
-                block_stream.write(struct.pack('%si' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "LongFlags":
         field_default = 0
         field_size = 4
+        struct_string = '%si' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%si' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%si' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:
-                block_stream.write(struct.pack('%si' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "LongInteger":
         field_default = 0
         field_size = 4
+        struct_string = '%si' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%si' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%si' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:
-                block_stream.write(struct.pack('%si' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "LongString":
-        # We are subtracting one in the read for the terminator and we are subtracting two in the write cause of a quirk with how the Guerrila string entry works.
         field_default = ""
         field_size = 256
         if FILE_MODE == FileModeEnum.read:
@@ -628,7 +679,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None:
                 write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
             else:
                 write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
@@ -653,12 +704,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
         else:
             result = get_result(field_key, tag_block_fields)
             if HAS_LEGACY_STRINGS:
-                if result:
+                if result is not None:
                     write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
                 else:
                     write_variable_string(block_stream, field_resource_default, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
             else:
-                if result:
+                if result is not None:
                     block_stream.write(struct.pack('%s2xH' % ">", len(result)))
                     pos = block_stream.tell()
                     block_stream.seek(0, io.SEEK_END)  
@@ -677,10 +728,11 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             result = field_default
             if not unread_data_size < field_size:
                 result = block_stream.read(field_size)
-            set_encoded_result(field_key, tag_block_fields, result)
+            if PRESERVE_PADDING:
+                set_encoded_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None and PRESERVE_PADDING:
                 byte_data = base64.b64decode(result)
                 block_stream.write(fit_bytes_to_length(byte_data, field_size))
             else:
@@ -688,17 +740,20 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
     elif field_tag == "Point2D":
         field_default = (0, 0)
         field_size = 4
+        struct_string = '%s2h' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s2h' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s2h' % endian_override, *result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%s2h' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "Ptr":
         field_default = bytes(4)
         field_size = 4
@@ -706,10 +761,11 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             result = field_default
             if not unread_data_size < field_size:
                 result = block_stream.read(field_size)
-            set_encoded_result(field_key, tag_block_fields, result)
+            if PRESERVE_PADDING:
+                set_encoded_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None and PRESERVE_PADDING:
                 byte_data = base64.b64decode(result)
                 block_stream.write(fit_bytes_to_length(byte_data, field_size))
             else:
@@ -717,308 +773,371 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
     elif field_tag == "Real":
         field_default = 0.0
         field_size = 4
+        struct_string = '%sf' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sf' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sf' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:
-                block_stream.write(struct.pack('%sf' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "RealArgbColor":
         field_default = (0.0, 0.0, 0.0, 0.0)
         field_size = 16
+        struct_string = '%s4f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s4f' % endian_override, block_stream.read(field_size)) 
+                result = struct.unpack(struct_string, block_stream.read(field_size)) 
             set_color_result(field_key, tag_block_fields, result, True)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s4f' % endian_override, *result.values()))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result.values()))
             else:    
-                block_stream.write(struct.pack('%s4f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealBounds":
         field_default = (0.0, 0.0)
         field_size = 8
+        struct_string = '%s2f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%sff' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_bounds_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None:
                 if not isinstance(result, dict):
                     result = {"Min": result, "Max": result}
 
-                block_stream.write(struct.pack('%s2f' % endian_override, *result.values()))
+                block_stream.write(struct.pack(struct_string, *result.values()))
             else:    
-                block_stream.write(struct.pack('%s2f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealEulerAngles2D":
         field_default = (0.0, 0.0)
         field_size = 8
+        struct_string = '%s2f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%s2f' % endian_override, block_stream.read(field_size)))
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))
                 if CONVERT_RADIANS:
                     result = tuple(degrees(x) for x in result)
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None:
                 if CONVERT_RADIANS:
                     result = map(radians, result)
-                block_stream.write(struct.pack('%s2f' % endian_override, *result))
+                block_stream.write(struct.pack(struct_string, *result))
             else:
-                block_stream.write(struct.pack('%s2f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealEulerAngles3D":
         field_default = (0.0, 0.0, 0.0)
         field_size = 12
+        struct_string = '%s3f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%s3f' % endian_override, block_stream.read(field_size)))
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))
                 if CONVERT_RADIANS:
                     result = tuple(degrees(x) for x in result)
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None:
                 if CONVERT_RADIANS:
                     result = map(radians, result)
-                block_stream.write(struct.pack('%s3f' % endian_override, *result))
+                block_stream.write(struct.pack(struct_string, *result))
             else:
-                block_stream.write(struct.pack('%s3f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealFraction":
         field_default = 0.0
         field_size = 4
+        struct_string = '%sf' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sf' % endian_override, block_stream.read(field_size)))[0]  
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]  
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sf' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:
-                block_stream.write(struct.pack('%sf' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "RealFractionBounds":
         field_default = (0.0, 0.0)
         field_size = 8
+        struct_string = '%s2f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%s2f' % endian_override, block_stream.read(field_size))) 
+                result = (struct.unpack(struct_string, block_stream.read(field_size))) 
             set_bounds_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s2f' % endian_override, *result.values()))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result.values()))
             else:
-                block_stream.write(struct.pack('%s2f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealPlane2D":
         field_default = (0.0, 0.0, 0.0)
         field_size = 12
+        struct_string = '%s3f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s3f' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s3f' % endian_override, *result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%s3f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealPlane3D":
         field_default = (0.0, 0.0, 0.0, 0.0)
         field_size = 16
+        struct_string = '%s4f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s4f' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s4f' % endian_override, *result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%s4f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealPoint2D":
         field_default = (0.0, 0.0)
         field_size = 8
+        struct_string = '%s2f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s2f' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s2f' % endian_override, *result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%s2f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealPoint3D":
         field_default = (0.0, 0.0, 0.0)
         field_size = 12
+        struct_string = '%s3f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s3f' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sfff' % endian_override, *result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%sfff' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealQuaternion":
         field_default = (0.0, 0.0, 0.0, 0.0)
         field_size = 16
+        struct_string = '%s4f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s4f' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sffff' % endian_override, *result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%sffff' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealRgbColor":
         field_default = (0.0, 0.0, 0.0)
         field_size = 12
+        struct_string = '%s3f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s3f' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_color_result(field_key, tag_block_fields, result, False)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s3f' % endian_override, *result.values()))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result.values()))
             else:    
-                block_stream.write(struct.pack('%s3f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealVector2D":
         field_default = (0.0, 0.0)
         field_size = 8
+        struct_string = '%s2f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s2f' % endian_override, block_stream.read(field_size))  
+                result = struct.unpack(struct_string, block_stream.read(field_size))  
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s2f' % endian_override, *result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%s2f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealVector3D":
         field_default = (0.0, 0.0, 0.0)
         field_size = 12
+        struct_string = '%s3f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s3f' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s3f' % endian_override, *result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%s3f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "Rectangle2D":
         field_default = (0, 0, 0, 0)
         field_size = 8
+        struct_string = '%s4h' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s4h' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s4h' % endian_override, *result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%s4h' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RgbColor":
         field_default = (0, 0, 0)
         field_size = 4
+        struct_string = '%s3bx' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s3bx' % endian_override, block_stream.read(field_size)) 
+                result = struct.unpack(struct_string, block_stream.read(field_size)) 
             set_color_result(field_key, tag_block_fields, result, False)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s3bx' % endian_override, *result.values()))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result.values()))
             else:    
-                block_stream.write(struct.pack('%s3bx' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "ShortBlockIndex":
         field_default = 0
         field_size = 2
+        struct_string = '%sh' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sh' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sh' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:    
-                block_stream.write(struct.pack('%sh' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "ShortBounds":
         field_default = (0, 0)
         field_size = 4
+        struct_string = '%s2h' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s2h' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_bounds_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s2h' % endian_override, *[round(v) for v in result.values()]))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *[round(v) for v in result.values()]))
             else:    
-                block_stream.write(struct.pack('%s2h' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "ShortEnum":
         field_default = 0
         field_size = 2
+        struct_string = '%sh' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sh' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_enum_result(field_key, field_node, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sh' % endian_override, result["value"]))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result["value"]))
             else:
-                block_stream.write(struct.pack('%sh' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "ShortInteger":
         field_default = 0
         field_size = 2
+        struct_string = '%sh' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sh' % endian_override, block_stream.read(field_size)))[0]
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sh' % endian_override, round(result)))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, round(result)))
             else:
-                block_stream.write(struct.pack('%sh' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "Skip":
         field_size = 0
         tag_attribute = field_attrib.get("tag")
@@ -1030,10 +1149,11 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             result = field_default
             if not unread_data_size < field_size:
                 result = block_stream.read(field_size)
-            set_encoded_result(field_key, tag_block_fields, result)
+            if PRESERVE_PADDING:
+                set_encoded_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None and PRESERVE_PADDING:
                 byte_data = base64.b64decode(result)
                 block_stream.write(fit_bytes_to_length(byte_data, field_size))
             else:
@@ -1049,7 +1169,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None:
                 write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
             else:
                 write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
@@ -1066,7 +1186,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None:
                 block_stream.write(struct.pack('%s2xH' % ">", len(result)))
                 pos = block_stream.tell()
                 block_stream.seek(0, io.SEEK_END)  
@@ -1148,18 +1268,23 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None:
                 write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=0, append_terminator=False)
             else:
                 write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=0, append_terminator=False)
     elif field_tag == "TagReference":
         field_default = ("", 0, 0, 0, "")
         field_size = 16
+        struct_string = '%s4siii' % endian_override
+        struct_default_string = '%siiii' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
+            struct_default_string = uppercase_struct_letters(struct_default_string)
         if FILE_MODE == FileModeEnum.read:
             tag_block_fields[field_key] = {"group name": "", "unk1": 0, "length": 0, "unk2": 0, "path": ""}
             result = field_default
             if not unread_data_size < field_size:
-                tag_group, unk1, length, unk2 = struct.unpack('%s4siii' % endian_override, block_stream.read(16))
+                tag_group, unk1, length, unk2 = struct.unpack(struct_string, block_stream.read(16))
                 if int.from_bytes(tag_group, 'little' if endian_override == '<' else 'big', signed=True) == -1:
                     tag_group = None
                 else:
@@ -1172,7 +1297,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             set_tag_reference_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None:
                 tag_group, unk1, length, unk2, path = result.values()
                 if PRESERVE_STRINGS:
                     length = len(base64.b64decode(path).decode('utf-8', 'replace').split('\x00', 1)[0].strip('\x20'))
@@ -1180,17 +1305,17 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                     length = len(path)
                 if tag_group == None:
                     tag_group = -1
-                    block_stream.write(struct.pack('%siiii' % endian_override, tag_group, unk1, length, unk2))
+                    block_stream.write(struct.pack(struct_default_string, tag_group, unk1, length, unk2))
                 else:
                     tag_group = string_to_bytes(tag_group, endian_override)
-                    block_stream.write(struct.pack('%s4siii' % endian_override, tag_group, unk1, length, unk2))
+                    block_stream.write(struct.pack(struct_string, tag_group, unk1, length, unk2))
 
                 pos = block_stream.tell()
                 block_stream.seek(0, io.SEEK_END)
                 write_variable_string(block_stream, path, ">", fixed_length=length, terminator_length=1, append_terminator=True)
                 block_stream.seek(pos)
             else:
-                block_stream.write(struct.pack('%siiii' % endian_override, -1, 0, 0, 0))
+                block_stream.write(struct.pack(struct_default_string, -1, 0, 0, 0))
     elif field_tag == "UselessPad":
         field_size = 0
         if HAS_LEGACY_PADDING:
@@ -1201,11 +1326,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             result = field_default
             if not unread_data_size < field_size:
                 result = block_stream.read(field_size)
-            set_encoded_result(field_key, tag_block_fields, result)
+            if PRESERVE_PADDING:
+                set_encoded_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
             if HAS_LEGACY_PADDING:
-                if result:
+                if result is not None and PRESERVE_PADDING:
                     byte_data = base64.b64decode(result)
                     block_stream.write(fit_bytes_to_length(byte_data, field_size))
                 else:
@@ -1217,10 +1343,11 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             result = field_default
             if not unread_data_size < field_size:
                 result = block_stream.read(field_size)
-            set_encoded_result(field_key, tag_block_fields, result)
+            if PRESERVE_PADDING:
+                set_encoded_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
+            if result is not None and PRESERVE_PADDING:
                 byte_data = base64.b64decode(result)
                 block_stream.write(fit_bytes_to_length(byte_data, field_size))
             else:
@@ -1228,45 +1355,54 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
     elif field_tag == "WordBlockFlags":
         field_default = 0
         field_size = 2
+        struct_string = '%sh' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sh' % endian_override, block_stream.read(field_size)))[0] 
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0] 
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sh' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:
-                block_stream.write(struct.pack('%sh' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "WordFlags":
         field_default = 0
         field_size = 2
+        struct_string = '%sh' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%sh' % endian_override, block_stream.read(field_size)))[0] 
+                result = (struct.unpack(struct_string, block_stream.read(field_size)))[0] 
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%sh' % endian_override, result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, result))
             else:
-                block_stream.write(struct.pack('%sh' % endian_override, field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "Matrix3x3":
         field_default = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         field_size = 36
+        struct_string = '%s9f' % endian_override
+        if unsigned_key:
+            struct_string = uppercase_struct_letters(struct_string)
         if FILE_MODE == FileModeEnum.read:
             result = field_default
             if not unread_data_size < field_size:
-                result = struct.unpack('%s9f' % endian_override, block_stream.read(field_size))
+                result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
             result = get_result(field_key, tag_block_fields)
-            if result:
-                block_stream.write(struct.pack('%s9f' % endian_override, *result))
+            if result is not None:
+                block_stream.write(struct.pack(struct_string, *result))
             else:    
-                block_stream.write(struct.pack('%s9f' % endian_override, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default))
 
 def read_file(merged_defs, file_path="", file_endian="<"):
     update_interface(FileModeEnum.read, file_endian)
@@ -1628,5 +1764,3 @@ def h2_directory():
                                 f"  Error: {type(e).__name__}: {e}\n"
                                 f"  While parsing tag file.\n")
                     traceback.print_exc(file=log_file)
-
-h1_directory()
