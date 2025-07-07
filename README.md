@@ -18,11 +18,14 @@ The intermediate file is a JSON file containing all the values in the file as ke
 
 Halo 1 currently is capable of importing and exporting game files while maintaining matching file hashes. Halo 2 may still have some mismatches but should be functional otherwise.
 
+Definitions are borrowed from the provided repositories but are not unedited. You may run into issues if you pull from those sources without adding the changes. Changes include defining endian for fields mainly.
+
 ## Credits
 
  * Discord user num0005
    * For creating the Halo 2 tag definitions used in this project and Pytolith that was used as reference
    * [Pytolith](https://github.com/num0005/Pytolith)
+    [Halo2TagLayouts](https://github.com/num0005/Halo2TagLayouts)
 
  * The Invader team/aerocatia/Snowy
    * For creating the Halo 1 tag definitions used in this project
