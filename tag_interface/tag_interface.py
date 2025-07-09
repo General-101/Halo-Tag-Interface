@@ -98,6 +98,7 @@ GENERATE_CHECKSUM = True
 CONVERT_RADIANS = True
 PRESERVE_STRINGS = False
 PRESERVE_PADDING = False
+PRESERVE_VERSION = False
 
 def read_field_header(tag_stream, field_endian="<", is_legacy=False):
     pack_string = "4s3i"
@@ -303,7 +304,11 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
 
     field_default = 0
     field_size = 0
-    unread_data_size = ((block_idx + 1) * tag_block_header["size"]) - block_stream.tell()
+    unread_data_size = (((block_idx + 1) * tag_block_header["size"])) - block_stream.tell() 
+    if FILE_MODE == FileModeEnum.write:
+        if block_stream.tell() -16 >= ((block_idx + 1) * tag_block_header["size"]):
+            return None
+
     if field_tag == "Angle":
         field_default = 0.0
         field_size = 4
@@ -420,34 +425,38 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             result = get_result(field_key, tag_block_fields)
             unk1 = 0
             unk2 = 0
-            tag_block = tag_block_fields.get("TagBlock_%s" % field_key)
-            if tag_block:
-                unk1, unk2 = tag_block.values()
+            tag_block_padding = tag_block_fields.get("TagBlock_%s" % field_key)
+            if tag_block_padding is not None and PRESERVE_PADDING:
+                unk1, unk2 = tag_block_padding.values()
             if result is not None:
                 block_stream.write(struct.pack(struct_string, len(result), unk1, unk2))
             else:
                 block_stream.write(struct.pack(struct_string, 0, unk1, unk2))
 
-            latest_field_set = None
-            for layout in field_node:
-                for field_set in layout:
-                    if bool(field_set.attrib.get('isLatest')):
-                        latest_field_set = field_set
-
-            if latest_field_set is None:
-                raise ValueError(f"Latest field set not found.")
-
+            block_field_set = None
             current_block = tag_block_fields.get(field_node.get("name"))
             current_field_header_data = tag_block_fields.get("TagBlockHeader_%s" % field_key)
-            if current_block:
-                if current_field_header_data:
-                    current_name, current_version, current_size = current_field_header_data.values()
-                    current_tag_block_header = {"name": current_name, "version": current_version, "size": current_size}
-                else:
-                    current_version = int(latest_field_set.attrib.get('version'))
-                    current_size = int(latest_field_set.attrib.get('sizeofValue'))
-                    current_tag_block_header = {"name": "tbfd", "version": current_version, "size": current_size}
+            if current_field_header_data is None or not PRESERVE_VERSION:
+                for layout in field_node:
+                    for field_set in layout:
+                        if bool(field_set.attrib.get('isLatest')):
+                            block_field_set = field_set
 
+                if block_field_set is None:
+                    raise ValueError(f"Latest field set not found.")
+
+                current_version = int(block_field_set.attrib.get('version'))
+                current_size = int(block_field_set.attrib.get('sizeofValue'))
+                current_field_header_data = {"name": "tbfd", "version": current_version, "size": current_size}
+            else:
+                for layout in field_node:
+                    for field_set in layout:
+                        if int(field_set.attrib.get('version')) == current_field_header_data["version"]:
+                            block_field_set = field_set
+                if block_field_set is None:
+                    raise ValueError(f"Latest field set not found.")
+
+            if current_block is not None:
                 tag_block_header_size = 16
                 if HAS_LEGACY_HEADER:
                     tag_block_header_size = 12
@@ -455,16 +464,16 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 current_block_count = len(current_block)
                 if current_block_count > 0:
                     if tag_header["engine tag"] == EngineTag.H1.value:
-                        initial_size = (current_block_count * current_tag_block_header["size"])
+                        initial_size = (current_block_count * current_field_header_data["size"])
                         current_block_stream = io.BytesIO(b"\x00" * initial_size)
                     else:
-                        initial_size = (current_block_count * current_tag_block_header["size"]) + tag_block_header_size
+                        initial_size = (current_block_count * current_field_header_data["size"]) + tag_block_header_size
                         current_block_stream = io.BytesIO(b"\x00" * initial_size)
-                        write_field_header(current_tag_block_header, current_block_count, current_block_stream, is_legacy=HAS_LEGACY_HEADER)
+                        write_field_header(current_field_header_data, current_block_count, current_block_stream, is_legacy=HAS_LEGACY_HEADER)
 
                     for block_idx, block_element in enumerate(current_block):
-                        for field_node in latest_field_set:
-                            get_fields(tag_stream, current_block_stream, tag_header, current_tag_block_header, block_element.get(field_node.get("name")), field_node, block_element, block_idx)
+                        for field_node in block_field_set:
+                            get_fields(tag_stream, current_block_stream, tag_header, current_field_header_data, block_element.get(field_node.get("name")), field_node, block_element, block_idx)
 
                     pos = block_stream.tell()
                     block_stream.seek(0, io.SEEK_END)  
@@ -591,8 +600,11 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             if result is not None:
                 length, unk1, unk2, unk3, unk4, encoded = result.values()
                 byte_data = base64.b64decode(encoded)
-                
-                block_stream.write(struct.pack(struct_string, len(byte_data), unk1, unk2, unk3, unk4))
+                if PRESERVE_PADDING:
+                    block_stream.write(struct.pack(struct_string, len(byte_data), unk1, unk2, unk3, unk4))
+                else:
+                    block_stream.write(struct.pack(struct_string, len(byte_data), 0, 0, 0, 0))
+                    
                 pos = block_stream.tell()
                 block_stream.seek(0, io.SEEK_END)  
                 block_stream.write(byte_data)
@@ -687,21 +699,27 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
         field_default = 0
         field_resource_default = ""
         field_size = 4
+        struct_string = '%s2H' % ">"
         if HAS_LEGACY_STRINGS:
             field_size = 32
         if FILE_MODE == FileModeEnum.read:
             tag_block_fields[field_key] = field_resource_default
             result = field_resource_default
+            string_pad = field_default
             if HAS_LEGACY_STRINGS:
                 if not unread_data_size < field_size:
                     result = read_variable_string(block_stream, field_size, endian_override, terminator_length=1, append_terminator=False)
             else:
                 if not unread_data_size < field_size:
-                    result = (struct.unpack('%s2xH' % ">", block_stream.read(field_size)))[0]
+                    string_pad, result = struct.unpack(struct_string, block_stream.read(field_size))
                     result = read_variable_string(tag_stream, result, "<", terminator_length=0, append_terminator=False)
 
+            set_result("%s_pad" % field_key, tag_block_fields, string_pad)
             set_result(field_key, tag_block_fields, result)
         else:
+            string_pad = get_result("%s_pad" % field_key, tag_block_fields)
+            if result is not None:
+                string_pad = 0
             result = get_result(field_key, tag_block_fields)
             if HAS_LEGACY_STRINGS:
                 if result is not None:
@@ -710,13 +728,18 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                     write_variable_string(block_stream, field_resource_default, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
             else:
                 if result is not None:
-                    block_stream.write(struct.pack('%s2xH' % ">", len(result)))
+                    if PRESERVE_STRINGS:
+                        length = len(base64.b64decode(result).decode('utf-8', 'replace').split('\x00', 1)[0].strip('\x20'))
+                    else:
+                        length = len(result)
+
+                    block_stream.write(struct.pack(struct_string, string_pad, length))
                     pos = block_stream.tell()
                     block_stream.seek(0, io.SEEK_END)  
                     write_variable_string(block_stream, result, ">", fixed_length=len(result), terminator_length=0, append_terminator=False)
                     block_stream.seek(pos)
                 else:
-                    block_stream.write(struct.pack('%s2xH' % ">", field_default))
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "Pad":
         field_size = 0
         tag_attribute = field_attrib.get("tag")
@@ -1056,20 +1079,24 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
     elif field_tag == "RgbColor":
         field_default = (0, 0, 0)
         field_size = 4
-        struct_string = '%s3bx' % endian_override
-        if unsigned_key:
-            struct_string = uppercase_struct_letters(struct_string)
+        struct_string = '%s4B' % endian_override
         if FILE_MODE == FileModeEnum.read:
             result = field_default
+            color_pad = 0
             if not unread_data_size < field_size:
-                result = struct.unpack(struct_string, block_stream.read(field_size)) 
+                b, g, r, color_pad = struct.unpack(struct_string, block_stream.read(field_size)) 
+                result = (r, g, b)
             set_color_result(field_key, tag_block_fields, result, False)
+            set_result("%s_pad" % field_key, tag_block_fields, color_pad)
         else:
             result = get_result(field_key, tag_block_fields)
+            color_pad_result = get_result("%s_pad" % field_key, tag_block_fields)
+            if color_pad_result is None or not PRESERVE_PADDING:
+                color_pad_result = 0
             if result is not None:
-                block_stream.write(struct.pack(struct_string, *result.values()))
+                block_stream.write(struct.pack(struct_string, *reversed(result.values()), color_pad_result))
             else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+                block_stream.write(struct.pack(struct_string, *field_default, color_pad_result))
     elif field_tag == "ShortBlockIndex":
         field_default = 0
         field_size = 2
@@ -1177,23 +1204,34 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
         field_default = 0
         field_resource_default = ""
         field_size = 4
+        struct_string = '%s2H' % ">"
         if FILE_MODE == FileModeEnum.read:
             tag_block_fields[field_key] = field_resource_default
             result = field_resource_default
+            string_pad = field_default
             if not unread_data_size < field_size:
-                result = (struct.unpack('%s2xH' % ">", block_stream.read(field_size)))[0]
+                string_pad, result = (struct.unpack(struct_string, block_stream.read(field_size)))
                 result = read_variable_string(tag_stream, result, "<", terminator_length=0, append_terminator=False)
+            set_result("%s_pad" % field_key, tag_block_fields, string_pad)
             set_result(field_key, tag_block_fields, result)
         else:
+            string_pad = get_result("%s_pad" % field_key, tag_block_fields)
+            if result is not None:
+                string_pad = 0
             result = get_result(field_key, tag_block_fields)
             if result is not None:
-                block_stream.write(struct.pack('%s2xH' % ">", len(result)))
+                if PRESERVE_STRINGS:
+                    length = len(base64.b64decode(result).decode('utf-8', 'replace').split('\x00', 1)[0].strip('\x20'))
+                else:
+                    length = len(result)
+
+                block_stream.write(struct.pack(struct_string, string_pad, length))
                 pos = block_stream.tell()
                 block_stream.seek(0, io.SEEK_END)  
-                write_variable_string(block_stream, result, ">", fixed_length=len(result), terminator_length=0, append_terminator=False)
+                write_variable_string(block_stream, result, ">", fixed_length=length, terminator_length=0, append_terminator=False)
                 block_stream.seek(pos)
             else:
-                block_stream.write(struct.pack('%s2xH' % ">", field_default))
+                block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "Struct":
         field_default = 0
         field_size = 0
@@ -1209,7 +1247,6 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                     def_tag = field_node[0].get("tag")
 
                     struct_name, struct_version, struct_count, struct_size = read_field_header(tag_stream, is_legacy=HAS_LEGACY_HEADER)
-
                     read_struct = True
                     if not def_tag == struct_name:
                         tag_stream.seek(pos)
@@ -1220,42 +1257,45 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
 
             if read_struct:
                 if not tag_header["engine tag"] == EngineTag.H1.value:
-                    tag_block_fields["STRUCTHEADER_%s" % field_key] = {"name": struct_name, "version": struct_version, "size": struct_size}
+                    tag_block_fields["StructHeader_%s" % field_node[0].get("regolithID")] = {"name": struct_name, "version": struct_version, "size": struct_size}
                 for struct_layout in field_node:
                     struct_field_set = struct_layout[struct_version]
                     for struct_field_node in struct_field_set:
                         get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_value, struct_field_node, tag_block_fields, block_idx)
 
         else:
-            latest_struct_field_set = None
-            for struct_layout in field_node:
-                for struct_field_set in struct_layout:
-                    if bool(struct_field_set.attrib.get('isLatest')):
-                        latest_struct_field_set = struct_field_set
-
-            if latest_struct_field_set is None:
-                raise ValueError(f"Latest field set not found.")
-
-            current_field_header_data = tag_block_fields.get("STRUCTHEADER_%s" % field_key)
+            current_struct_field_set = None
             struct_count = 1
-            if current_field_header_data:
-                struct_name, struct_version, struct_size = current_field_header_data.values()
-                struct_header = {"name": struct_name, "version": struct_version, "size": struct_size}
-            else:
-                struct_name = field_node[0].get("tag")
-                struct_version = int(latest_struct_field_set.get("version"))
+            current_sruct_field_header_data = tag_block_fields.get("StructHeader_%s" % field_node[0].get("regolithID"))
+            if current_sruct_field_header_data is None or not PRESERVE_VERSION:
+                for layout in field_node:
+                    for struct_field_set in layout:
+                        if bool(struct_field_set.attrib.get('isLatest')):
+                            current_struct_field_set = struct_field_set
 
-                struct_size = int(latest_struct_field_set.get("sizeofValue"))
-                struct_header = {"name": struct_name, "version": struct_version, "size": struct_size}
+                if current_struct_field_set is None:
+                    raise ValueError(f"Latest field set not found.")
+
+                struct_name = field_node[0].get("tag")
+                struct_version = int(current_struct_field_set.get("version"))
+                struct_size = int(current_struct_field_set.get("sizeofValue"))
+                current_sruct_field_header_data = {"name": struct_name, "version": struct_version, "size": struct_size}
+            else:
+                for layout in field_node:
+                    for struct_field_set in layout:
+                        if int(struct_field_set.attrib.get('version')) == current_sruct_field_header_data["version"]:
+                            current_struct_field_set = struct_field_set
+                if current_struct_field_set is None:
+                    raise ValueError(f"field set not found.")
 
             if not tag_header["engine tag"] == EngineTag.H1.value:
                 pos = block_stream.tell()
                 block_stream.seek(0, io.SEEK_END)  
-                write_field_header(struct_header, struct_count, block_stream, is_legacy=HAS_LEGACY_HEADER)
+                write_field_header(current_sruct_field_header_data, struct_count, block_stream, is_legacy=HAS_LEGACY_HEADER)
                 block_stream.seek(pos)
 
             if struct_count > 0:
-                for struct_field_node in latest_struct_field_set:
+                for struct_field_node in current_struct_field_set:
                     get_fields(tag_stream, block_stream, tag_header, tag_block_header, tag_block_fields.get(struct_field_node.get("name")), struct_field_node, tag_block_fields, block_idx)
     elif field_tag == "Tag":
         field_default = ""
@@ -1299,6 +1339,9 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             result = get_result(field_key, tag_block_fields)
             if result is not None:
                 tag_group, unk1, length, unk2, path = result.values()
+                if not PRESERVE_PADDING:
+                    unk1 = 0
+                    unk2 = 0
                 if PRESERVE_STRINGS:
                     length = len(base64.b64decode(path).decode('utf-8', 'replace').split('\x00', 1)[0].strip('\x20'))
                 else:
@@ -1542,26 +1585,34 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
             "engine tag": engine_tag
             }
 
+    if not PRESERVE_VERSION:
+        tag_header["engine tag"] = engine_tag
+
     is_tag_block_legacy(tag_header)
     is_string_legacy(tag_header)
     is_padding_legacy(tag_header)
 
-    latest_field_set = None
-    for layout in tag_def:
-        for field_set in layout:
-            if bool(field_set.attrib.get('isLatest')):
-                latest_field_set = field_set
+    block_field_set = None
+    tag_block_header = tag_dict.get("TagBlockHeader_%s" % tag_extension)
+    if tag_block_header is None and not PRESERVE_VERSION:
+        for layout in tag_def:
+            for field_set in layout:
+                if bool(field_set.attrib.get('isLatest')):
+                    block_field_set = field_set
 
-    if latest_field_set is None:
-        raise ValueError(f"Latest field set not found.")
+        if block_field_set is None:
+            raise ValueError(f"Latest field set not found.")
 
-    tag_block = tag_dict.get("TagBlock")
-    tag_block_header = tag_dict.get("TagBlockHeader")
-    if not tag_block:
-        version = int(latest_field_set.attrib.get('version'))
-        size = int(latest_field_set.attrib.get('sizeofValue'))
-        tag_block = tag_dict["TagBlock"] = {"unk1": 0, "unk2": 0}
-        tag_block_header = tag_dict["TagBlockHeader"] = {"name": "tbfd", "version": version, "size": size}
+        version = int(block_field_set.attrib.get('version'))
+        size = int(block_field_set.attrib.get('sizeofValue'))
+        tag_block_header = tag_dict["TagBlockHeader_%s" % tag_extension] = {"name": "tbfd", "version": version, "size": size}
+    else:
+        for layout in tag_def:
+            for field_set in layout:
+                if int(field_set.attrib.get('version')) == tag_block_header["version"]:
+                    block_field_set = field_set
+        if block_field_set is None:
+            raise ValueError(f"Latest field set not found.")
 
     tag_block_header_size = 16
     if HAS_LEGACY_HEADER:
@@ -1576,7 +1627,7 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
         write_field_header(tag_block_header, 1, block_stream, is_legacy=HAS_LEGACY_HEADER)
 
     root = tag_dict["Data"]
-    for field_node in latest_field_set:
+    for field_node in block_field_set:
         get_fields(tag_stream, block_stream, tag_header, tag_block_header, root.get(field_node.get("name")), field_node, root, 0)
 
     if GENERATE_CHECKSUM:
@@ -1626,8 +1677,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = tag_definitions.generate_h2_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\effects\objects\weapons\pistol\plasma_pistol\plasma_bolt.light_volume"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.light_volume"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\digsite\objects\characters\brute\promo\promo.model_animation_graph"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.model_animation_graph"
 
     tag_dict = read_file(merged_defs, read_path)
     with open(os.path.join(os.path.dirname(output_path), "%s.json" % os.path.basename(output_path).rsplit(".", 1)[0]), 'w', encoding ='utf8') as json_file:
@@ -1724,6 +1775,7 @@ def h2_directory():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     log_path = os.path.join(script_dir, "errors.txt")
     obfuscation_buffer = obfuscation_buffer_prepare()
+
     with open(log_path, "w", encoding="utf-8") as log_file:
         for root, dirs, files in os.walk(input_dir):
             for file in files:
@@ -1736,6 +1788,7 @@ def h2_directory():
 
                 try:
                     tag_dict = read_file(merged_defs, read_path)
+                    
                     if DUMP_JSON:
                         try:
                             json_filename = os.path.basename(output_path).rsplit(".", 1)[0] + ".json"
@@ -1744,23 +1797,35 @@ def h2_directory():
                                 json.dump(tag_dict, json_file, ensure_ascii=True, indent=4)
                         except Exception as e:
                             log_file.write(f"\nJSON Write Error:\n"
-                                        f"  File: {json_path}\n"
-                                        f"  Error: {type(e).__name__}: {e}\n"
-                                        f"  While writing JSON for parsed tag.\n")
+                                           f"  File: {json_path}\n"
+                                           f"  Error: {type(e).__name__}: {e}\n"
+                                           f"  While writing JSON for parsed tag.\n")
                             traceback.print_exc(file=log_file)
 
                     try:
                         write_file(merged_defs, tag_dict, obfuscation_buffer, output_path)
+                        
+                        # Hash check after write
+                        original_hash = compute_file_hash(read_path)
+                        output_hash = compute_file_hash(output_path)
+                        if original_hash != output_hash:
+                            log_file.write(f"\nHash Mismatch:\n"
+                                           f"  File: {file}\n"
+                                           f"  Read Path: {read_path}\n"
+                                           f"  Output Path: {output_path}\n"
+                                           f"  Original Hash: {original_hash}\n"
+                                           f"  Output Hash:   {output_hash}\n"
+                                           f"  The recompiled file differs from the original.\n")
                     except Exception as e:
                         log_file.write(f"\nWrite File Error:\n"
-                                    f"  File: {output_path}\n"
-                                    f"  Error: {type(e).__name__}: {e}\n"
-                                    f"  While writing tag file after parsing.\n")
+                                       f"  File: {output_path}\n"
+                                       f"  Error: {type(e).__name__}: {e}\n"
+                                       f"  While writing tag file after parsing.\n")
                         traceback.print_exc(file=log_file)
 
                 except Exception as e:
                     log_file.write(f"\nParse Error:\n"
-                                f"  File: {read_path}\n"
-                                f"  Error: {type(e).__name__}: {e}\n"
-                                f"  While parsing tag file.\n")
+                                   f"  File: {read_path}\n"
+                                   f"  Error: {type(e).__name__}: {e}\n"
+                                   f"  While parsing tag file.\n")
                     traceback.print_exc(file=log_file)

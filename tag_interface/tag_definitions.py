@@ -54,6 +54,7 @@ def parse_all_xmls(base_dir):
             path = os.path.join(root, file)
             tree = ET.parse(path)
             root_elem = tree.getroot()
+            unravel_arrays_in_xml(root_elem)
             for elem in root_elem.iter():
                 reg_id = elem.attrib.get("regolithID")
                 if reg_id:
@@ -182,40 +183,36 @@ def collect_flattened_fields(fieldset_element):
 def fix_fieldset_names(fieldsets):
     flattened_fieldsets = [collect_flattened_fields(fs) for fs in fieldsets]
     tag_type_counters = {}
-    for fs_idx, fields in enumerate(flattened_fieldsets):
+
+    for fs_idx, (fs, fields) in enumerate(zip(fieldsets, flattened_fieldsets)):
         type_instance_counters = {}
         seen_names = set()
+
         for node in fields:
             tag = node.tag
             current_name = node.get("name")
+
             if tag not in WHITELIST_TAGS:
                 continue
 
             inst_idx = type_instance_counters.get(tag, 0)
             type_instance_counters[tag] = inst_idx + 1
+
             if current_name is None:
                 fallback_name = None
-                for prev_fields in flattened_fieldsets[:fs_idx]:
-                    match_count = 0
-                    for prev_node in prev_fields:
-                        if prev_node.tag != tag:
-                            continue
 
-                        if match_count == inst_idx:
-                            prev_name = prev_node.get("name")
+                # Only apply fallback if the node is a direct child of the FieldSet
+                if node in fs:
+                    for prev_fs in fieldsets[:fs_idx]:
+                        prev_direct_children = [n for n in prev_fs if n.tag == tag]
+                        if len(prev_direct_children) > inst_idx:
+                            prev_name = prev_direct_children[inst_idx].get("name")
                             if prev_name:
                                 fallback_name = prev_name
-
                             break
-
-                        match_count += 1
-
-                    if fallback_name:
-                        break
 
                 if fallback_name:
                     new_name = fallback_name
-
                 else:
                     fallback_count = tag_type_counters.get(tag, 0)
                     new_name = f"{tag}_{fallback_count}"
@@ -231,7 +228,6 @@ def fix_fieldset_names(fieldsets):
                     node.set("name", new_name)
                     tag_type_counters[current_name] = count + 1
                     seen_names.add(new_name)
-
                 else:
                     seen_names.add(current_name)
 
@@ -535,10 +531,6 @@ def generate_h1_defs(base_dir, output_dir):
         merge_taggroup(group, generated_xmls, merged_cache, tag_common.h1_tag_groups, tag_common.h1_tag_extensions)
 
     fix_names_in_merged_taggroups(merged_cache, regolith_map)
-    for merged in merged_cache.values():
-        unravel_arrays_in_xml(merged)
-
-    fix_names_in_merged_taggroups(merged_cache, regolith_map)
     if DUMP_XML:
         dump_merged_xml(merged_cache, output_dir, tag_common.h1_tag_extensions)
 
@@ -548,11 +540,7 @@ def generate_h2_defs(base_dir, output_dir):
     tag_defs, regolith_map = parse_all_xmls(base_dir)
     merged_cache = {}
     for tag_def in tag_defs:
-        merged = merge_taggroup(tag_def, tag_defs, merged_cache, tag_common.h2_tag_groups, tag_common.h2_tag_extensions)
-
-    fix_names_in_merged_taggroups(merged_cache, regolith_map)
-    for merged in merged_cache.values():
-        unravel_arrays_in_xml(merged)
+        merge_taggroup(tag_def, tag_defs, merged_cache, tag_common.h2_tag_groups, tag_common.h2_tag_extensions)
 
     fix_names_in_merged_taggroups(merged_cache, regolith_map)
     if DUMP_XML:
