@@ -1712,7 +1712,6 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
     if HAS_LEGACY_HEADER:
         tag_block_header_size = 12
 
-
     initial_size =  (1 * tag_block_header["size"])
     block_stream = io.BytesIO(b"\x00" * initial_size)
     root = tag_dict["Data"]
@@ -1730,13 +1729,13 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
     if GENERATE_CHECKSUM:
         tag_header["checksum"] = checksum_calculate(block_stream.getvalue(), obfuscation_buffer)
 
+    engine_tag = tag_header["engine tag"]
     tag_header["name"] = string_to_bytes(tag_header["name"], file_endian)
     tag_header["tag group"] = string_to_bytes(tag_header["tag group"], file_endian)
     tag_header["engine tag"] = string_to_bytes(tag_header["engine tag"], file_endian)
 
     tag_stream.write(struct.pack('%shbb32s4sIiiihbb4s' % file_endian, *tag_header.values()))
-
-    if not tag_header["engine tag"] == EngineTag.H1.value:
+    if not engine_tag == EngineTag.H1.value:
         tag_block_header_stream = io.BytesIO(b"\x00" * tag_block_header_size)
         write_field_header(tag_block_header, 1, tag_block_header_stream, is_legacy=HAS_LEGACY_HEADER)
         tag_stream.write(tag_block_header_stream.getvalue())
@@ -1756,8 +1755,8 @@ def h1_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "merged_output")
     merged_defs = tag_definitions.generate_h1_defs(tag_common.h1_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\levels\a10\a10e.scenario_structure_bsp"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\tag2.scenario_structure_bsp"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\camera\airplane_large_loose.camera_track"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\tag2.camera_track"
 
     tag_dict = read_file(merged_defs, read_path, file_endian=">")
     with open(os.path.join(os.path.dirname(output_path), "%s.json" % os.path.basename(output_path).rsplit(".", 1)[0]), 'w', encoding ='utf8') as json_file:
@@ -1815,55 +1814,57 @@ def h1_directory():
         for root, dirs, files in os.walk(input_dir):
             for file in files:
                 read_path = os.path.join(root, file)
-                print(read_path)
-                rel_path = os.path.relpath(read_path, input_dir)
-                output_dir = os.path.join(output_base_dir, os.path.dirname(rel_path))
-                os.makedirs(output_dir, exist_ok=True)
-                output_path = os.path.join(output_dir, file)
-
-                try:
-                    tag_dict = read_file(merged_defs, read_path, file_endian=">")
-                    
-                    if DUMP_JSON:
-                        try:
-                            json_filename = os.path.basename(output_path).rsplit(".", 1)[0] + ".json"
-                            json_path = os.path.join(output_dir, json_filename)
-                            with open(json_path, 'w', encoding='utf8') as json_file:
-                                json.dump(tag_dict, json_file, ensure_ascii=True, indent=4)
-                        except Exception as e:
-                            log_file.write(f"\nJSON Write Error:\n"
-                                           f"  File: {json_path}\n"
-                                           f"  Error: {type(e).__name__}: {e}\n"
-                                           f"  While writing JSON for parsed tag.\n")
-                            traceback.print_exc(file=log_file)
+                tag_extension = read_path.rsplit(".", 1)[1]
+                if tag_common.h1_tag_extensions.get(tag_extension):
+                    print(read_path)
+                    rel_path = os.path.relpath(read_path, input_dir)
+                    output_dir = os.path.join(output_base_dir, os.path.dirname(rel_path))
+                    os.makedirs(output_dir, exist_ok=True)
+                    output_path = os.path.join(output_dir, file)
 
                     try:
-                        write_file(merged_defs,tag_dict,obfuscation_buffer,output_path,file_endian=">",engine_tag=EngineTag.H1.value)
+                        tag_dict = read_file(merged_defs, read_path, file_endian=">")
                         
-                        # Hash check after write
-                        original_hash = compute_file_hash(read_path)
-                        output_hash = compute_file_hash(output_path)
-                        if original_hash != output_hash:
-                            log_file.write(f"\nHash Mismatch:\n"
-                                           f"  File: {file}\n"
-                                           f"  Read Path: {read_path}\n"
-                                           f"  Output Path: {output_path}\n"
-                                           f"  Original Hash: {original_hash}\n"
-                                           f"  Output Hash:   {output_hash}\n"
-                                           f"  The recompiled file differs from the original.\n")
-                    except Exception as e:
-                        log_file.write(f"\nWrite File Error:\n"
-                                       f"  File: {output_path}\n"
-                                       f"  Error: {type(e).__name__}: {e}\n"
-                                       f"  While writing tag file after parsing.\n")
-                        traceback.print_exc(file=log_file)
+                        if DUMP_JSON:
+                            try:
+                                json_filename = os.path.basename(output_path).rsplit(".", 1)[0] + ".json"
+                                json_path = os.path.join(output_dir, json_filename)
+                                with open(json_path, 'w', encoding='utf8') as json_file:
+                                    json.dump(tag_dict, json_file, ensure_ascii=True, indent=4)
+                            except Exception as e:
+                                log_file.write(f"\nJSON Write Error:\n"
+                                            f"  File: {json_path}\n"
+                                            f"  Error: {type(e).__name__}: {e}\n"
+                                            f"  While writing JSON for parsed tag.\n")
+                                traceback.print_exc(file=log_file)
 
-                except Exception as e:
-                    log_file.write(f"\nParse Error:\n"
-                                   f"  File: {read_path}\n"
-                                   f"  Error: {type(e).__name__}: {e}\n"
-                                   f"  While parsing tag file.\n")
-                    traceback.print_exc(file=log_file)
+                        try:
+                            write_file(merged_defs,tag_dict,obfuscation_buffer,output_path,file_endian=">",engine_tag=EngineTag.H1.value)
+                            
+                            # Hash check after write
+                            original_hash = compute_file_hash(read_path)
+                            output_hash = compute_file_hash(output_path)
+                            if original_hash != output_hash:
+                                log_file.write(f"\nHash Mismatch:\n"
+                                            f"  File: {file}\n"
+                                            f"  Read Path: {read_path}\n"
+                                            f"  Output Path: {output_path}\n"
+                                            f"  Original Hash: {original_hash}\n"
+                                            f"  Output Hash:   {output_hash}\n"
+                                            f"  The recompiled file differs from the original.\n")
+                        except Exception as e:
+                            log_file.write(f"\nWrite File Error:\n"
+                                        f"  File: {output_path}\n"
+                                        f"  Error: {type(e).__name__}: {e}\n"
+                                        f"  While writing tag file after parsing.\n")
+                            traceback.print_exc(file=log_file)
+
+                    except Exception as e:
+                        log_file.write(f"\nParse Error:\n"
+                                    f"  File: {read_path}\n"
+                                    f"  Error: {type(e).__name__}: {e}\n"
+                                    f"  While parsing tag file.\n")
+                        traceback.print_exc(file=log_file)
 
 def h2_directory():
     input_dir = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags"
@@ -1884,7 +1885,7 @@ def h2_directory():
             for file in files:
                 read_path = os.path.join(root, file)
                 tag_extension = read_path.rsplit(".", 1)[1]
-                if tag_common.h1_tag_extensions.get(tag_extension):
+                if tag_common.h2_tag_extensions.get(tag_extension):
                     print(read_path)
                     rel_path = os.path.relpath(read_path, input_dir)
                     output_dir = os.path.join(output_base_dir, os.path.dirname(rel_path))
