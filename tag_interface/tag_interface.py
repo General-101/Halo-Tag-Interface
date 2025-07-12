@@ -94,11 +94,11 @@ HAS_LEGACY_HEADER = False
 
 DUMP_JSON = False
 
-GENERATE_CHECKSUM = True
-CONVERT_RADIANS = True
-PRESERVE_STRINGS = False
-PRESERVE_PADDING = False
-PRESERVE_VERSION = False
+GENERATE_CHECKSUM = False
+CONVERT_RADIANS = False
+PRESERVE_STRINGS = True
+PRESERVE_PADDING = True
+PRESERVE_VERSION = True
 
 def read_field_header(tag_stream, field_endian="<", is_legacy=False):
     pack_string = "4s3i"
@@ -291,7 +291,7 @@ def uppercase_struct_letters(struct_string):
             result.append(char)
     return ''.join(result)
 
-def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_value, field_node, tag_block_fields, block_idx=0):
+def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_value, field_node, tag_block_fields, block_idx=0, struct_offset=0):
     result = None
     field_tag = field_node.tag
     field_attrib = field_node.attrib
@@ -304,11 +304,8 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
 
     field_default = 0
     field_size = 0
-    unread_data_size = (((block_idx + 1) * tag_block_header["size"])) - block_stream.tell() 
-    if FILE_MODE == FileModeEnum.write:
-        if block_stream.tell() -16 >= ((block_idx + 1) * tag_block_header["size"]):
-            return None
 
+    unread_data_size = (((block_idx + 1) * tag_block_header["size"])) - (block_stream.tell() - struct_offset)
     if field_tag == "Angle":
         field_default = 0.0
         field_size = 4
@@ -323,13 +320,14 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                     result = degrees(result)
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                if CONVERT_RADIANS:
-                    result = radians(result)
-                block_stream.write(struct.pack(struct_string, result))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    if CONVERT_RADIANS:
+                        result = radians(result)
+                    block_stream.write(struct.pack(struct_string, result))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "AngleBounds":
         field_default = (0.0, 0.0)
         field_size = 8
@@ -344,14 +342,15 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                     result = tuple(degrees(x) for x in result)
             set_bounds_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                result = result.values()
-                if CONVERT_RADIANS:
-                    result = map(radians, result)
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    result = result.values()
+                    if CONVERT_RADIANS:
+                        result = map(radians, result)
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "ArgbColor":
         field_default = (0, 0, 0, 0)
         field_size = 4
@@ -364,11 +363,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size)) 
             set_color_result(field_key, tag_block_fields, result, True)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result.values()))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result.values()))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "Block":
         field_default = (0, 0, 0)
         field_size = 12
@@ -414,72 +414,86 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
 
                     for layout in field_node:
                         block_field_set = layout[current_tag_block_header["version"]]
+                        start_pos = current_block_stream.tell()
                         for block_field_node in block_field_set:
-                            get_fields(tag_stream, current_block_stream, tag_header, current_tag_block_header, None, block_field_node, tag_block_element, block_idx)
+                            get_fields(tag_stream, current_block_stream, tag_header, current_tag_block_header, None, block_field_node, tag_block_element, block_idx, struct_offset)
 
-                    read_size = current_block_stream.tell() % current_tag_block_header["size"]
-                    if read_size > 0:
-                        current_block_stream.read(current_tag_block_header["size"] - read_size)
+                        current_read_size =  current_tag_block_header["size"] - (current_block_stream.tell() - start_pos)
+                        if current_read_size > 0:
+                            leftover_data = current_block_stream.read(current_read_size)
+                            set_encoded_result("LeftOverData_%s" % field_key, tag_block_element, leftover_data)
 
         else:
-            result = get_result(field_key, tag_block_fields)
-            unk1 = 0
-            unk2 = 0
-            tag_block_padding = tag_block_fields.get("TagBlock_%s" % field_key)
-            if tag_block_padding is not None and PRESERVE_PADDING:
-                unk1, unk2 = tag_block_padding.values()
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, len(result), unk1, unk2))
-            else:
-                block_stream.write(struct.pack(struct_string, 0, unk1, unk2))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                unk1 = 0
+                unk2 = 0
+                tag_block_padding = tag_block_fields.get("TagBlock_%s" % field_key)
+                if tag_block_padding is not None and PRESERVE_PADDING:
+                    unk1, unk2 = tag_block_padding.values()
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, len(result), unk1, unk2))
+                else:
+                    block_stream.write(struct.pack(struct_string, 0, unk1, unk2))
 
-            block_field_set = None
-            current_block = tag_block_fields.get(field_node.get("name"))
-            current_field_header_data = tag_block_fields.get("TagBlockHeader_%s" % field_key)
-            if current_field_header_data is None or not PRESERVE_VERSION:
-                for layout in field_node:
-                    for field_set in layout:
-                        if bool(field_set.attrib.get('isLatest')):
-                            block_field_set = field_set
+                block_field_set = None
+                current_block = tag_block_fields.get(field_node.get("name"))
+                current_field_header_data = tag_block_fields.get("TagBlockHeader_%s" % field_key)
+                if current_field_header_data is None or not PRESERVE_VERSION:
+                    for layout in field_node:
+                        for field_set in layout:
+                            if bool(field_set.attrib.get('isLatest')):
+                                block_field_set = field_set
 
-                if block_field_set is None:
-                    raise ValueError(f"Latest field set not found.")
+                    if block_field_set is None:
+                        raise ValueError(f"Latest field set not found.")
 
-                current_version = int(block_field_set.attrib.get('version'))
-                current_size = int(block_field_set.attrib.get('sizeofValue'))
-                current_field_header_data = {"name": "tbfd", "version": current_version, "size": current_size}
-            else:
-                for layout in field_node:
-                    for field_set in layout:
-                        if int(field_set.attrib.get('version')) == current_field_header_data["version"]:
-                            block_field_set = field_set
-                if block_field_set is None:
-                    raise ValueError(f"Latest field set not found.")
+                    current_version = int(block_field_set.attrib.get('version'))
+                    current_size = int(block_field_set.attrib.get('sizeofValue'))
+                    current_field_header_data = {"name": "tbfd", "version": current_version, "size": current_size}
+                else:
+                    for layout in field_node:
+                        for field_set in layout:
+                            if int(field_set.attrib.get('version')) == current_field_header_data["version"]:
+                                block_field_set = field_set
+                    if block_field_set is None:
+                        raise ValueError(f"Latest field set not found.")
 
-            if current_block is not None:
-                tag_block_header_size = 16
-                if HAS_LEGACY_HEADER:
-                    tag_block_header_size = 12
+                if current_block is not None:
+                    tag_block_header_size = 16
+                    if HAS_LEGACY_HEADER:
+                        tag_block_header_size = 12
 
-                current_block_count = len(current_block)
-                if current_block_count > 0:
-                    if tag_header["engine tag"] == EngineTag.H1.value:
+                    current_block_count = len(current_block)
+                    if current_block_count > 0:
                         initial_size = (current_block_count * current_field_header_data["size"])
                         current_block_stream = io.BytesIO(b"\x00" * initial_size)
-                    else:
-                        initial_size = (current_block_count * current_field_header_data["size"]) + tag_block_header_size
-                        current_block_stream = io.BytesIO(b"\x00" * initial_size)
-                        write_field_header(current_field_header_data, current_block_count, current_block_stream, is_legacy=HAS_LEGACY_HEADER)
+                        for block_idx, block_element in enumerate(current_block):
+                            for field_node in block_field_set:
+                                get_fields(tag_stream, current_block_stream, tag_header, current_field_header_data, block_element.get(field_node.get("name")), field_node, block_element, block_idx)
 
-                    for block_idx, block_element in enumerate(current_block):
-                        for field_node in block_field_set:
-                            get_fields(tag_stream, current_block_stream, tag_header, current_field_header_data, block_element.get(field_node.get("name")), field_node, block_element, block_idx)
+                            leftover_data = get_result("LeftOverData_%s" % field_key, block_element)
+                            if leftover_data is not None:
+                                if PRESERVE_PADDING:
+                                    leftover_bytes = base64.b64decode(leftover_data)
+                                    current_block_stream.write(leftover_bytes)
+                                else:
+                                    current_block_stream.write(bytes(len(leftover_bytes)))
 
-                    pos = block_stream.tell()
-                    block_stream.seek(0, io.SEEK_END)  
-                    current_block_stream.seek(0)
-                    block_stream.write(current_block_stream.getvalue())
-                    block_stream.seek(pos)
+                        pos = block_stream.tell()
+                        block_stream.seek(0, io.SEEK_END)  
+                        current_block_stream.seek(0)
+                        if tag_header["engine tag"] == EngineTag.H1.value:
+                            block_stream.write(current_block_stream.getvalue())
+                            block_stream.seek(pos)
+                        else:
+                            combined_stream = io.BytesIO()
+                            tag_block_header_stream = io.BytesIO(b"\x00" * tag_block_header_size)
+                            write_field_header(current_field_header_data, current_block_count, tag_block_header_stream, is_legacy=HAS_LEGACY_HEADER)
+                            combined_stream.write(tag_block_header_stream.getvalue())
+                            combined_stream.write(current_block_stream.getvalue())
+                            block_stream.write(combined_stream.getvalue())
+                            block_stream.seek(pos)
     elif field_tag == "ByteFlags":
         field_default = 0
         field_size = 1
@@ -492,11 +506,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CharBlockIndex":
         field_default = 0
         field_size = 1
@@ -509,11 +524,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CharEnum":
         field_default = 0
         field_size = 1
@@ -526,11 +542,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_enum_result(field_key, field_node, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result["value"]))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result["value"]))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CharInteger":
         field_default = 0
         field_size = 1
@@ -543,11 +560,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CustomLongBlockIndex":
         field_default = 0
         field_size = 4
@@ -560,11 +578,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:    
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CustomShortBlockIndex":
         field_default = 0
         field_size = 2
@@ -577,11 +596,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:    
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "Data":
         field_default = (0, 0, 0, 0, 0)
         field_size = 20
@@ -593,25 +613,25 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             result = field_default
             if not unread_data_size < field_size:
                 result = struct.unpack(struct_string, block_stream.read(20))
-
             set_data_result(field_key, tag_block_fields, tag_stream, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                length, unk1, unk2, unk3, unk4, encoded = result.values()
-                byte_data = base64.b64decode(encoded)
-                if PRESERVE_PADDING:
-                    block_stream.write(struct.pack(struct_string, len(byte_data), unk1, unk2, unk3, unk4))
-                else:
-                    block_stream.write(struct.pack(struct_string, len(byte_data), 0, 0, 0, 0))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    length, unk1, unk2, unk3, unk4, encoded = result.values()
+                    byte_data = base64.b64decode(encoded)
+                    if PRESERVE_PADDING:
+                        block_stream.write(struct.pack(struct_string, len(byte_data), unk1, unk2, unk3, unk4))
+                    else:
+                        block_stream.write(struct.pack(struct_string, len(byte_data), 0, 0, 0, 0))
+                        
+                    pos = block_stream.tell()
+                    block_stream.seek(0, io.SEEK_END)  
+                    block_stream.write(byte_data)
+                    block_stream.seek(pos)
                     
-                pos = block_stream.tell()
-                block_stream.seek(0, io.SEEK_END)  
-                block_stream.write(byte_data)
-                block_stream.seek(pos)
-                
-            else:
-                block_stream.write(struct.pack(struct_string, 0, 0, 0, 0, 0))
+                else:
+                    block_stream.write(struct.pack(struct_string, 0, 0, 0, 0, 0))
     elif field_tag == "LongBlockIndex":
         field_default = 0
         field_size = 4
@@ -624,11 +644,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:    
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "LongEnum":
         field_default = 0
         field_size = 4
@@ -641,11 +662,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_enum_result(field_key, field_node, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result["value"]))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result["value"]))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "LongFlags":
         field_default = 0
         field_size = 4
@@ -658,11 +680,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "LongInteger":
         field_default = 0
         field_size = 4
@@ -675,11 +698,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "LongString":
         field_default = ""
         field_size = 256
@@ -690,11 +714,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = read_variable_string(block_stream, field_size, endian_override, terminator_length=1, append_terminator=False)
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
-            else:
-                write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
+                else:
+                    write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
     elif field_tag == "OldStringId":
         field_default = 0
         field_resource_default = ""
@@ -717,29 +742,30 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             set_result("%s_pad" % field_key, tag_block_fields, string_pad)
             set_result(field_key, tag_block_fields, result)
         else:
-            string_pad = get_result("%s_pad" % field_key, tag_block_fields)
-            if result is not None:
-                string_pad = 0
-            result = get_result(field_key, tag_block_fields)
-            if HAS_LEGACY_STRINGS:
+            if not unread_data_size < field_size:
+                string_pad = get_result("%s_pad" % field_key, tag_block_fields)
                 if result is not None:
-                    write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
-                else:
-                    write_variable_string(block_stream, field_resource_default, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
-            else:
-                if result is not None:
-                    if PRESERVE_STRINGS:
-                        length = len(base64.b64decode(result).decode('utf-8', 'replace').split('\x00', 1)[0].strip('\x20'))
+                    string_pad = 0
+                result = get_result(field_key, tag_block_fields)
+                if HAS_LEGACY_STRINGS:
+                    if result is not None:
+                        write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
                     else:
-                        length = len(result)
-
-                    block_stream.write(struct.pack(struct_string, string_pad, length))
-                    pos = block_stream.tell()
-                    block_stream.seek(0, io.SEEK_END)  
-                    write_variable_string(block_stream, result, ">", fixed_length=len(result), terminator_length=0, append_terminator=False)
-                    block_stream.seek(pos)
+                        write_variable_string(block_stream, field_resource_default, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
                 else:
-                    block_stream.write(struct.pack(struct_string, field_default))
+                    if result is not None:
+                        if PRESERVE_STRINGS:
+                            length = len(base64.b64decode(result).decode('utf-8', 'replace').split('\x00', 1)[0].strip('\x20'))
+                        else:
+                            length = len(result)
+
+                        block_stream.write(struct.pack(struct_string, string_pad, length))
+                        pos = block_stream.tell()
+                        block_stream.seek(0, io.SEEK_END)  
+                        write_variable_string(block_stream, result, ">", fixed_length=len(result), terminator_length=0, append_terminator=False)
+                        block_stream.seek(pos)
+                    else:
+                        block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "Pad":
         field_size = 0
         tag_attribute = field_attrib.get("tag")
@@ -754,12 +780,13 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             if PRESERVE_PADDING:
                 set_encoded_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None and PRESERVE_PADDING:
-                byte_data = base64.b64decode(result)
-                block_stream.write(fit_bytes_to_length(byte_data, field_size))
-            else:
-                block_stream.write(field_default)
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None and PRESERVE_PADDING:
+                    byte_data = base64.b64decode(result)
+                    block_stream.write(fit_bytes_to_length(byte_data, field_size))
+                else:
+                    block_stream.write(field_default)
     elif field_tag == "Point2D":
         field_default = (0, 0)
         field_size = 4
@@ -772,11 +799,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "Ptr":
         field_default = bytes(4)
         field_size = 4
@@ -787,12 +815,13 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             if PRESERVE_PADDING:
                 set_encoded_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None and PRESERVE_PADDING:
-                byte_data = base64.b64decode(result)
-                block_stream.write(fit_bytes_to_length(byte_data, field_size))
-            else:
-                block_stream.write(field_default)
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None and PRESERVE_PADDING:
+                    byte_data = base64.b64decode(result)
+                    block_stream.write(fit_bytes_to_length(byte_data, field_size))
+                else:
+                    block_stream.write(field_default)
     elif field_tag == "Real":
         field_default = 0.0
         field_size = 4
@@ -805,11 +834,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "RealArgbColor":
         field_default = (0.0, 0.0, 0.0, 0.0)
         field_size = 16
@@ -822,11 +852,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size)) 
             set_color_result(field_key, tag_block_fields, result, True)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result.values()))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result.values()))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealBounds":
         field_default = (0.0, 0.0)
         field_size = 8
@@ -839,14 +870,15 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_bounds_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                if not isinstance(result, dict):
-                    result = {"Min": result, "Max": result}
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    if not isinstance(result, dict):
+                        result = {"Min": result, "Max": result}
 
-                block_stream.write(struct.pack(struct_string, *result.values()))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+                    block_stream.write(struct.pack(struct_string, *result.values()))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealEulerAngles2D":
         field_default = (0.0, 0.0)
         field_size = 8
@@ -861,13 +893,14 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                     result = tuple(degrees(x) for x in result)
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                if CONVERT_RADIANS:
-                    result = map(radians, result)
-                block_stream.write(struct.pack(struct_string, *result))
-            else:
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    if CONVERT_RADIANS:
+                        result = map(radians, result)
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealEulerAngles3D":
         field_default = (0.0, 0.0, 0.0)
         field_size = 12
@@ -882,13 +915,14 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                     result = tuple(degrees(x) for x in result)
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                if CONVERT_RADIANS:
-                    result = map(radians, result)
-                block_stream.write(struct.pack(struct_string, *result))
-            else:
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    if CONVERT_RADIANS:
+                        result = map(radians, result)
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealFraction":
         field_default = 0.0
         field_size = 4
@@ -901,11 +935,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]  
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "RealFractionBounds":
         field_default = (0.0, 0.0)
         field_size = 8
@@ -918,11 +953,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size))) 
             set_bounds_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result.values()))
-            else:
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result.values()))
+                else:
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealPlane2D":
         field_default = (0.0, 0.0, 0.0)
         field_size = 12
@@ -935,11 +971,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealPlane3D":
         field_default = (0.0, 0.0, 0.0, 0.0)
         field_size = 16
@@ -952,11 +989,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealPoint2D":
         field_default = (0.0, 0.0)
         field_size = 8
@@ -969,11 +1007,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealPoint3D":
         field_default = (0.0, 0.0, 0.0)
         field_size = 12
@@ -986,11 +1025,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealQuaternion":
         field_default = (0.0, 0.0, 0.0, 0.0)
         field_size = 16
@@ -1003,11 +1043,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealRgbColor":
         field_default = (0.0, 0.0, 0.0)
         field_size = 12
@@ -1020,11 +1061,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_color_result(field_key, tag_block_fields, result, False)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result.values()))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result.values()))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealVector2D":
         field_default = (0.0, 0.0)
         field_size = 8
@@ -1037,11 +1079,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))  
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RealVector3D":
         field_default = (0.0, 0.0, 0.0)
         field_size = 12
@@ -1054,11 +1097,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "Rectangle2D":
         field_default = (0, 0, 0, 0)
         field_size = 8
@@ -1071,11 +1115,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "RgbColor":
         field_default = (0, 0, 0)
         field_size = 4
@@ -1089,14 +1134,15 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             set_color_result(field_key, tag_block_fields, result, False)
             set_result("%s_pad" % field_key, tag_block_fields, color_pad)
         else:
-            result = get_result(field_key, tag_block_fields)
-            color_pad_result = get_result("%s_pad" % field_key, tag_block_fields)
-            if color_pad_result is None or not PRESERVE_PADDING:
-                color_pad_result = 0
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *reversed(result.values()), color_pad_result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default, color_pad_result))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                color_pad_result = get_result("%s_pad" % field_key, tag_block_fields)
+                if color_pad_result is None or not PRESERVE_PADDING:
+                    color_pad_result = 0
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *reversed(result.values()), color_pad_result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default, color_pad_result))
     elif field_tag == "ShortBlockIndex":
         field_default = 0
         field_size = 2
@@ -1109,11 +1155,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:    
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "ShortBounds":
         field_default = (0, 0)
         field_size = 4
@@ -1126,11 +1173,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_bounds_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *[round(v) for v in result.values()]))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *[round(v) for v in result.values()]))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
     elif field_tag == "ShortEnum":
         field_default = 0
         field_size = 2
@@ -1143,11 +1191,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_enum_result(field_key, field_node, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result["value"]))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result["value"]))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "ShortInteger":
         field_default = 0
         field_size = 2
@@ -1160,11 +1209,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0]
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, round(result)))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, round(result)))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "Skip":
         field_size = 0
         tag_attribute = field_attrib.get("tag")
@@ -1179,12 +1229,13 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             if PRESERVE_PADDING:
                 set_encoded_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None and PRESERVE_PADDING:
-                byte_data = base64.b64decode(result)
-                block_stream.write(fit_bytes_to_length(byte_data, field_size))
-            else:
-                block_stream.write(field_default)
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None and PRESERVE_PADDING:
+                    byte_data = base64.b64decode(result)
+                    block_stream.write(fit_bytes_to_length(byte_data, field_size))
+                else:
+                    block_stream.write(field_default)
     elif field_tag == "String":
         field_default = ""
         field_size = 32
@@ -1195,11 +1246,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = read_variable_string(block_stream, field_size, endian_override, terminator_length=1, append_terminator=False)
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
-            else:
-                write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
+                else:
+                    write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=1, append_terminator=False)
     elif field_tag == "StringId":
         field_default = 0
         field_resource_default = ""
@@ -1215,59 +1267,73 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             set_result("%s_pad" % field_key, tag_block_fields, string_pad)
             set_result(field_key, tag_block_fields, result)
         else:
-            string_pad = get_result("%s_pad" % field_key, tag_block_fields)
-            if result is not None:
-                string_pad = 0
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                if PRESERVE_STRINGS:
-                    length = len(base64.b64decode(result).decode('utf-8', 'replace').split('\x00', 1)[0].strip('\x20'))
+            if not unread_data_size < field_size:
+                string_pad = get_result("%s_pad" % field_key, tag_block_fields)
+                if string_pad is None:
+                    string_pad = 0
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    if PRESERVE_STRINGS:
+                        length = len(base64.b64decode(result))
+                    else:
+                        length = len(result)
+                    block_stream.write(struct.pack(struct_string, string_pad, length))
+                    pos = block_stream.tell()
+                    block_stream.seek(0, io.SEEK_END)  
+                    write_variable_string(block_stream, result, ">", fixed_length=length, terminator_length=0, append_terminator=False)
+                    block_stream.seek(pos)
                 else:
-                    length = len(result)
-
-                block_stream.write(struct.pack(struct_string, string_pad, length))
-                pos = block_stream.tell()
-                block_stream.seek(0, io.SEEK_END)  
-                write_variable_string(block_stream, result, ">", fixed_length=length, terminator_length=0, append_terminator=False)
-                block_stream.seek(pos)
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+                    block_stream.write(struct.pack(struct_string, string_pad, field_default))
     elif field_tag == "Struct":
         field_default = 0
         field_size = 0
         if FILE_MODE == FileModeEnum.read:
-            read_struct = False
-            struct_version = 0
-            if tag_header["engine tag"] == EngineTag.H1.value:
-                read_struct = True
-            else:
+            struct_header = None
+            store_header = False
+            if not tag_header["engine tag"] == EngineTag.H1.value:
                 # We don't use field size here cause field size is used for the total read data in the block chunk. Structs come from the resource chunk written after block data. - Gen
                 pos = tag_stream.tell()
                 if not (os.stat(tag_stream.name).st_size - pos) < 16:
                     def_tag = field_node[0].get("tag")
-
                     struct_name, struct_version, struct_count, struct_size = read_field_header(tag_stream, is_legacy=HAS_LEGACY_HEADER)
-                    read_struct = True
                     if not def_tag == struct_name:
                         tag_stream.seek(pos)
-                        read_struct = False
-                        struct_version = 0
-                    if def_tag == "cmtb":
-                        read_struct = True
+                    else:
+                        store_header = True
+                        struct_header = {"name": struct_name, "version": struct_version, "size": struct_size}
 
-            if read_struct:
-                if not tag_header["engine tag"] == EngineTag.H1.value:
-                    tag_block_fields["StructHeader_%s" % field_node[0].get("regolithID")] = {"name": struct_name, "version": struct_version, "size": struct_size}
+            if struct_header is None:
+                struct_field_set = None
                 for struct_layout in field_node:
-                    struct_field_set = struct_layout[struct_version]
-                    for struct_field_node in struct_field_set:
-                        get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_value, struct_field_node, tag_block_fields, block_idx)
+                    for current_struct_field_set in struct_layout:
+                        if int(current_struct_field_set.attrib.get('version')) == 0:
+                            struct_field_set = current_struct_field_set
+
+                if struct_field_set is None:
+                    raise ValueError(f"Latest field set not found.")
+
+                struct_name = field_node[0].attrib.get('tag')
+                struct_version = int(struct_field_set.attrib.get('version'))
+                struct_count = 1
+                struct_size = int(struct_field_set.attrib.get('sizeofValue'))
+                struct_header = {"name": struct_name, "version": struct_version, "size": struct_size}
+
+            if store_header:
+                tag_block_fields["StructHeader_%s" % field_node[0].get("regolithID")] = struct_header
+
+            struct_offset = block_stream.tell()
+            if unread_data_size < struct_header["size"]:
+                struct_header["size"] = unread_data_size
+            for struct_layout in field_node:
+                struct_field_set = struct_layout[struct_version]
+                for struct_field_node in struct_field_set:
+                    get_fields(tag_stream, block_stream, tag_header, struct_header, field_value, struct_field_node, tag_block_fields, block_idx, struct_offset)
 
         else:
+            has_header = False
             current_struct_field_set = None
-            struct_count = 1
-            current_sruct_field_header_data = tag_block_fields.get("StructHeader_%s" % field_node[0].get("regolithID"))
-            if current_sruct_field_header_data is None or not PRESERVE_VERSION:
+            struct_header = tag_block_fields.get("StructHeader_%s" % field_node[0].get("regolithID"))
+            if not PRESERVE_VERSION:
                 for layout in field_node:
                     for struct_field_set in layout:
                         if bool(struct_field_set.attrib.get('isLatest')):
@@ -1279,24 +1345,43 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 struct_name = field_node[0].get("tag")
                 struct_version = int(current_struct_field_set.get("version"))
                 struct_size = int(current_struct_field_set.get("sizeofValue"))
-                current_sruct_field_header_data = {"name": struct_name, "version": struct_version, "size": struct_size}
+                struct_header = {"name": struct_name, "version": struct_version, "size": struct_size}
             else:
-                for layout in field_node:
-                    for struct_field_set in layout:
-                        if int(struct_field_set.attrib.get('version')) == current_sruct_field_header_data["version"]:
-                            current_struct_field_set = struct_field_set
-                if current_struct_field_set is None:
-                    raise ValueError(f"field set not found.")
+                if struct_header is not None:
+                    has_header = True
+                    for layout in field_node:
+                        for struct_field_set in layout:
+                            if int(struct_field_set.attrib.get('version')) == struct_header["version"]:
+                                current_struct_field_set = struct_field_set
 
-            if not tag_header["engine tag"] == EngineTag.H1.value:
+                    if current_struct_field_set is None:
+                        raise ValueError(f"field set not found.")
+                else:
+                    for layout in field_node:
+                        for struct_field_set in layout:
+                            if int(struct_field_set.attrib.get('version')) == 0:
+                                current_struct_field_set = struct_field_set
+
+                    if current_struct_field_set is None:
+                        raise ValueError(f"Latest field set not found.")
+
+                    struct_name = field_node[0].attrib.get('tag')
+                    struct_version = int(current_struct_field_set.attrib.get('version'))
+                    struct_size = int(current_struct_field_set.attrib.get('sizeofValue'))
+                    struct_header = {"name": struct_name, "version": struct_version, "size": struct_size}
+
+            if not tag_header["engine tag"] == EngineTag.H1.value and has_header:
                 pos = block_stream.tell()
-                block_stream.seek(0, io.SEEK_END)  
-                write_field_header(current_sruct_field_header_data, struct_count, block_stream, is_legacy=HAS_LEGACY_HEADER)
+                block_stream.seek(0, io.SEEK_END)
+                write_field_header(struct_header, 1, block_stream, is_legacy=HAS_LEGACY_HEADER)
                 block_stream.seek(pos)
 
-            if struct_count > 0:
-                for struct_field_node in current_struct_field_set:
-                    get_fields(tag_stream, block_stream, tag_header, tag_block_header, tag_block_fields.get(struct_field_node.get("name")), struct_field_node, tag_block_fields, block_idx)
+            struct_offset=block_stream.tell()
+            struct_offset = block_stream.tell()
+            if unread_data_size < struct_header["size"]:
+                struct_header["size"] = unread_data_size
+            for struct_field_node in current_struct_field_set:
+                get_fields(tag_stream, block_stream, tag_header, struct_header, tag_block_fields.get(struct_field_node.get("name")), struct_field_node, tag_block_fields, block_idx, struct_offset)
     elif field_tag == "Tag":
         field_default = ""
         field_size = 4
@@ -1307,11 +1392,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = read_variable_string(block_stream, field_size, endian_override, terminator_length=0)
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=0, append_terminator=False)
-            else:
-                write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=0, append_terminator=False)
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=0, append_terminator=False)
+                else:
+                    write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=0, append_terminator=False)
     elif field_tag == "TagReference":
         field_default = ("", 0, 0, 0, "")
         field_size = 16
@@ -1336,29 +1422,30 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (tag_group, unk1, length, unk2, path)
             set_tag_reference_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                tag_group, unk1, length, unk2, path = result.values()
-                if not PRESERVE_PADDING:
-                    unk1 = 0
-                    unk2 = 0
-                if PRESERVE_STRINGS:
-                    length = len(base64.b64decode(path).decode('utf-8', 'replace').split('\x00', 1)[0].strip('\x20'))
-                else:
-                    length = len(path)
-                if tag_group == None:
-                    tag_group = -1
-                    block_stream.write(struct.pack(struct_default_string, tag_group, unk1, length, unk2))
-                else:
-                    tag_group = string_to_bytes(tag_group, endian_override)
-                    block_stream.write(struct.pack(struct_string, tag_group, unk1, length, unk2))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    tag_group, unk1, length, unk2, path = result.values()
+                    if not PRESERVE_PADDING:
+                        unk1 = 0
+                        unk2 = 0
+                    if PRESERVE_STRINGS:
+                        length = len(base64.b64decode(path).decode('utf-8', 'replace').split('\x00', 1)[0].strip('\x20'))
+                    else:
+                        length = len(path)
+                    if tag_group == None:
+                        tag_group = -1
+                        block_stream.write(struct.pack(struct_default_string, tag_group, unk1, length, unk2))
+                    else:
+                        tag_group = string_to_bytes(tag_group, endian_override)
+                        block_stream.write(struct.pack(struct_string, tag_group, unk1, length, unk2))
 
-                pos = block_stream.tell()
-                block_stream.seek(0, io.SEEK_END)
-                write_variable_string(block_stream, path, ">", fixed_length=length, terminator_length=1, append_terminator=True)
-                block_stream.seek(pos)
-            else:
-                block_stream.write(struct.pack(struct_default_string, -1, 0, 0, 0))
+                    pos = block_stream.tell()
+                    block_stream.seek(0, io.SEEK_END)
+                    write_variable_string(block_stream, path, ">", fixed_length=length, terminator_length=1, append_terminator=True)
+                    block_stream.seek(pos)
+                else:
+                    block_stream.write(struct.pack(struct_default_string, -1, 0, 0, 0))
     elif field_tag == "UselessPad":
         field_size = 0
         if HAS_LEGACY_PADDING:
@@ -1372,13 +1459,14 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             if PRESERVE_PADDING:
                 set_encoded_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if HAS_LEGACY_PADDING:
-                if result is not None and PRESERVE_PADDING:
-                    byte_data = base64.b64decode(result)
-                    block_stream.write(fit_bytes_to_length(byte_data, field_size))
-                else:
-                    block_stream.write(field_default)
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if HAS_LEGACY_PADDING:
+                    if result is not None and PRESERVE_PADDING:
+                        byte_data = base64.b64decode(result)
+                        block_stream.write(fit_bytes_to_length(byte_data, field_size))
+                    else:
+                        block_stream.write(field_default)
     elif field_tag == "VertexBuffer":
         field_default = bytes(32)
         field_size = 32
@@ -1389,12 +1477,13 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             if PRESERVE_PADDING:
                 set_encoded_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None and PRESERVE_PADDING:
-                byte_data = base64.b64decode(result)
-                block_stream.write(fit_bytes_to_length(byte_data, field_size))
-            else:
-                block_stream.write(field_default)
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None and PRESERVE_PADDING:
+                    byte_data = base64.b64decode(result)
+                    block_stream.write(fit_bytes_to_length(byte_data, field_size))
+                else:
+                    block_stream.write(field_default)
     elif field_tag == "WordBlockFlags":
         field_default = 0
         field_size = 2
@@ -1407,11 +1496,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0] 
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "WordFlags":
         field_default = 0
         field_size = 2
@@ -1424,11 +1514,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = (struct.unpack(struct_string, block_stream.read(field_size)))[0] 
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, result))
-            else:
-                block_stream.write(struct.pack(struct_string, field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, result))
+                else:
+                    block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "Matrix3x3":
         field_default = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         field_size = 36
@@ -1441,11 +1532,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 result = struct.unpack(struct_string, block_stream.read(field_size))
             set_result(field_key, tag_block_fields, result)
         else:
-            result = get_result(field_key, tag_block_fields)
-            if result is not None:
-                block_stream.write(struct.pack(struct_string, *result))
-            else:    
-                block_stream.write(struct.pack(struct_string, *field_default))
+            if not unread_data_size < field_size:
+                result = get_result(field_key, tag_block_fields)
+                if result is not None:
+                    block_stream.write(struct.pack(struct_string, *result))
+                else:    
+                    block_stream.write(struct.pack(struct_string, *field_default))
 
 def read_file(merged_defs, file_path="", file_endian="<"):
     update_interface(FileModeEnum.read, file_endian)
@@ -1536,12 +1628,14 @@ def read_file(merged_defs, file_path="", file_endian="<"):
         for block_idx in range(block_count):
             for layout in tag_def:
                 field_set = layout[tag_block_header["version"]]
+                start_pos = block_stream.tell()
                 for field_node in field_set:
                     get_fields(tag_stream, block_stream, tag_header, tag_block_header, None, field_node, tag_dict["Data"], block_idx)
 
-            read_size = block_stream.tell() % tag_block_header["size"]
-            if read_size > 0:
-                block_stream.read(tag_block_header["size"] - read_size)
+                read_size =  tag_block_header["size"] - (block_stream.tell() - start_pos)
+                if read_size > 0:
+                    leftover_data = block_stream.read(read_size)
+                    set_encoded_result("LeftOverData_%s" % tag_extension, tag_dict["Data"], leftover_data)
 
         return tag_dict
 
@@ -1594,7 +1688,14 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
 
     block_field_set = None
     tag_block_header = tag_dict.get("TagBlockHeader_%s" % tag_extension)
-    if tag_block_header is None and not PRESERVE_VERSION:
+    if PRESERVE_VERSION:
+        if tag_block_header is not None:
+            for layout in tag_def:
+                for field_set in layout:
+                    if int(field_set.attrib.get('version')) == tag_block_header["version"]:
+                        block_field_set = field_set
+
+    if block_field_set is None:
         for layout in tag_def:
             for field_set in layout:
                 if bool(field_set.attrib.get('isLatest')):
@@ -1606,29 +1707,25 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
         version = int(block_field_set.attrib.get('version'))
         size = int(block_field_set.attrib.get('sizeofValue'))
         tag_block_header = tag_dict["TagBlockHeader_%s" % tag_extension] = {"name": "tbfd", "version": version, "size": size}
-    else:
-        for layout in tag_def:
-            for field_set in layout:
-                if int(field_set.attrib.get('version')) == tag_block_header["version"]:
-                    block_field_set = field_set
-        if block_field_set is None:
-            raise ValueError(f"Latest field set not found.")
 
     tag_block_header_size = 16
     if HAS_LEGACY_HEADER:
         tag_block_header_size = 12
 
-    if tag_header["engine tag"] == EngineTag.H1.value:
-        initial_size =  (1 * tag_block_header["size"])
-        block_stream = io.BytesIO(b"\x00" * initial_size)
-    else:
-        initial_size =  (1 * tag_block_header["size"]) + tag_block_header_size
-        block_stream = io.BytesIO(b"\x00" * initial_size)
-        write_field_header(tag_block_header, 1, block_stream, is_legacy=HAS_LEGACY_HEADER)
 
+    initial_size =  (1 * tag_block_header["size"])
+    block_stream = io.BytesIO(b"\x00" * initial_size)
     root = tag_dict["Data"]
     for field_node in block_field_set:
         get_fields(tag_stream, block_stream, tag_header, tag_block_header, root.get(field_node.get("name")), field_node, root, 0)
+
+    leftover_data = get_result("LeftOverData_%s" % tag_extension, tag_dict["Data"])
+    if leftover_data is not None:
+        if PRESERVE_PADDING:
+            leftover_bytes = base64.b64decode(leftover_data)
+            block_stream.write(leftover_bytes)
+        else:
+            block_stream.write(bytes(len(leftover_bytes)))
 
     if GENERATE_CHECKSUM:
         tag_header["checksum"] = checksum_calculate(block_stream.getvalue(), obfuscation_buffer)
@@ -1638,6 +1735,12 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
     tag_header["engine tag"] = string_to_bytes(tag_header["engine tag"], file_endian)
 
     tag_stream.write(struct.pack('%shbb32s4sIiiihbb4s' % file_endian, *tag_header.values()))
+
+    if not tag_header["engine tag"] == EngineTag.H1.value:
+        tag_block_header_stream = io.BytesIO(b"\x00" * tag_block_header_size)
+        write_field_header(tag_block_header, 1, tag_block_header_stream, is_legacy=HAS_LEGACY_HEADER)
+        tag_stream.write(tag_block_header_stream.getvalue())
+
     tag_stream.write(block_stream.getvalue())
     with open(file_path, "wb") as f:
         f.write(tag_stream.getvalue())
@@ -1677,8 +1780,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = tag_definitions.generate_h2_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\digsite\objects\characters\brute\promo\promo.model_animation_graph"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.model_animation_graph"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\effects\objects\weapons\pistol\plasma_pistol\plasma_bolt.light_volume"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.light_volume"
 
     tag_dict = read_file(merged_defs, read_path)
     with open(os.path.join(os.path.dirname(output_path), "%s.json" % os.path.basename(output_path).rsplit(".", 1)[0]), 'w', encoding ='utf8') as json_file:
@@ -1780,52 +1883,56 @@ def h2_directory():
         for root, dirs, files in os.walk(input_dir):
             for file in files:
                 read_path = os.path.join(root, file)
-                print(read_path)
-                rel_path = os.path.relpath(read_path, input_dir)
-                output_dir = os.path.join(output_base_dir, os.path.dirname(rel_path))
-                os.makedirs(output_dir, exist_ok=True)
-                output_path = os.path.join(output_dir, file)
-
-                try:
-                    tag_dict = read_file(merged_defs, read_path)
-                    
-                    if DUMP_JSON:
-                        try:
-                            json_filename = os.path.basename(output_path).rsplit(".", 1)[0] + ".json"
-                            json_path = os.path.join(output_dir, json_filename)
-                            with open(json_path, 'w', encoding='utf8') as json_file:
-                                json.dump(tag_dict, json_file, ensure_ascii=True, indent=4)
-                        except Exception as e:
-                            log_file.write(f"\nJSON Write Error:\n"
-                                           f"  File: {json_path}\n"
-                                           f"  Error: {type(e).__name__}: {e}\n"
-                                           f"  While writing JSON for parsed tag.\n")
-                            traceback.print_exc(file=log_file)
+                tag_extension = read_path.rsplit(".", 1)[1]
+                if tag_common.h1_tag_extensions.get(tag_extension):
+                    print(read_path)
+                    rel_path = os.path.relpath(read_path, input_dir)
+                    output_dir = os.path.join(output_base_dir, os.path.dirname(rel_path))
+                    os.makedirs(output_dir, exist_ok=True)
+                    output_path = os.path.join(output_dir, file)
 
                     try:
-                        write_file(merged_defs, tag_dict, obfuscation_buffer, output_path)
+                        tag_dict = read_file(merged_defs, read_path)
                         
-                        # Hash check after write
-                        original_hash = compute_file_hash(read_path)
-                        output_hash = compute_file_hash(output_path)
-                        if original_hash != output_hash:
-                            log_file.write(f"\nHash Mismatch:\n"
-                                           f"  File: {file}\n"
-                                           f"  Read Path: {read_path}\n"
-                                           f"  Output Path: {output_path}\n"
-                                           f"  Original Hash: {original_hash}\n"
-                                           f"  Output Hash:   {output_hash}\n"
-                                           f"  The recompiled file differs from the original.\n")
+                        if DUMP_JSON:
+                            try:
+                                json_filename = os.path.basename(output_path).rsplit(".", 1)[0] + ".json"
+                                json_path = os.path.join(output_dir, json_filename)
+                                with open(json_path, 'w', encoding='utf8') as json_file:
+                                    json.dump(tag_dict, json_file, ensure_ascii=True, indent=4)
+                            except Exception as e:
+                                log_file.write(f"\nJSON Write Error:\n"
+                                            f"  File: {json_path}\n"
+                                            f"  Error: {type(e).__name__}: {e}\n"
+                                            f"  While writing JSON for parsed tag.\n")
+                                traceback.print_exc(file=log_file)
+
+                        try:
+                            write_file(merged_defs, tag_dict, obfuscation_buffer, output_path)
+                            
+                            # Hash check after write
+                            original_hash = compute_file_hash(read_path)
+                            output_hash = compute_file_hash(output_path)
+                            if original_hash != output_hash:
+                                log_file.write(f"\nHash Mismatch:\n"
+                                            f"  File: {file}\n"
+                                            f"  Read Path: {read_path}\n"
+                                            f"  Output Path: {output_path}\n"
+                                            f"  Original Hash: {original_hash}\n"
+                                            f"  Output Hash:   {output_hash}\n"
+                                            f"  The recompiled file differs from the original.\n")
+                        except Exception as e:
+                            log_file.write(f"\nWrite File Error:\n"
+                                        f"  File: {output_path}\n"
+                                        f"  Error: {type(e).__name__}: {e}\n"
+                                        f"  While writing tag file after parsing.\n")
+                            traceback.print_exc(file=log_file)
+
                     except Exception as e:
-                        log_file.write(f"\nWrite File Error:\n"
-                                       f"  File: {output_path}\n"
-                                       f"  Error: {type(e).__name__}: {e}\n"
-                                       f"  While writing tag file after parsing.\n")
+                        log_file.write(f"\nParse Error:\n"
+                                    f"  File: {read_path}\n"
+                                    f"  Error: {type(e).__name__}: {e}\n"
+                                    f"  While parsing tag file.\n")
                         traceback.print_exc(file=log_file)
 
-                except Exception as e:
-                    log_file.write(f"\nParse Error:\n"
-                                   f"  File: {read_path}\n"
-                                   f"  Error: {type(e).__name__}: {e}\n"
-                                   f"  While parsing tag file.\n")
-                    traceback.print_exc(file=log_file)
+h2_directory()
