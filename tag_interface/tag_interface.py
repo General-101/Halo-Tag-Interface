@@ -416,7 +416,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                         block_field_set = layout[current_tag_block_header["version"]]
                         start_pos = current_block_stream.tell()
                         for block_field_node in block_field_set:
-                            get_fields(tag_stream, current_block_stream, tag_header, current_tag_block_header, None, block_field_node, tag_block_element, block_idx, struct_offset)
+                            get_fields(tag_stream, current_block_stream, tag_header, current_tag_block_header, None, block_field_node, tag_block_element, block_idx, 0)
 
                         current_read_size =  current_tag_block_header["size"] - (current_block_stream.tell() - start_pos)
                         if current_read_size > 0:
@@ -474,8 +474,8 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
 
                             leftover_data = get_result("LeftOverData_%s" % field_key, block_element)
                             if leftover_data is not None:
+                                leftover_bytes = base64.b64decode(leftover_data)
                                 if PRESERVE_PADDING:
-                                    leftover_bytes = base64.b64decode(leftover_data)
                                     current_block_stream.write(leftover_bytes)
                                 else:
                                     current_block_stream.write(bytes(len(leftover_bytes)))
@@ -1376,7 +1376,6 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 write_field_header(struct_header, 1, block_stream, is_legacy=HAS_LEGACY_HEADER)
                 block_stream.seek(pos)
 
-            struct_offset=block_stream.tell()
             struct_offset = block_stream.tell()
             if unread_data_size < struct_header["size"]:
                 struct_header["size"] = unread_data_size
@@ -1617,13 +1616,15 @@ def read_file(merged_defs, file_path="", file_endian="<"):
         if tag_header["engine tag"] == EngineTag.H1.value:
             version = int(latest_field_set.attrib.get('version'))
             size = int(latest_field_set.attrib.get('sizeofValue'))
-            tag_dict["TagBlockHeader_%s" % tag_extension] = {"name": "tbfd", "version": version, "size": size}
+            field_header = {"name": "tbfd", "version": version, "size": size}
 
         else:
             name, version, block_count, size = read_field_header(tag_stream, is_legacy=HAS_LEGACY_HEADER)
-            tag_dict["TagBlockHeader_%s" % tag_extension] = {"name": name, "version": version, "size": size}
+            field_header = {"name": name, "version": version, "size": size}
+            if tag_header["tag group"] == "vrtx" and field_header["size"] == 20:
+                field_header["version"] = -1
 
-        tag_block_header = tag_dict["TagBlockHeader_%s" % tag_extension]
+        tag_block_header = tag_dict["TagBlockHeader_%s" % tag_extension] = field_header
         block_stream = io.BytesIO(tag_stream.read(block_count * tag_block_header["size"]))
         for block_idx in range(block_count):
             for layout in tag_def:
@@ -1720,8 +1721,8 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
 
     leftover_data = get_result("LeftOverData_%s" % tag_extension, tag_dict["Data"])
     if leftover_data is not None:
+        leftover_bytes = base64.b64decode(leftover_data)
         if PRESERVE_PADDING:
-            leftover_bytes = base64.b64decode(leftover_data)
             block_stream.write(leftover_bytes)
         else:
             block_stream.write(bytes(len(leftover_bytes)))
@@ -1730,6 +1731,7 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
         tag_header["checksum"] = checksum_calculate(block_stream.getvalue(), obfuscation_buffer)
 
     engine_tag = tag_header["engine tag"]
+    tag_group = tag_header["tag group"]
     tag_header["name"] = string_to_bytes(tag_header["name"], file_endian)
     tag_header["tag group"] = string_to_bytes(tag_header["tag group"], file_endian)
     tag_header["engine tag"] = string_to_bytes(tag_header["engine tag"], file_endian)
@@ -1737,6 +1739,8 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
     tag_stream.write(struct.pack('%shbb32s4sIiiihbb4s' % file_endian, *tag_header.values()))
     if not engine_tag == EngineTag.H1.value:
         tag_block_header_stream = io.BytesIO(b"\x00" * tag_block_header_size)
+        if tag_group == "vrtx" and tag_block_header["size"] == 20:
+            tag_block_header["version"] = 0
         write_field_header(tag_block_header, 1, tag_block_header_stream, is_legacy=HAS_LEGACY_HEADER)
         tag_stream.write(tag_block_header_stream.getvalue())
 
@@ -1779,8 +1783,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = tag_definitions.generate_h2_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\effects\objects\weapons\pistol\plasma_pistol\plasma_bolt.light_volume"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.light_volume"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\rasterizer\vertex_shaders_dx9\debug_tangentspace.vertex_shader"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.vertex_shader"
 
     tag_dict = read_file(merged_defs, read_path)
     with open(os.path.join(os.path.dirname(output_path), "%s.json" % os.path.basename(output_path).rsplit(".", 1)[0]), 'w', encoding ='utf8') as json_file:
