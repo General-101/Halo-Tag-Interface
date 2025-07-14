@@ -94,10 +94,10 @@ HAS_LEGACY_HEADER = False
 
 DUMP_JSON = False
 
-GENERATE_CHECKSUM = False
-CONVERT_RADIANS = False
-PRESERVE_STRINGS = True
-PRESERVE_PADDING = True
+GENERATE_CHECKSUM = True
+CONVERT_RADIANS = True
+PRESERVE_STRINGS = False
+PRESERVE_PADDING = False
 PRESERVE_VERSION = True
 
 def read_field_header(tag_stream, field_endian="<", is_legacy=False):
@@ -812,12 +812,11 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             result = field_default
             if not unread_data_size < field_size:
                 result = block_stream.read(field_size)
-            if PRESERVE_PADDING:
-                set_encoded_result(field_key, tag_block_fields, result)
+            set_encoded_result(field_key, tag_block_fields, result)
         else:
             if not unread_data_size < field_size:
                 result = get_result(field_key, tag_block_fields)
-                if result is not None and PRESERVE_PADDING:
+                if result is not None:
                     byte_data = base64.b64decode(result)
                     block_stream.write(fit_bytes_to_length(byte_data, field_size))
                 else:
@@ -1226,12 +1225,11 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             result = field_default
             if not unread_data_size < field_size:
                 result = block_stream.read(field_size)
-            if PRESERVE_PADDING:
-                set_encoded_result(field_key, tag_block_fields, result)
+            set_encoded_result(field_key, tag_block_fields, result)
         else:
             if not unread_data_size < field_size:
                 result = get_result(field_key, tag_block_fields)
-                if result is not None and PRESERVE_PADDING:
+                if result is not None:
                     byte_data = base64.b64decode(result)
                     block_stream.write(fit_bytes_to_length(byte_data, field_size))
                 else:
@@ -1295,6 +1293,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
                 pos = tag_stream.tell()
                 if not (os.stat(tag_stream.name).st_size - pos) < 16:
                     def_tag = field_node[0].get("tag")
+                    # TODO: Check if structs make use of the count. Seems to be one across the board but what happens if it's set manually? - Gen
                     struct_name, struct_version, struct_count, struct_size = read_field_header(tag_stream, is_legacy=HAS_LEGACY_HEADER)
                     if not def_tag == struct_name:
                         tag_stream.seek(pos)
@@ -1327,7 +1326,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             for struct_layout in field_node:
                 struct_field_set = struct_layout[struct_version]
                 for struct_field_node in struct_field_set:
-                    get_fields(tag_stream, block_stream, tag_header, struct_header, field_value, struct_field_node, tag_block_fields, block_idx, struct_offset)
+                    get_fields(tag_stream, block_stream, tag_header, struct_header, field_value, struct_field_node, tag_block_fields, 0, struct_offset)
 
         else:
             has_header = False
@@ -1380,7 +1379,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_val
             if unread_data_size < struct_header["size"]:
                 struct_header["size"] = unread_data_size
             for struct_field_node in current_struct_field_set:
-                get_fields(tag_stream, block_stream, tag_header, struct_header, tag_block_fields.get(struct_field_node.get("name")), struct_field_node, tag_block_fields, block_idx, struct_offset)
+                get_fields(tag_stream, block_stream, tag_header, struct_header, tag_block_fields.get(struct_field_node.get("name")), struct_field_node, tag_block_fields, 0, struct_offset)
     elif field_tag == "Tag":
         field_default = ""
         field_size = 4
@@ -1727,9 +1726,6 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
         else:
             block_stream.write(bytes(len(leftover_bytes)))
 
-    if GENERATE_CHECKSUM:
-        tag_header["checksum"] = checksum_calculate(block_stream.getvalue(), obfuscation_buffer)
-
     engine_tag = tag_header["engine tag"]
     tag_group = tag_header["tag group"]
     tag_header["name"] = string_to_bytes(tag_header["name"], file_endian)
@@ -1737,14 +1733,19 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", tag_exte
     tag_header["engine tag"] = string_to_bytes(tag_header["engine tag"], file_endian)
 
     tag_stream.write(struct.pack('%shbb32s4sIiiihbb4s' % file_endian, *tag_header.values()))
+    combined_streams = io.BytesIO()
     if not engine_tag == EngineTag.H1.value:
         tag_block_header_stream = io.BytesIO(b"\x00" * tag_block_header_size)
         if tag_group == "vrtx" and tag_block_header["size"] == 20:
             tag_block_header["version"] = 0
         write_field_header(tag_block_header, 1, tag_block_header_stream, is_legacy=HAS_LEGACY_HEADER)
-        tag_stream.write(tag_block_header_stream.getvalue())
+        combined_streams.write(tag_block_header_stream.getvalue())
 
-    tag_stream.write(block_stream.getvalue())
+    combined_streams.write(block_stream.getvalue())
+    if GENERATE_CHECKSUM:
+        tag_header["checksum"] = checksum_calculate(combined_streams.getvalue(), obfuscation_buffer)
+
+    tag_stream.write(combined_streams.getvalue())
     with open(file_path, "wb") as f:
         f.write(tag_stream.getvalue())
 
@@ -1783,8 +1784,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = tag_definitions.generate_h2_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\rasterizer\vertex_shaders_dx9\debug_tangentspace.vertex_shader"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.vertex_shader"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\grid_256x256.bitmap"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.bitmap"
 
     tag_dict = read_file(merged_defs, read_path)
     with open(os.path.join(os.path.dirname(output_path), "%s.json" % os.path.basename(output_path).rsplit(".", 1)[0]), 'w', encoding ='utf8') as json_file:
@@ -1939,5 +1940,8 @@ def h2_directory():
                                     f"  Error: {type(e).__name__}: {e}\n"
                                     f"  While parsing tag file.\n")
                         traceback.print_exc(file=log_file)
-
+                else:
+                    log_file.write(f"\nInvalid File:\n"
+                                f"  File: {read_path}\n")
+                    traceback.print_exc(file=log_file)
 h2_directory()
