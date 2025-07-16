@@ -31,7 +31,7 @@ import xml.etree.ElementTree as ET
 
 from copy import deepcopy
 
-DUMP_XML = False
+DUMP_XML = True
 
 WHITELIST_TAGS = {"Angle", "AngleBounds", "ArgbColor", "Array", "Block", "ByteFlags", "CharBlockIndex",
     "CharEnum", "CharInteger", "CustomLongBlockIndex", "CustomShortBlockIndex", "Data",
@@ -180,57 +180,51 @@ def collect_flattened_fields(fieldset_element):
 
     return collected
 
-def fix_fieldset_names(fieldsets):
-    flattened_fieldsets = [collect_flattened_fields(fs) for fs in fieldsets]
-    tag_type_counters = {}
+def fix_fieldset_names_recursive(fieldset, tag_type_counters):
+    type_instance_counters = {}
+    seen_names = set()
 
-    for fs_idx, (fs, fields) in enumerate(zip(fieldsets, flattened_fieldsets)):
-        type_instance_counters = {}
-        seen_names = set()
+    # First pass: handle only immediate children of the FieldSet
+    for node in fieldset:
+        tag = node.tag
+        current_name = node.get("name")
 
-        for node in fields:
-            tag = node.tag
-            current_name = node.get("name")
+        if tag not in WHITELIST_TAGS:
+            continue
 
-            if tag not in WHITELIST_TAGS:
-                continue
+        inst_idx = type_instance_counters.get(tag, 0)
+        type_instance_counters[tag] = inst_idx + 1
 
-            inst_idx = type_instance_counters.get(tag, 0)
-            type_instance_counters[tag] = inst_idx + 1
-
-            if current_name is None:
-                fallback_name = None
-
-                # Only apply fallback if the node is a direct child of the FieldSet
-                if node in fs:
-                    for prev_fs in fieldsets[:fs_idx]:
-                        prev_direct_children = [n for n in prev_fs if n.tag == tag]
-                        if len(prev_direct_children) > inst_idx:
-                            prev_name = prev_direct_children[inst_idx].get("name")
-                            if prev_name:
-                                fallback_name = prev_name
-                            break
-
-                if fallback_name:
-                    new_name = fallback_name
-                else:
-                    fallback_count = tag_type_counters.get(tag, 0)
-                    new_name = f"{tag}_{fallback_count}"
-                    tag_type_counters[tag] = fallback_count + 1
-
+        if current_name is None:
+            fallback_count = tag_type_counters.get(tag, 0)
+            new_name = f"{tag}_{fallback_count}"
+            tag_type_counters[tag] = fallback_count + 1
+            node.set("name", new_name)
+            seen_names.add(new_name)
+        else:
+            if current_name in seen_names:
+                count = tag_type_counters.get(current_name, 1)
+                new_name = f"{current_name}_{count}"
                 node.set("name", new_name)
+                tag_type_counters[current_name] = count + 1
                 seen_names.add(new_name)
-
             else:
-                if current_name in seen_names:
-                    count = tag_type_counters.get(current_name, 1)
-                    new_name = f"{current_name}_{count}"
-                    node.set("name", new_name)
-                    tag_type_counters[current_name] = count + 1
-                    seen_names.add(new_name)
-                else:
-                    seen_names.add(current_name)
+                seen_names.add(current_name)
 
+    # Second pass: recurse into Struct nodes only
+    for node in fieldset:
+        tag = node.tag
+        if tag == "Struct":
+            layout = node.find("Layout")
+            if layout is not None:
+                for nested_fs in layout.findall("FieldSet"):
+                    fix_fieldset_names_recursive(nested_fs, tag_type_counters)
+
+def fix_fieldset_names(fieldsets):
+    for fs in fieldsets:
+        tag_type_counters = {}  # reset for each FieldSet version block
+        fix_fieldset_names_recursive(fs, tag_type_counters)
+    
 def fix_names_in_merged_taggroups(merged_cache, regolith_map):
     for merged in merged_cache.values():
         resolve_xrefs(merged, regolith_map)
