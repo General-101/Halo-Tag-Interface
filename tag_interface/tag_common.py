@@ -342,4 +342,3 @@ field_sizes = {
 }
 
 pad_tags = {"Pad", "Skip", "UselessPad"}
-

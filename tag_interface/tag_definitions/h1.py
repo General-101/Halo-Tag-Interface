@@ -29,214 +29,8 @@ import json
 import tag_common
 import xml.etree.ElementTree as ET
 
-from copy import deepcopy
+from .common import initialize_definitions, merge_parent_tag, dump_merged_xml, DUMP_XML
 
-DUMP_XML = True
-
-WHITELIST_TAGS = {"Angle", "AngleBounds", "ArgbColor", "Array", "Block", "ByteFlags", "CharBlockIndex",
-    "CharEnum", "CharInteger", "CustomLongBlockIndex", "CustomShortBlockIndex", "Data",
-    "LongBlockIndex", "LongEnum", "LongFlags", "LongInteger", "LongString", "OldStringId",
-    "Pad", "Point2D", "Ptr", "Real", "RealArgbColor", "RealBounds", "RealEulerAngles2D",
-    "RealEulerAngles3D", "RealFraction", "RealFractionBounds", "RealPlane2D", "RealPlane3D",
-    "RealPoint2D", "RealPoint3D", "RealQuaternion", "RealRgbColor", "RealVector2D",
-    "RealVector3D", "Rectangle2D", "RgbColor", "ShortBlockIndex", "ShortBounds", "ShortEnum",
-    "ShortInteger", "Skip", "String", "StringId", "Struct", "Tag", "TagReference",
-    "UselessPad", "VertexBuffer", "WordBlockFlags", "WordFlags"}
-
-def parse_all_xmls(base_dir):
-    tag_group_defs = {}
-    regolith_map = {}
-    for root, dirs, files in os.walk(base_dir):
-        for file in files:
-            if not file.endswith(".xml"):
-                continue
-
-            path = os.path.join(root, file)
-            tree = ET.parse(path)
-            root_elem = tree.getroot()
-            unravel_arrays_in_xml(root_elem)
-            for elem in root_elem.iter():
-                reg_id = elem.attrib.get("regolithID")
-                if reg_id:
-                    regolith_map[reg_id] = elem
-
-            if root_elem.tag == "TagGroup":
-                name = root_elem.attrib.get("name")
-                if name:
-                    tag_group_defs[name] = root_elem
-
-    return tag_group_defs, regolith_map
-
-def unravel_arrays_in_xml(elem):
-    for child in list(elem):
-        unravel_arrays_in_xml(child)
-        if child.tag == "Array" and "count" in child.attrib:
-            count = int(child.attrib["count"])
-            expanded_nodes = []
-            for i in range(count):
-                for grandchild in list(child):
-                    clone = deepcopy(grandchild)
-                    expanded_nodes.append(clone)
-
-            idx = list(elem).index(child)
-            elem.remove(child)
-            for node in reversed(expanded_nodes):
-                elem.insert(idx, node)
-
-def resolve_xrefs(elem, regolith_map):
-    for child in list(elem):
-        resolve_xrefs(child, regolith_map)
-        if child.tag.endswith("XRef") and child.text:
-            xref_key = child.text.strip()
-            replacement = regolith_map.get(xref_key)
-            if replacement is not None:
-                idx = list(elem).index(child)
-                elem.remove(child)
-                new_node = deepcopy(replacement)
-                elem.insert(idx, new_node)
-                resolve_xrefs(new_node, regolith_map)
-
-            else:
-                print(f"Warning: Could not resolve XRef {xref_key}")
-
-def merge_layouts(parent_layout, child_layout):
-    parent_fieldsets = {fs.attrib.get("version"): fs for fs in parent_layout.findall("FieldSet")}
-    child_fieldsets = {fs.attrib.get("version"): fs for fs in child_layout.findall("FieldSet")}
-    parent_versions = [int(v) for v in parent_fieldsets if v and v.isdigit()]
-    latest_parent_version = str(max(parent_versions)) if parent_versions else None
-    for version, child_fs in child_fieldsets.items():
-        parent_fs = parent_fieldsets.get(version)
-        if parent_fs is None and latest_parent_version:
-            parent_fs = parent_fieldsets.get(latest_parent_version)
-
-        if parent_fs:
-            for elem in reversed(list(parent_fs)):
-                child_fs.insert(0, deepcopy(elem))
-
-def merge_taggroup(tag_name, tag_defs, merged_cache, tag_groups, tag_extensions):
-    if tag_name in merged_cache:
-        return merged_cache[tag_name]
-
-    tag_elem = tag_defs.get(tag_name)
-    if tag_elem is None:
-        raise ValueError(f"Tag group {tag_name} not found.")
-
-    parent_name = tag_groups.get(tag_elem.attrib.get("parent"))
-    merged_elem = deepcopy(tag_elem)
-    if parent_name:
-        parent_merged = merge_taggroup(parent_name, tag_defs, merged_cache, tag_groups, tag_extensions)
-        child_layout = merged_elem.find(".//Layout")
-        parent_layout = parent_merged.find(".//Layout")
-        if child_layout is not None and parent_layout is not None:
-            merge_layouts(parent_layout, child_layout)
-
-    merged_cache[tag_name] = merged_elem
-
-    return merged_elem
-
-def safe_filename(group):
-    return "%s.xml" % group
-
-def indent(elem, level=0):
-    i = "\n" + level * "  "
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "  "
-
-        for child in elem:
-            indent(child, level + 1)
-            if not child.tail or not child.tail.strip():
-                child.tail = i + "  "
-
-        if not elem[-1].tail or not elem[-1].tail.strip():
-            elem[-1].tail = i
-
-    else:
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-
-def dump_merged_xml(merged_defs, output_dir, tag_extensions):
-    os.makedirs(output_dir, exist_ok=True)
-    for group, elem in merged_defs.items():
-        indent(elem)
-        tree = ET.ElementTree(elem)
-        filename = safe_filename(group)
-        output_path = os.path.join(output_dir, filename)
-        tree.write(output_path, encoding="utf-8", xml_declaration=True)
-        with open(output_path, "w", encoding="utf-8-sig") as f:
-            tree.write(f, encoding="unicode", xml_declaration=True)
-
-def collect_flattened_fields(fieldset_element):
-    collected = []
-    for child in fieldset_element:
-        if child.tag in {"Struct", "Array"}:
-            layout = child.find("Layout")
-            if layout is not None:
-                for nested_fieldset in layout.findall("FieldSet"):
-                    collected.extend(collect_flattened_fields(nested_fieldset))
-
-        else:
-            collected.append(child)
-
-    return collected
-
-def fix_fieldset_names_recursive(fieldset, tag_type_counters):
-    type_instance_counters = {}
-    seen_names = set()
-
-    # First pass: handle only immediate children of the FieldSet
-    for node in fieldset:
-        tag = node.tag
-        current_name = node.get("name")
-
-        if tag not in WHITELIST_TAGS:
-            continue
-
-        inst_idx = type_instance_counters.get(tag, 0)
-        type_instance_counters[tag] = inst_idx + 1
-
-        if current_name is None:
-            fallback_count = tag_type_counters.get(tag, 0)
-            new_name = f"{tag}_{fallback_count}"
-            tag_type_counters[tag] = fallback_count + 1
-            node.set("name", new_name)
-            seen_names.add(new_name)
-        else:
-            if current_name in seen_names:
-                count = tag_type_counters.get(current_name, 1)
-                new_name = f"{current_name}_{count}"
-                node.set("name", new_name)
-                tag_type_counters[current_name] = count + 1
-                seen_names.add(new_name)
-            else:
-                seen_names.add(current_name)
-
-    # Second pass: recurse into Struct nodes only
-    for node in fieldset:
-        tag = node.tag
-        if tag == "Struct":
-            layout = node.find("Layout")
-            if layout is not None:
-                for nested_fs in layout.findall("FieldSet"):
-                    fix_fieldset_names_recursive(nested_fs, tag_type_counters)
-
-def fix_fieldset_names(fieldsets):
-    for fs in fieldsets:
-        tag_type_counters = {}  # reset for each FieldSet version block
-        fix_fieldset_names_recursive(fs, tag_type_counters)
-    
-def fix_names_in_merged_taggroups(merged_cache, regolith_map):
-    for merged in merged_cache.values():
-        resolve_xrefs(merged, regolith_map)
-
-    for merged in merged_cache.values():
-        for elem in merged.iter():
-            if elem.tag in {"TagGroup", "Block"}:
-                layout = elem.find("Layout")
-                if layout is not None:
-                    fieldsets = layout.findall("FieldSet")
-                    if fieldsets:
-                        fix_fieldset_names(fieldsets)
 
 def get_pad_size(field_node):
     return int(field_node.attrib.get('length', 0))
@@ -290,7 +84,7 @@ def resolve_inherited_fields(struct_def, root_lookup):
 
     return fields
 
-def generate_h1_defs(base_dir, output_dir):
+def generate_defs(base_dir, output_dir):
     all_data = []
     for filename in os.listdir(base_dir):
         if filename.endswith('.json'):
@@ -511,7 +305,7 @@ def generate_h1_defs(base_dir, output_dir):
         add_fields(resolved_fields, fieldset)
         calculate_fieldset_size(fieldset)
 
-        generated_xmls[name] = root
+        generated_xmls[fourcc] = root
 
     regolith_map = {}
     for elem in generated_xmls.values():
@@ -522,22 +316,12 @@ def generate_h1_defs(base_dir, output_dir):
 
     merged_cache = {}
     for group in generated_xmls:
-        merge_taggroup(group, generated_xmls, merged_cache, tag_common.h1_tag_groups, tag_common.h1_tag_extensions)
+        merge_parent_tag(group, generated_xmls, merged_cache, tag_common.h1_tag_groups, tag_common.h1_tag_extensions)
 
-    fix_names_in_merged_taggroups(merged_cache, regolith_map)
+    for tag_def in merged_cache:
+        initialize_definitions((merged_cache[tag_def], None), regolith_map)
+
     if DUMP_XML:
         dump_merged_xml(merged_cache, output_dir, tag_common.h1_tag_extensions)
-
-    return merged_cache
-
-def generate_h2_defs(base_dir, output_dir):
-    tag_defs, regolith_map = parse_all_xmls(base_dir)
-    merged_cache = {}
-    for tag_def in tag_defs:
-        merge_taggroup(tag_def, tag_defs, merged_cache, tag_common.h2_tag_groups, tag_common.h2_tag_extensions)
-
-    fix_names_in_merged_taggroups(merged_cache, regolith_map)
-    if DUMP_XML:
-        dump_merged_xml(merged_cache, output_dir, tag_common.h2_tag_extensions)
 
     return merged_cache

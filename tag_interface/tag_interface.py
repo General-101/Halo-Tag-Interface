@@ -33,11 +33,12 @@ import json
 import hashlib
 import traceback
 import tag_common
-import tag_definitions
+import tag_postprocess
 import xml.etree.ElementTree as ET
 
-from enum import Enum, auto
+from enum import Flag, Enum, auto
 from math import degrees, radians, copysign
+from tag_definitions import h1, h2
 
 class EngineTag(Enum):
     # halo 1 types
@@ -125,6 +126,238 @@ def write_field_header(tag_block_header, block_count, output_stream, field_endia
         pack_string = "4s2hi"
 
     output_stream.write(struct.pack('%s%s' % (field_endian, pack_string), name, version, block_count, size))
+
+class FunctionTypeEnum(Enum):
+    identity = 0
+    constant = auto()
+    transition = auto()
+    periodic = auto()
+    linear = auto()
+    linear_key = auto()
+    multi_linear_key = auto()
+    spline = auto()
+    multi_spline = auto()
+    exponent = auto()
+    spline2 = auto()
+
+class OutputTypeFlags(Flag):
+    scalar_intensity = 0
+    _range = 1
+    constant = 16
+    _2_color = 32
+    _3_color = 48
+    _4_color = 64
+
+def read_real(function_stream, unsigned_key, field_key, tag_block_fields, endian_override):
+    struct_string = '%sf' % endian_override
+    if unsigned_key:
+        struct_string = uppercase_struct_letters(struct_string)
+
+    result = (struct.unpack(struct_string, function_stream.read(4)))[0]
+    set_result(field_key, tag_block_fields, result)
+
+def write_real(function_stream, struct_string, result):
+    if result is not None:
+        function_stream.write(struct.pack(struct_string, result))
+    else:
+        function_stream.write(struct.pack(struct_string, 0.0))
+
+def downgrade_function(struct_dict, field_node, tag_block_fields, endian_override): 
+    field_set = None
+    for layout in field_node:
+        for struct_field_set in layout:
+            if int(struct_field_set.attrib.get('version')) == 0:
+                field_set = struct_field_set
+
+    data_node = None
+    for dict_node in struct_dict:
+        if dict_node.startswith("data"):
+            data_node = struct_dict[dict_node]
+
+    if data_node:
+        function_bytes = bytes(v['Value'] % 256 for v in data_node)
+        function_stream = io.BytesIO(function_bytes)
+        function_type_result = 0
+        flag_result = 0
+        for field_node_element in field_set:
+            unsigned_key = field_node.get("unsigned")
+            endian_override = FIELD_ENDIAN
+            field_endian = field_node_element.get("endianOverride")
+            if field_endian:
+                endian_override = field_endian
+
+            field_key = field_node_element.get("name")
+            field_tag = field_node_element.tag
+            if field_tag == "RgbColor":
+                struct_string = '%s4B' % endian_override
+                b, g, r, color_pad = struct.unpack(struct_string, function_stream.read(4)) 
+                result = (r, g, b)
+                set_color_result(field_key, tag_block_fields, result, False)
+                set_result("%s_pad" % field_key, tag_block_fields, color_pad)
+
+            elif field_tag == "Block":
+                tag_block_fields["TagBlock_%s" % field_key] = {"unk1": 0, "unk2": 0}
+                tag_block_fields["TagBlockHeader_%s" % field_key] = {"name": "tbfd", "version": 0, "size": 4}
+                set_block_result(field_key, tag_block_fields)
+                if FunctionTypeEnum.constant == FunctionTypeEnum(function_type_result):
+                    for point_idx in range(2):
+                        value_element = {}
+                        read_real(function_stream, None, "Value", value_element, endian_override)
+                        tag_block_fields[field_key].append(value_element)
+
+                elif FunctionTypeEnum.transition == FunctionTypeEnum(function_type_result):
+                    for point_idx in range(4):
+                        value_element = {}
+                        read_real(function_stream, None, "Value", value_element, endian_override)
+                        tag_block_fields[field_key].append(value_element)
+
+                elif FunctionTypeEnum.periodic == FunctionTypeEnum(function_type_result):
+                    for point_idx in range(8):
+                        value_element = {}
+                        read_real(function_stream, None, "Value", value_element, endian_override)
+                        tag_block_fields[field_key].append(value_element)
+
+                elif FunctionTypeEnum.linear == FunctionTypeEnum(function_type_result):
+                    for point_idx in range(12):
+                        value_element = {}
+                        read_real(function_stream, None, "Value", value_element, endian_override)
+                        tag_block_fields[field_key].append(value_element)
+
+                elif FunctionTypeEnum.linear_key == FunctionTypeEnum(function_type_result):
+                    for point_idx in range(40):
+                        value_element = {}
+                        read_real(function_stream, None, "Value", value_element, endian_override)
+                        tag_block_fields[field_key].append(value_element)
+
+                elif FunctionTypeEnum.multi_linear_key == FunctionTypeEnum(function_type_result):
+                    for point_idx in range(64):
+                        value_element = {}
+                        read_real(function_stream, None, "Value", value_element, endian_override)
+                        tag_block_fields[field_key].append(value_element)
+
+                elif FunctionTypeEnum.spline == FunctionTypeEnum(function_type_result):
+                    for point_idx in range(24):
+                        value_element = {}
+                        read_real(function_stream, None, "Value", value_element, endian_override)
+                        tag_block_fields[field_key].append(value_element)
+
+                elif FunctionTypeEnum.multi_spline == FunctionTypeEnum(function_type_result):
+                    for point_idx in range(10):
+                        value_element = {}
+                        read_real(function_stream, None, "Value", value_element, endian_override)
+                        tag_block_fields[field_key].append(value_element)
+
+                elif FunctionTypeEnum.exponent == FunctionTypeEnum(function_type_result):
+                    for point_idx in range(6):
+                        value_element = {}
+                        read_real(function_stream, None, "Value", value_element, endian_override)
+                        tag_block_fields[field_key].append(value_element)
+
+                elif FunctionTypeEnum.spline2 == FunctionTypeEnum(function_type_result):
+                    for point_idx in range(24):
+                        value_element = {}
+                        read_real(function_stream, None, "Value", value_element, endian_override)
+                        tag_block_fields[field_key].append(value_element)
+
+            elif field_tag == "CharInteger":
+                struct_string = '%sb' % endian_override
+                if unsigned_key:
+                    struct_string = uppercase_struct_letters(struct_string)
+
+                result = (struct.unpack(struct_string, function_stream.read(1)))[0]
+                if field_key.startswith("Function Type"):
+                    function_type_result = result
+
+                set_result(field_key, tag_block_fields, result)
+            elif field_tag == "ByteFlags":
+                struct_string = '%sb' % endian_override
+                if unsigned_key:
+                    struct_string = uppercase_struct_letters(struct_string)
+
+                result = (struct.unpack(struct_string, function_stream.read(1)))[0]
+                if field_key.startswith("Flags"):
+                    flag_result = result
+
+                set_result(field_key, tag_block_fields, result)
+
+def upgrade_function(field_node, tag_block_fields, endian_override):
+    field_set_0 = None
+    field_set_1 = None
+    for layout in field_node:
+        for struct_field_set in layout:
+            if int(struct_field_set.attrib.get('version')) == 0:
+                field_set_0 = struct_field_set
+            elif int(struct_field_set.attrib.get('version')) == 1:
+                field_set_1 = struct_field_set
+
+    function_type_result = 0
+    flag_result = 0
+    function_stream = io.BytesIO()
+    for field_node_element in field_set_0:
+        unsigned_key = field_node.get("unsigned")
+        endian_override = FIELD_ENDIAN
+        field_endian = field_node_element.get("endianOverride")
+        if field_endian:
+            endian_override = field_endian
+
+        field_key = field_node_element.get("name")
+        field_tag = field_node_element.tag
+        if field_tag == "RgbColor":
+            struct_string = '%s4B' % endian_override
+            result = get_result(field_key, tag_block_fields)
+            color_pad_result = get_result("%s_pad" % field_key, tag_block_fields)
+            if color_pad_result is None:
+                color_pad_result = 0
+            if result is not None:
+                function_stream.write(struct.pack(struct_string, *reversed(result.values()), color_pad_result))
+            else:    
+                function_stream.write(struct.pack(struct_string, *(0, 0, 0), color_pad_result))
+
+        elif field_tag == "Block":
+            struct_string = '%sf' % endian_override
+            if unsigned_key:
+                struct_string = uppercase_struct_letters(struct_string)
+            for tag_element in tag_block_fields[field_key]:
+                write_real(function_stream, struct_string, tag_element["Value"])
+
+        elif field_tag == "CharInteger":
+            struct_string = '%sb' % endian_override
+            if unsigned_key:
+                struct_string = uppercase_struct_letters(struct_string)
+            result = get_result(field_key, tag_block_fields)
+            if field_key.startswith("Function Type"):
+                function_type_result = result
+
+            if result is not None:
+                function_stream.write(struct.pack(struct_string, result))
+            else:
+                function_stream.write(struct.pack(struct_string, 0))
+        elif field_tag == "ByteFlags":
+            struct_string = '%sb' % endian_override
+            if unsigned_key:
+                struct_string = uppercase_struct_letters(struct_string)
+            result = get_result(field_key, tag_block_fields)
+            if field_key.startswith("Flags"):
+                flag_result = result
+            if result is not None:
+                function_stream.write(struct.pack(struct_string, result))
+            else:
+                function_stream.write(struct.pack(struct_string, 0))
+
+    for field_node_element in field_set_1:
+        unsigned_key = field_node.get("unsigned")
+        endian_override = FIELD_ENDIAN
+        field_endian = field_node_element.get("endianOverride")
+        if field_endian:
+            endian_override = field_endian
+
+        field_key = field_node_element.get("name")
+        field_tag = field_node_element.tag
+        if field_tag == "Block":
+            tag_block = tag_block_fields[field_key] = []
+            for byte in function_stream.getbuffer():
+                signed_byte = byte if byte < 128 else byte - 256
+                tag_block.append({"Value": signed_byte})
 
 def is_header_valid(tag_header, tag_groups):
     result = False
@@ -298,10 +531,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
     field_tag = field_node.tag
     field_attrib = field_node.attrib
     field_key = field_node.get("name")
-    field_value = None
-    if not return_size:
-        field_value = tag_block_fields.get(field_node.get("name"))
-
+    
     unsigned_key = field_node.get("unsigned")
     endian_override = FIELD_ENDIAN
     field_endian = field_node.get("endianOverride")
@@ -1224,7 +1454,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
             if not unread_data_size < field_size:
                 result = get_result(field_key, tag_block_fields)
                 color_pad_result = get_result("%s_pad" % field_key, tag_block_fields)
-                if color_pad_result is None or not PRESERVE_PADDING:
+                if color_pad_result is None:
                     color_pad_result = 0
                 if result is not None:
                     block_stream.write(struct.pack(struct_string, *reversed(result.values()), color_pad_result))
@@ -1426,11 +1656,18 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
             struct_offset = block_stream.tell()
             if unread_data_size < struct_header["size"]:
                 struct_header["size"] = unread_data_size
+
+
+            struct_dict = tag_block_fields
+            if struct_header["name"] == "MAPP" and struct_version == 1:
+                struct_dict = {}
             for struct_layout in field_node:
                 struct_field_set = struct_layout[struct_version]
                 for struct_field_node in struct_field_set:
-                    get_fields(tag_stream, block_stream, tag_header, struct_header, struct_field_node, tag_block_fields, block_idx, struct_offset, return_size)
+                    get_fields(tag_stream, block_stream, tag_header, struct_header, struct_field_node, struct_dict, block_idx, struct_offset, return_size)
 
+            if struct_header["name"] == "MAPP" and struct_version == 1:
+                downgrade_function(struct_dict, field_node, tag_block_fields, endian_override)
         else:
             has_header = False
             current_struct_field_set = None
@@ -1487,14 +1724,18 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                 write_field_header(struct_header, 1, block_stream, is_legacy=HAS_LEGACY_HEADER)
                 block_stream.seek(pos)
 
+            if struct_header["name"] == "MAPP":
+                if PRESERVE_VERSION and struct_header["version"] == 1:
+                    upgrade_function(field_node, tag_block_fields, endian_override)
+                else:
+                    upgrade_function(field_node, tag_block_fields, endian_override)
+
             block_idx = 0
             struct_offset = block_stream.tell()
             if unread_data_size < struct_header["size"]:
                 struct_header["size"] = unread_data_size
-
             for struct_field_node in current_struct_field_set:
-                get_fields(tag_stream, block_stream, tag_header, struct_header, struct_field_node, tag_block_fields, block_idx, struct_offset)
-        
+                get_fields(tag_stream, block_stream, tag_header, struct_header, struct_field_node, tag_block_fields, block_idx, struct_offset)       
     elif field_tag == "Tag":
         field_default = ""
         field_size = 4
@@ -1514,7 +1755,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                 else:
                     write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=0, append_terminator=False)
     elif field_tag == "TagReference":
-        field_default = ("", 0, 0, 0, "")
+        field_default = (-1, 0, 0, -1, "")
         field_size = 16
         if return_size:
             return field_size
@@ -1524,7 +1765,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
             struct_string = uppercase_struct_letters(struct_string)
             struct_default_string = uppercase_struct_letters(struct_default_string)
         if FILE_MODE == FileModeEnum.read:
-            tag_block_fields[field_key] = {"group name": "", "unk1": 0, "length": 0, "unk2": 0, "path": ""}
+            tag_block_fields[field_key] = {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""}
             result = field_default
             if not unread_data_size < field_size:
                 tag_group, unk1, length, unk2 = struct.unpack(struct_string, block_stream.read(16))
@@ -1545,7 +1786,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                     tag_group, unk1, length, unk2, path = result.values()
                     if not PRESERVE_PADDING:
                         unk1 = 0
-                        unk2 = 0
+                        unk2 = -1
                     if PRESERVE_STRINGS:
                         length = len(base64.b64decode(path).decode('utf-8', 'replace').split('\x00', 1)[0].strip('\x20'))
                     else:
@@ -1562,7 +1803,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                     write_variable_string(block_stream, path, ">", fixed_length=length, terminator_length=1, append_terminator=True)
                     block_stream.seek(pos)
                 else:
-                    block_stream.write(struct.pack(struct_default_string, -1, 0, 0, 0))
+                    block_stream.write(struct.pack(struct_default_string, -1, 0, 0, -1))
     elif field_tag == "UselessPad":
         field_size = 0
         if HAS_LEGACY_PADDING:
@@ -1733,7 +1974,7 @@ def read_file(merged_defs, file_path="", engine_tag=EngineTag.H2Latest.value, fi
         is_string_legacy(tag_header)
         is_padding_legacy(tag_header)
 
-        tag_def = merged_defs.get(tag_extension)
+        tag_def = merged_defs.get(tag_group)
         if tag_def is None:
             raise ValueError(f"Tag group {tag_group} not found for extension {tag_extension}.")
         
@@ -1784,12 +2025,14 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
             file_endian = file_endian_override
         tag_groups = tag_common.h1_tag_groups
         tag_extensions = tag_common.h1_tag_extensions
+        postprocess_functions =  tag_postprocess.h1_postprocess_functions
     else:
         file_endian="<"
         if file_endian_override:
             file_endian = file_endian_override
         tag_groups = tag_common.h2_tag_groups
         tag_extensions = tag_common.h2_tag_extensions
+        postprocess_functions =  tag_postprocess.h2_postprocess_functions
 
     update_interface(FileModeEnum.write, file_endian)
 
@@ -1802,7 +2045,7 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
         tag_group = tag_header["tag group"] 
         tag_extension = tag_groups.get(tag_group)
 
-        tag_def = merged_defs.get(tag_extension)
+        tag_def = merged_defs.get(tag_group)
 
     else:
         tag_header = {
@@ -1823,6 +2066,10 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
 
     if tag_group is None or tag_extension is None or tag_def is None:
         raise ValueError(f"Tag group {tag_group} not found for extension {tag_extension}.")
+
+    #postprocess_step = postprocess_functions.get(tag_header["tag group"])
+    #if postprocess_step is not None:
+        #postprocess_step(tag_dict, file_endian, PRESERVE_VERSION)
 
     if not PRESERVE_VERSION:
         tag_header["engine tag"] = engine_tag
@@ -1911,7 +2158,7 @@ def update_interface(mode_enum=FileModeEnum.read, file_endian="<"):
 
 def h1_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "merged_output")
-    merged_defs = tag_definitions.generate_h1_defs(tag_common.h1_defs_directory, output_dir)
+    merged_defs = h1.generate_defs(tag_common.h1_defs_directory, output_dir)
 
     read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\camera\airplane_large_loose.camera_track"
     output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\tag2.camera_track"
@@ -1924,7 +2171,7 @@ def h1_single_tag():
 
 def h1_single_json():
     output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "merged_output")
-    merged_defs = tag_definitions.generate_h1_defs(tag_common.h1_defs_directory, output_dir)
+    merged_defs = h1.generate_defs(tag_common.h1_defs_directory, output_dir)
 
     output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\tag2.camera_track"
 
@@ -1935,10 +2182,10 @@ def h1_single_json():
 
 def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
-    merged_defs = tag_definitions.generate_h2_defs(tag_common.h2_defs_directory, output_dir)
+    merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\objects\characters\prophet\prophet_minor.model"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.model"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\effects\scenarios\objects\multi\waterworks\2way_teleporter\plasma_drift.particle"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.particle"
 
     tag_dict = read_file(merged_defs, read_path)
     with open(os.path.join(os.path.dirname(output_path), "%s.json" % os.path.basename(output_path).rsplit(".", 1)[0]), 'w', encoding ='utf8') as json_file:
@@ -1958,7 +2205,7 @@ def h1_directory():
     input_dir = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags"
 
     output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "merged_output")
-    merged_defs = tag_definitions.generate_h1_defs(tag_common.h1_defs_directory, output_dir)
+    merged_defs = h1.generate_defs(tag_common.h1_defs_directory, output_dir)
 
     vanilla_root = os.path.dirname(input_dir)
     output_base_dir = os.path.join(vanilla_root, "blender_output")
@@ -2027,7 +2274,7 @@ def h2_directory():
     input_dir = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags"
 
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
-    merged_defs = tag_definitions.generate_h2_defs(tag_common.h2_defs_directory, output_dir)
+    merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
     vanilla_root = os.path.dirname(input_dir)
     output_base_dir = os.path.join(vanilla_root, "blender_output")
