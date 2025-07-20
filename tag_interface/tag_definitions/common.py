@@ -170,18 +170,19 @@ def parse_field_set(fieldset_elem, field_names, regolith_map):
     for field_node in fieldset_elem:
         if field_node.tag not in WHITELIST_TAGS:
             continue
+        
+        if not field_node.tag in ("Struct", "Array"):
+            if "name" not in field_node.attrib or not field_node.attrib["name"].strip():
+                field_node.set("name", field_node.tag)
 
-        if "name" not in field_node.attrib or not field_node.attrib["name"].strip():
-            field_node.set("name", field_node.tag)
+            field_name = field_node.get("name")
+            index = 0
+            while field_name in field_names:
+                index += 1
+                field_name = "%s_%s" % (field_node.get("name"), index)
 
-        field_name = field_node.get("name")
-        index = 0
-        while field_name in field_names:
-            index += 1
-            field_name = "%s_%s" % (field_node.get("name"), index)
-
-        field_names.append(field_name)
-        field_node.set("name", field_name)
+            field_names.append(field_name)
+            field_node.set("name", field_name)
 
         if field_node.tag == "Block":
             for layout in field_node.findall("Layout"):
