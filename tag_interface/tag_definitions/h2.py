@@ -34,9 +34,8 @@ def generate_defs(base_dir, output_dir):
     for tag_def in tag_defs:
         merge_parent_tag(tag_def, tag_defs, merged_cache, tag_common.h2_tag_groups, tag_common.h2_tag_extensions)
 
-
     for tag_def in merged_cache:
-        initialize_definitions((merged_cache[tag_def], None), regolith_map)
+        initialize_definitions(merged_cache[tag_def], regolith_map)
 
     if DUMP_XML:
         dump_merged_xml(merged_cache, output_dir, tag_common.h2_tag_groups)

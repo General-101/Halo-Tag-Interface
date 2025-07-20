@@ -31,6 +31,16 @@ from copy import deepcopy
 
 DUMP_XML = True
 
+WHITELIST_TAGS = {"Angle", "AngleBounds", "ArgbColor", "Array", "Block", "ByteFlags", "CharBlockIndex",
+    "CharEnum", "CharInteger", "CustomLongBlockIndex", "CustomShortBlockIndex", "Data",
+    "LongBlockIndex", "LongEnum", "LongFlags", "LongInteger", "LongString", "OldStringId",
+    "Pad", "Point2D", "Ptr", "Real", "RealArgbColor", "RealBounds", "RealEulerAngles2D",
+    "RealEulerAngles3D", "RealFraction", "RealFractionBounds", "RealPlane2D", "RealPlane3D",
+    "RealPoint2D", "RealPoint3D", "RealQuaternion", "RealRgbColor", "RealVector2D",
+    "RealVector3D", "Rectangle2D", "RgbColor", "ShortBlockIndex", "ShortBounds", "ShortEnum",
+    "ShortInteger", "Skip", "String", "StringId", "Struct", "Tag", "TagReference",
+    "UselessPad", "VertexBuffer", "WordBlockFlags", "WordFlags"}
+
 def parse_all_xmls(base_dir):
     tag_group_defs = {}
     regolith_map = {}
@@ -104,9 +114,9 @@ def resolve_xrefs(elem, regolith_map):
             else:
                 print(f"Warning: Could not resolve XRef {xref_key}")
 
-def unravel_arrays_in_xml(elem):
+def unravel_arrays(elem):
     for child in list(elem):
-        unravel_arrays_in_xml(child)
+        unravel_arrays(child)
         if child.tag == "Array" and "count" in child.attrib:
             count = int(child.attrib["count"])
             expanded_nodes = []
@@ -152,13 +162,16 @@ def merge_parent_tag(tag_name, tag_defs, merged_cache, tag_groups, tag_extension
 
     return merged_elem
 
-def parse_field_set(parent_set, children_with_children, regolith_map):
-    parent_node, field_names = parent_set
-    unravel_arrays_in_xml(parent_node)
-    resolve_xrefs(parent_node, regolith_map)
-    next_children = []
-    for field_node in parent_node:
-        if "name" not in field_node.attrib or field_node.get("name").strip() == "":
+def parse_field_set(fieldset_elem, field_names, regolith_map):
+    unravel_arrays(fieldset_elem)
+    resolve_xrefs(fieldset_elem, regolith_map)
+
+    next_field_nodes = []
+    for field_node in fieldset_elem:
+        if field_node.tag not in WHITELIST_TAGS:
+            continue
+
+        if "name" not in field_node.attrib or not field_node.attrib["name"].strip():
             field_node.set("name", field_node.tag)
 
         field_name = field_node.get("name")
@@ -166,33 +179,27 @@ def parse_field_set(parent_set, children_with_children, regolith_map):
         while field_name in field_names:
             index += 1
             field_name = "%s_%s" % (field_node.get("name"), index)
-        
+
         field_names.append(field_name)
         field_node.set("name", field_name)
 
-        if field_node.tag == "Block" or field_node.tag == "Struct" or field_node.tag == "Array":
-            next_children.append(field_node)
+        if field_node.tag == "Block":
+            for layout in field_node.findall("Layout"):
+                for nested_fieldset in layout.findall("FieldSet"):
+                    next_field_nodes.append((nested_fieldset, [], regolith_map))
 
-    for next_child in next_children:
-        next_names = None
-        if next_child.tag == "Struct":
-            next_names = field_names
-        children_with_children.append((next_child, next_names))
+        elif field_node.tag in ("Struct", "Array"):
+            for layout in field_node.findall("Layout"):
+                for nested_fieldset in layout.findall("FieldSet"):
+                    next_field_nodes.append((nested_fieldset, field_names, regolith_map))
 
+            if field_node.tag == "Array":
+                next_field_nodes.append((field_node, field_names, regolith_map))
 
-def initialize_definitions(parent_set, regolith_map):
-    children_with_children = []
-    parent_node, field_names = parent_set
-    if parent_node.tag == "Array":
-        parse_field_set(parent_set, children_with_children, regolith_map)
+    for next_field_node, next_field_names, next_regolith_map in next_field_nodes:
+        parse_field_set(next_field_node, next_field_names.copy(), next_regolith_map)
 
-    else:
-        for layout in parent_node:
-            for field_set in reversed(layout):
-                current_field_names = field_names
-                if current_field_names is None:
-                    current_field_names = []
-                parse_field_set((field_set, current_field_names), children_with_children, regolith_map)
-
-    for child_set in children_with_children:
-        initialize_definitions(child_set, regolith_map)
+def initialize_definitions(parent_node, regolith_map):
+    for layout in parent_node.findall("Layout"):
+        for fieldset in layout.findall("FieldSet"):
+            parse_field_set(fieldset, [], regolith_map)
