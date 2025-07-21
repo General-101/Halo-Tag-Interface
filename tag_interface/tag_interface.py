@@ -1420,7 +1420,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                 struct_header = {"name": struct_name, "version": struct_version, "size": struct_size}
 
             if store_header:
-                tag_block_fields["StructHeader_%s" % field_node[0].get("regolithID")] = struct_header
+                tag_block_fields["StructHeader_%s" % field_node.get("name")] = struct_header
 
             block_idx = 0
             struct_offset = block_stream.tell()
@@ -1435,7 +1435,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
             has_header = False
             current_struct_field_set = None
             if not return_size:
-                struct_header = tag_block_fields.get("StructHeader_%s" % field_node[0].get("regolithID"))
+                struct_header = tag_block_fields.get("StructHeader_%s" % field_node.get("name"))
             if not PRESERVE_VERSION:
                 for layout in field_node:
                     for struct_field_set in layout:
@@ -1777,7 +1777,7 @@ def read_file(merged_defs, file_path="", engine_tag=EngineTag.H2Latest.value, fi
 
         postprocess_step = postprocess_functions.get(tag_header["tag group"])
         if postprocess_step is not None:
-            postprocess_step(tag_dict, file_endian, PRESERVE_VERSION)
+            postprocess_step(merged_defs, tag_dict, file_endian, PRESERVE_VERSION)
 
         return tag_dict
 
@@ -1943,8 +1943,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag5.character"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.character"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\globals\glass.breakable_surface"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.breakable_surface"
 
     tag_dict = read_file(merged_defs, read_path)
     with open(os.path.join(os.path.dirname(output_path), "%s.json" % os.path.basename(output_path).rsplit(".", 1)[0]), 'w', encoding ='utf8') as json_file:

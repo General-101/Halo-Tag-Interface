@@ -162,7 +162,7 @@ def merge_parent_tag(tag_name, tag_defs, merged_cache, tag_groups, tag_extension
 
     return merged_elem
 
-def parse_field_set(fieldset_elem, field_names, regolith_map):
+def parse_field_set(fieldset_elem, field_names, struct_names, array_names, regolith_map):
     unravel_arrays(fieldset_elem)
     resolve_xrefs(fieldset_elem, regolith_map)
 
@@ -171,36 +171,42 @@ def parse_field_set(fieldset_elem, field_names, regolith_map):
         if field_node.tag not in WHITELIST_TAGS:
             continue
         
-        if not field_node.tag in ("Struct", "Array"):
-            if "name" not in field_node.attrib or not field_node.attrib["name"].strip():
-                field_node.set("name", field_node.tag)
+        if field_node.tag == "Struct":
+            current_field_names = struct_names
+        elif field_node.tag == "Array":
+            current_field_names = array_names
+        else:
+            current_field_names = field_names
 
-            field_name = field_node.get("name")
-            index = 0
-            while field_name in field_names:
-                index += 1
-                field_name = "%s_%s" % (field_node.get("name"), index)
+        if "name" not in field_node.attrib or not field_node.attrib["name"].strip():
+            field_node.set("name", field_node.tag)
 
-            field_names.append(field_name)
-            field_node.set("name", field_name)
+        field_name = field_node.get("name")
+        index = 0
+        while field_name in current_field_names:
+            index += 1
+            field_name = "%s_%s" % (field_node.get("name"), index)
+
+        current_field_names.append(field_name)
+        field_node.set("name", field_name)
 
         if field_node.tag == "Block":
             for layout in field_node.findall("Layout"):
                 for nested_fieldset in layout.findall("FieldSet"):
-                    next_field_nodes.append((nested_fieldset, [], regolith_map))
+                    next_field_nodes.append((nested_fieldset, [], [], [], regolith_map))
 
         elif field_node.tag in ("Struct", "Array"):
             for layout in field_node.findall("Layout"):
                 for nested_fieldset in layout.findall("FieldSet"):
-                    next_field_nodes.append((nested_fieldset, field_names, regolith_map))
+                    next_field_nodes.append((nested_fieldset, field_names, struct_names, array_names, regolith_map))
 
             if field_node.tag == "Array":
-                next_field_nodes.append((field_node, field_names, regolith_map))
+                next_field_nodes.append((field_node, field_names, struct_names, array_names, regolith_map))
 
-    for next_field_node, next_field_names, next_regolith_map in next_field_nodes:
-        parse_field_set(next_field_node, next_field_names.copy(), next_regolith_map)
+    for next_field_node, next_field_names, next_struct_names, next_array_names, next_regolith_map in next_field_nodes:
+        parse_field_set(next_field_node, next_field_names, next_struct_names, next_array_names, next_regolith_map)
 
 def initialize_definitions(parent_node, regolith_map):
     for layout in parent_node.findall("Layout"):
         for fieldset in layout.findall("FieldSet"):
-            parse_field_set(fieldset, [], regolith_map)
+            parse_field_set(fieldset, [], [], [], regolith_map)

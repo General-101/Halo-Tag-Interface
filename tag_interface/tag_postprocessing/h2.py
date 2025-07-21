@@ -117,26 +117,21 @@ def write_real(function_stream, struct_string, result):
     else:
         function_stream.write(struct.pack(struct_string, 0.0))
 
-def upgrade_function(field_node, tag_block_fields, endian_override):
-    tree = ET.parse(r"C:\Users\Steven\Documents\GitHub\Halo-Tag-Interface\tag_interface\layouts\h2\common\function_defintions.xml")
-    field_node = tree.getroot()
-
+def upgrade_function(merged_defs, field_element, tag_block_fields, endian_override):
     field_set_0 = None
     field_set_1 = None
-    for layout in field_node:
-        if layout.get("regolithID") == "structure:mapping_function":
-            for struct_field_set in layout:
-                if int(struct_field_set.attrib.get('version')) == 0:
-                    field_set_0 = struct_field_set
-                elif int(struct_field_set.attrib.get('version')) == 1:
-                    field_set_1 = struct_field_set
-            break
+    for layout in tag_block_fields:
+        for struct_field_set in layout:
+            if int(struct_field_set.attrib.get('version')) == 0:
+                field_set_0 = struct_field_set
+            elif int(struct_field_set.attrib.get('version')) == 1:
+                field_set_1 = struct_field_set
 
     function_type_result = 0
     flag_result = 0
     function_stream = io.BytesIO()
     for field_node_element in field_set_0:
-        unsigned_key = field_node.get("unsigned")
+        unsigned_key = field_node_element.get("unsigned")
         field_endian = field_node_element.get("endianOverride")
         if field_endian:
             endian_override = field_endian
@@ -145,8 +140,8 @@ def upgrade_function(field_node, tag_block_fields, endian_override):
         field_tag = field_node_element.tag
         if field_tag == "RgbColor":
             struct_string = '%s4B' % endian_override
-            result = get_result(field_key, tag_block_fields)
-            color_pad_result = get_result("%s_pad" % field_key, tag_block_fields)
+            result = get_result(field_key, field_element)
+            color_pad_result = get_result("%s_pad" % field_key, field_element)
             if color_pad_result is None:
                 color_pad_result = 0
             if result is not None:
@@ -158,7 +153,7 @@ def upgrade_function(field_node, tag_block_fields, endian_override):
             struct_string = '%sf' % endian_override
             if unsigned_key:
                 struct_string = uppercase_struct_letters(struct_string)
-            tag_block_value = tag_block_fields.pop(field_key, [])
+            tag_block_value = field_element.pop(field_key, [])
             for tag_element in tag_block_value:
                 write_real(function_stream, struct_string, tag_element["Value"])
 
@@ -166,7 +161,7 @@ def upgrade_function(field_node, tag_block_fields, endian_override):
             struct_string = '%sb' % endian_override
             if unsigned_key:
                 struct_string = uppercase_struct_letters(struct_string)
-            result = get_result(field_key, tag_block_fields)
+            result = get_result(field_key, field_element)
             if field_key.startswith("Function Type"):
                 function_type_result = result
 
@@ -178,7 +173,7 @@ def upgrade_function(field_node, tag_block_fields, endian_override):
             struct_string = '%sb' % endian_override
             if unsigned_key:
                 struct_string = uppercase_struct_letters(struct_string)
-            result = get_result(field_key, tag_block_fields)
+            result = get_result(field_key, field_element)
             if field_key.startswith("Flags"):
                 flag_result = result
             if result is not None:
@@ -187,7 +182,7 @@ def upgrade_function(field_node, tag_block_fields, endian_override):
                 function_stream.write(struct.pack(struct_string, 0))
 
     for field_node_element in field_set_1:
-        unsigned_key = field_node.get("unsigned")
+        unsigned_key = field_node_element.get("unsigned")
         field_endian = field_node_element.get("endianOverride")
         if field_endian:
             endian_override = field_endian
@@ -195,18 +190,24 @@ def upgrade_function(field_node, tag_block_fields, endian_override):
         field_key = field_node_element.get("name")
         field_tag = field_node_element.tag
         if field_tag == "Block":
-            tag_block = tag_block_fields[field_key] = []
+            tag_block = field_element[field_key] = []
             for byte in function_stream.getbuffer():
                 signed_byte = byte if byte < 128 else byte - 256
                 tag_block.append({"Value": signed_byte})
 
-def biped_postprocess(tag_dict, file_endian, preserve_version):
+            field_element["TagBlock_%s" % field_key] = {"unk1": 0,"unk2": 0}
+            field_element["TagBlockHeader_%s" % field_key] = {"name": "tbfd", "version": 0, "size": 1}
+
+def biped_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
     if not preserve_version:
+        biped_def = merged_defs["bipd"]
         root = tag_dict["Data"]
         tag_block_version = 1
         tag_block_header = root.get("TagBlockHeader_biped")
         if tag_block_header is not None:
             tag_block_version = tag_block_header["version"]
+
+        function_struct_field = biped_def.find(f".//Struct[@name='{"default function"}']")
 
         if tag_block_version == 0:
             root["flags_2"] = root.pop("Skip", 0)
@@ -218,16 +219,16 @@ def biped_postprocess(tag_dict, file_endian, preserve_version):
             root["living material name"] = root.pop("collision global material name", "")
             root["dead material name"] = root.pop("dead collision global material name", "")
 
-            root["StructHeader_%s" % "structure:character_physics_ground"] = {"name": "chgr", "version": 0, "size": 48}
-            root["StructHeader_%s" % "structure:character_physics_flying"] = {"name": "chfl", "version": 0, "size": 44}
+            root["StructHeader_%s" % "ground physics"] = {"name": "chgr", "version": 0, "size": 48}
+            root["StructHeader_%s" % "flying physics"] = {"name": "chfl", "version": 0, "size": 44}
 
         function_tag_block = root.get("functions")
         if function_tag_block is not None:
             for function_element in function_tag_block:
-                struct_header = function_element.get("StructHeader_%s" % "structure:mapping_function")
-                if struct_header["name"] == "MAPP" and struct_header["version"] == 0:
+                struct_header = function_element.get("StructHeader_%s" % "default function")
+                if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
                     struct_header = {"name": "MAPP", "version": 1, "size": 12}
-                    upgrade_function(function_element, function_element, file_endian)
+                    upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
         seats_tag_block = root.get("seats")
         seat_header = root.get("TagBlockHeader_seats")
@@ -241,9 +242,9 @@ def biped_postprocess(tag_dict, file_endian, preserve_version):
                     seat_element["pitch rate bounds"] = {"Min": pitch, "Max": pitch}
 
                 seat_element["acceleration range"] = seat_element.pop("acceleration scale", (0.0, 0.0, 0.0))
-                seat_element["StructHeader_%s" % "structure:unit_seat_acceleration"] = {"name": "usas", "version": 0, "size": 20}
+                seat_element["StructHeader_%s" % "acceleration"] = {"name": "usas", "version": 0, "size": 20}
 
-def bitmap_postprocess(tag_dict, file_endian, preserve_version):
+def bitmap_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
     root = tag_dict["Data"]
     tag_block_version = 2
     if preserve_version:
@@ -283,7 +284,69 @@ def bitmap_postprocess(tag_dict, file_endian, preserve_version):
             bitmap_element["Ptr_5"] = base64.b64encode(bytes(4)).decode('utf-8')
             bitmap_element["Ptr_6"] = base64.b64encode(bytes(4)).decode('utf-8')
 
-def character_postprocess(tag_dict, file_endian, preserve_version):
+def breakable_surface_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        breakable_surface_def = merged_defs["bsdt"]
+        root = tag_dict["Data"]
+        tag_block_version = 1
+        tag_block_header = root.get("TagBlockHeader_breakable_surface")
+        if tag_block_header is not None:
+            tag_block_version = tag_block_header["version"]
+
+        mapping_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping"}']")
+        mapping_1_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_1"}']")
+        mapping_2_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_2"}']")
+        mapping_3_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_3"}']")
+        mapping_4_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_4"}']")
+        mapping_5_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_5"}']")
+        mapping_6_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_6"}']")
+        mapping_7_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_7"}']")
+        mapping_8_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_8"}']")
+
+        particle_effects_tag_block = root.get("particle effects")
+        if particle_effects_tag_block is not None:
+            for particle_effect_element in particle_effects_tag_block:
+                emitters_tag_block = particle_effect_element.get("emitters")
+                if emitters_tag_block is not None:
+                    for emitter_element in emitters_tag_block:
+                        mapping_header = emitter_element.get("StructHeader_%s" % "Mapping")
+                        mapping_1_header = emitter_element.get("StructHeader_%s" % "Mapping_1")
+                        mapping_2_header = emitter_element.get("StructHeader_%s" % "Mapping_2")
+                        mapping_3_header = emitter_element.get("StructHeader_%s" % "Mapping_3")
+                        mapping_4_header = emitter_element.get("StructHeader_%s" % "Mapping_4")
+                        mapping_5_header = emitter_element.get("StructHeader_%s" % "Mapping_5")
+                        mapping_6_header = emitter_element.get("StructHeader_%s" % "Mapping_6")
+                        mapping_7_header = emitter_element.get("StructHeader_%s" % "Mapping_7")
+                        mapping_8_header = emitter_element.get("StructHeader_%s" % "Mapping_8")
+                        if mapping_header is not None and mapping_header["name"] == "MAPP" and mapping_header["version"] == 0:
+                            mapping_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, emitter_element, mapping_struct_field, file_endian)
+                        if mapping_1_header is not None and mapping_1_header["name"] == "MAPP" and mapping_1_header["version"] == 0:
+                            mapping_1_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, emitter_element, mapping_1_struct_field, file_endian)
+                        if mapping_2_header is not None and mapping_2_header["name"] == "MAPP" and mapping_2_header["version"] == 0:
+                            mapping_2_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, emitter_element, mapping_2_struct_field, file_endian)
+                        if mapping_3_header is not None and mapping_3_header["name"] == "MAPP" and mapping_3_header["version"] == 0:
+                            mapping_3_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, emitter_element, mapping_3_struct_field, file_endian)
+                        if mapping_4_header is not None and mapping_4_header["name"] == "MAPP" and mapping_4_header["version"] == 0:
+                            mapping_4_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, emitter_element, mapping_4_struct_field, file_endian)
+                        if mapping_5_header is not None and mapping_5_header["name"] == "MAPP" and mapping_5_header["version"] == 0:
+                            mapping_5_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, emitter_element, mapping_5_struct_field, file_endian)
+                        if mapping_6_header is not None and mapping_6_header["name"] == "MAPP" and mapping_6_header["version"] == 0:
+                            mapping_6_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, emitter_element, mapping_6_struct_field, file_endian)
+                        if mapping_7_header is not None and mapping_7_header["name"] == "MAPP" and mapping_7_header["version"] == 0:
+                            mapping_7_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, emitter_element, mapping_7_struct_field, file_endian)
+                        if mapping_8_header is not None and mapping_8_header["name"] == "MAPP" and mapping_8_header["version"] == 0:
+                            mapping_8_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, emitter_element, mapping_8_struct_field, file_endian)
+
+def character_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
     if not preserve_version:
         root = tag_dict["Data"]
         tag_block_version = 2
@@ -494,7 +557,7 @@ postprocess_functions = {
     "hsc*": None,
     "ai**": None,
     "/**/": None,
-    "bsdt": None,
+    "bsdt": breakable_surface_postprocess,
     "mpdt": None,
     "sncl": None,
     "mulg": None,
