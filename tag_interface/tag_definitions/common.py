@@ -237,6 +237,9 @@ def parse_field_set(node, name_dict, block_key, regolith_map):
 
             raw_name = field_node.get("name")
             name = raw_name.strip() if raw_name and raw_name.strip() else field_node.tag
+            if field_node.tag == "Struct" and not name.startswith("StructHeader_"):
+                name = "StructHeader_%s" % name
+
             index = 0
             field_key = name
             while field_key in name_list:

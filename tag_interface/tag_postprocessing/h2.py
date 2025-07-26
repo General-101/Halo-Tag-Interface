@@ -606,11 +606,225 @@ def damage_effect_postprocess(merged_defs, tag_dict, file_endian, preserve_versi
 
             player_responses_data.append(player_response_element)
 
+def device_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        device_def = merged_defs["devi"]
+        root = tag_dict["Data"]
+
+        function_struct_field = device_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+        function_tag_block = root.get("functions")
+        if function_tag_block is not None:
+            for function_element in function_tag_block:
+                struct_header = function_element.get("StructHeader_default function")
+                if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
+                    struct_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def device_control_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        device_control_def = merged_defs["ctrl"]
+        root = tag_dict["Data"]
+
+        function_struct_field = device_control_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+        function_tag_block = root.get("functions")
+        if function_tag_block is not None:
+            for function_element in function_tag_block:
+                struct_header = function_element.get("StructHeader_default function")
+                if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
+                    struct_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def device_light_fixture_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        device_light_fixture_def = merged_defs["lifi"]
+        root = tag_dict["Data"]
+
+        function_struct_field = device_light_fixture_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+        function_tag_block = root.get("functions")
+        if function_tag_block is not None:
+            for function_element in function_tag_block:
+                struct_header = function_element.get("StructHeader_default function")
+                if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
+                    struct_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def device_machine_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        device_machine_def = merged_defs["mach"]
+        root = tag_dict["Data"]
+
+        function_struct_field = device_machine_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+        function_tag_block = root.get("functions")
+        if function_tag_block is not None:
+            for function_element in function_tag_block:
+                struct_header = function_element.get("StructHeader_default function")
+                if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
+                    struct_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def effect_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        effect_def = merged_defs["effe"]
+        root = tag_dict["Data"]
+
+        function_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function"}']")
+        function_1_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function_1"}']")
+        function_2_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function_2"}']")
+        function_3_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function_3"}']")
+        function_4_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function_4"}']")
+        function_5_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function_5"}']")
+        mapping_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping"}']")
+        mapping_1_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_1"}']")
+        mapping_2_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_2"}']")
+        mapping_3_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_3"}']")
+        mapping_4_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_4"}']")
+        mapping_5_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_5"}']")
+        mapping_6_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_6"}']")
+        mapping_7_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_7"}']")
+        mapping_8_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_8"}']")
+    
+        events_tag_block = root.get("events")
+        if events_tag_block is not None:
+            for event_element in events_tag_block:
+                beams_tag_block = event_element.get("beams")
+                if beams_tag_block is not None:
+                    for beam_element in beams_tag_block:
+                        function_header = beam_element.get("StructHeader_function")
+                        if function_header is not None and function_header["name"] == "MAPP" and function_header["version"] == 0:
+                            function_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, beam_element, function_struct_field, file_endian)
+                        function_1_header = beam_element.get("StructHeader_function_1")
+                        if function_1_header is not None and function_1_header["name"] == "MAPP" and function_1_header["version"] == 0:
+                            function_1_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, beam_element, function_1_struct_field, file_endian)
+                        function_2_header = beam_element.get("StructHeader_function_2")
+                        if function_2_header is not None and function_2_header["name"] == "MAPP" and function_2_header["version"] == 0:
+                            function_2_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, beam_element, function_2_struct_field, file_endian)
+                        function_3_header = beam_element.get("StructHeader_function_3")
+                        if function_3_header is not None and function_3_header["name"] == "MAPP" and function_3_header["version"] == 0:
+                            function_3_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, beam_element, function_3_struct_field, file_endian)
+                        function_4_header = beam_element.get("StructHeader_function_4")
+                        if function_4_header is not None and function_4_header["name"] == "MAPP" and function_4_header["version"] == 0:
+                            function_4_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, beam_element, function_4_struct_field, file_endian)
+                        function_5_header = beam_element.get("StructHeader_function_5")
+                        if function_5_header is not None and function_5_header["name"] == "MAPP" and function_5_header["version"] == 0:
+                            function_5_header = {"name": "MAPP", "version": 1, "size": 12}
+                            upgrade_function(merged_defs, beam_element, function_5_struct_field, file_endian)
+                particle_systems_tag_block = event_element.get("particle systems")
+                if particle_systems_tag_block is not None:
+                    for particle_system_element in particle_systems_tag_block:
+                        emitters_tag_block = particle_system_element.get("emitters")
+                        if emitters_tag_block is not None:
+                            for emitter_element in emitters_tag_block:
+                                mapping_header = emitter_element.get("StructHeader_Mapping")
+                                if mapping_header is not None and mapping_header["name"] == "MAPP" and mapping_header["version"] == 0:
+                                    mapping_header = {"name": "MAPP", "version": 1, "size": 12}
+                                    upgrade_function(merged_defs, emitter_element, mapping_struct_field, file_endian)
+                                mapping_1_header = emitter_element.get("StructHeader_Mapping_1")
+                                if mapping_1_header is not None and mapping_1_header["name"] == "MAPP" and mapping_1_header["version"] == 0:
+                                    mapping_1_header = {"name": "MAPP", "version": 1, "size": 12}
+                                    upgrade_function(merged_defs, emitter_element, mapping_1_struct_field, file_endian)
+                                mapping_2_header = emitter_element.get("StructHeader_Mapping_2")
+                                if mapping_2_header is not None and mapping_2_header["name"] == "MAPP" and mapping_2_header["version"] == 0:
+                                    mapping_2_header = {"name": "MAPP", "version": 1, "size": 12}
+                                    upgrade_function(merged_defs, emitter_element, mapping_2_struct_field, file_endian)
+                                mapping_3_header = emitter_element.get("StructHeader_Mapping_3")
+                                if mapping_3_header is not None and mapping_3_header["name"] == "MAPP" and mapping_3_header["version"] == 0:
+                                    mapping_3_header = {"name": "MAPP", "version": 1, "size": 12}
+                                    upgrade_function(merged_defs, emitter_element, mapping_3_struct_field, file_endian)
+                                mapping_4_header = emitter_element.get("StructHeader_Mapping_4")
+                                if mapping_4_header is not None and mapping_4_header["name"] == "MAPP" and mapping_4_header["version"] == 0:
+                                    mapping_4_header = {"name": "MAPP", "version": 1, "size": 12}
+                                    upgrade_function(merged_defs, emitter_element, mapping_4_struct_field, file_endian)
+                                mapping_5_header = emitter_element.get("StructHeader_Mapping_5")
+                                if mapping_5_header is not None and mapping_5_header["name"] == "MAPP" and mapping_5_header["version"] == 0:
+                                    mapping_5_header = {"name": "MAPP", "version": 1, "size": 12}
+                                    upgrade_function(merged_defs, emitter_element, mapping_5_struct_field, file_endian)
+                                mapping_6_header = emitter_element.get("StructHeader_Mapping_6")
+                                if mapping_6_header is not None and mapping_6_header["name"] == "MAPP" and mapping_6_header["version"] == 0:
+                                    mapping_6_header = {"name": "MAPP", "version": 1, "size": 12}
+                                    upgrade_function(merged_defs, emitter_element, mapping_6_struct_field, file_endian)
+                                mapping_7_header = emitter_element.get("StructHeader_Mapping_7")
+                                if mapping_7_header is not None and mapping_7_header["name"] == "MAPP" and mapping_7_header["version"] == 0:
+                                    mapping_7_header = {"name": "MAPP", "version": 1, "size": 12}
+                                    upgrade_function(merged_defs, emitter_element, mapping_7_struct_field, file_endian)
+                                mapping_8_header = emitter_element.get("StructHeader_Mapping_8")
+                                if mapping_8_header is not None and mapping_8_header["name"] == "MAPP" and mapping_8_header["version"] == 0:
+                                    mapping_8_header = {"name": "MAPP", "version": 1, "size": 12}
+                                    upgrade_function(merged_defs, emitter_element, mapping_8_struct_field, file_endian)
+
+def equipment_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        equipment_def = merged_defs["eqip"]
+        root = tag_dict["Data"]
+
+        function_struct_field = equipment_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+        function_tag_block = root.get("functions")
+        if function_tag_block is not None:
+            for function_element in function_tag_block:
+                struct_header = function_element.get("StructHeader_default function")
+                if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
+                    struct_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def garbage_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        garbage_def = merged_defs["garb"]
+        root = tag_dict["Data"]
+
+        function_struct_field = garbage_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+        function_tag_block = root.get("functions")
+        if function_tag_block is not None:
+            for function_element in function_tag_block:
+                struct_header = function_element.get("StructHeader_default function")
+                if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
+                    struct_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def globals_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        globals_def = merged_defs["matg"]
+        root = tag_dict["Data"]
+
+        sound_globals_tag_block = root.get("sound globals")
+        tag_block_header = root.get("TagBlockHeader_sound globals")
+        if sound_globals_tag_block is not None and tag_block_header is not None:
+            if tag_block_header["version"] == 0:
+                for sound_globals_element in sound_globals_tag_block:
+                    sound_globals_element["legacy sound classes"] = {"group name": "snmx"," unk1": 0," length": 15," unk2": 0," path": "sound\sound_mix"}
+
+            else:
+                for sound_globals_element in sound_globals_tag_block:
+                    sound_globals_element["legacy sound classes"] = sound_globals_element.pop("sound classes")
+                    
+def item_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        item_def = merged_defs["item"]
+        root = tag_dict["Data"]
+
+        function_struct_field = item_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+        function_tag_block = root.get("functions")
+        if function_tag_block is not None:
+            for function_element in function_tag_block:
+                struct_header = function_element.get("StructHeader_default function")
+                if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
+                    struct_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
 postprocess_functions = {
     "obje": None,
-    "devi": None,
-    "item": None,
+    "devi": device_postprocess,
+    "item": item_postprocess,
     "unit": None,
     "hlmt": None,
     "mode": None,
@@ -628,14 +842,14 @@ postprocess_functions = {
     "cont": None,
     "weap": None,
     "ligh": None,
-    "effe": None,
+    "effe": effect_postprocess,
     "prt3": None,
     "PRTM": None,
     "pmov": None,
-    "matg": None,
+    "matg": globals_postprocess,
     "snd!": None,
     "lsnd": None,
-    "eqip": None,
+    "eqip": equipment_postprocess,
     "ant!": None,
     "MGS2": None,
     "tdtl": None,
@@ -644,9 +858,9 @@ postprocess_functions = {
     "BooM": None,
     "trak": None,
     "proj": None,
-    "mach": None,
-    "ctrl": None,
-    "lifi": None,
+    "mach": device_machine_postprocess,
+    "ctrl": device_control_postprocess,
+    "lifi": device_light_fixture_postprocess,
     "pphy": None,
     "ltmp": None,
     "sbsp": None,
@@ -688,7 +902,7 @@ postprocess_functions = {
     "sily": None,
     "goof": None,
     "foot": None,
-    "garb": None,
+    "garb": garbage_postprocess,
     "styl": None,
     "char": character_postprocess,
     "adlg": None,
