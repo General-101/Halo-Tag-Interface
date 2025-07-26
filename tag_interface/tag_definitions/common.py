@@ -162,51 +162,106 @@ def merge_parent_tag(tag_name, tag_defs, merged_cache, tag_groups, tag_extension
 
     return merged_elem
 
-def parse_field_set(fieldset_elem, field_names, struct_names, array_names, regolith_map):
-    unravel_arrays(fieldset_elem)
-    resolve_xrefs(fieldset_elem, regolith_map)
+def parse_struct_field_set(struct_queue, name_dict, block_key, block_version, regolith_map, block_queue):
+    relevant_names = []
+    block_dict = name_dict[block_key]
+    version_name_list = block_dict[block_version]
+    for field_name in version_name_list:
+        if field_name not in relevant_names:
+            relevant_names.append(field_name)
 
-    next_field_nodes = []
-    for field_node in fieldset_elem:
-        if field_node.tag not in WHITELIST_TAGS:
-            continue
-        
-        if field_node.tag == "Struct":
-            current_field_names = struct_names
-        elif field_node.tag == "Array":
-            current_field_names = array_names
-        else:
-            current_field_names = field_names
+    next_struct_queue = []
+    full_struct_names = []
+    for struct_node, struct_key in struct_queue:
+        for layout in struct_node.findall("Layout"):
+            unravel_arrays(layout)
+            resolve_xrefs(layout, regolith_map)
 
-        if "name" not in field_node.attrib or not field_node.attrib["name"].strip():
-            field_node.set("name", field_node.tag)
+            fieldsets = sorted(layout.findall('FieldSet'), key=lambda fs: int(fs.attrib.get('version', '-1')))
 
-        field_name = field_node.get("name")
-        index = 0
-        while field_name in current_field_names:
-            index += 1
-            field_name = "%s_%s" % (field_node.get("name"), index)
+            struct_name_list = {}
+            for idx, fieldset in enumerate(fieldsets):
+                struct_name_list[idx] = []
+                name_list = relevant_names.copy()
+                for field_node in fieldset:
+                    if field_node.tag not in WHITELIST_TAGS:
+                        continue
 
-        current_field_names.append(field_name)
-        field_node.set("name", field_name)
+                    raw_name = field_node.get("name")
+                    name = raw_name.strip() if raw_name and raw_name.strip() else field_node.tag
+                    if field_node.tag == "Struct" and not name.startswith("StructHeader_"):
+                        name = "StructHeader_%s" % name
 
-        if field_node.tag == "Block":
-            for layout in field_node.findall("Layout"):
-                for nested_fieldset in layout.findall("FieldSet"):
-                    next_field_nodes.append((nested_fieldset, [], [], [], regolith_map))
+                    index = 0
+                    field_key = name
+                    while field_key in name_list:
+                        index += 1
+                        field_key = f"{name}_{index}"
 
-        elif field_node.tag in ("Struct", "Array"):
-            for layout in field_node.findall("Layout"):
-                for nested_fieldset in layout.findall("FieldSet"):
-                    next_field_nodes.append((nested_fieldset, field_names, struct_names, array_names, regolith_map))
+                    field_node.set("name", field_key)
+                    name_list.append(field_key)
+                    struct_name_list[idx].append(field_key)
 
-            if field_node.tag == "Array":
-                next_field_nodes.append((field_node, field_names, struct_names, array_names, regolith_map))
+                    if field_node.tag == "Block":
+                        block_queue.append((field_node, field_key))
+                    elif field_node.tag == "Struct":
+                        next_struct_queue.append((field_node, field_key))
 
-    for next_field_node, next_field_names, next_struct_names, next_array_names, next_regolith_map in next_field_nodes:
-        parse_field_set(next_field_node, next_field_names, next_struct_names, next_array_names, next_regolith_map)
+            for version in struct_name_list:
+                struct_version_name_list = struct_name_list[version]
+                for struct_name in struct_version_name_list:
+                    if struct_name not in full_struct_names:
+                        full_struct_names.append(struct_name)
 
-def initialize_definitions(parent_node, regolith_map):
-    for layout in parent_node.findall("Layout"):
-        for fieldset in layout.findall("FieldSet"):
-            parse_field_set(fieldset, [], [], [], regolith_map)
+            relevant_names.extend(full_struct_names)
+
+    version_name_list.extend(full_struct_names)
+
+    if len(next_struct_queue) > 0:
+        parse_struct_field_set(next_struct_queue, name_dict, block_key, block_version, regolith_map, block_queue)
+
+def parse_field_set(node, name_dict, block_key, regolith_map):
+    unravel_arrays(node)
+    resolve_xrefs(node, regolith_map)
+
+    fieldsets = sorted(node.findall('FieldSet'), key=lambda fs: int(fs.attrib.get('version', '-1')))
+    block_queue = []
+
+    block_dict = name_dict[block_key]
+    for idx, fieldset in enumerate(fieldsets):
+        struct_queue = []
+        name_list = block_dict[idx] = []
+        for field_node in fieldset:
+            if field_node.tag not in WHITELIST_TAGS:
+                continue
+
+            raw_name = field_node.get("name")
+            name = raw_name.strip() if raw_name and raw_name.strip() else field_node.tag
+            index = 0
+            field_key = name
+            while field_key in name_list:
+                index += 1
+                field_key = f"{name}_{index}"
+
+            field_node.set("name", field_key)
+            name_list.append(field_key)
+            if field_node.tag == "Block":
+                block_queue.append((field_node, field_key))
+            elif field_node.tag == "Struct":
+                struct_queue.append((field_node, field_key))
+
+        if len(struct_queue) > 0:
+            parse_struct_field_set(struct_queue, name_dict, block_key, idx, regolith_map, block_queue)
+
+    for next_block_node, next_block_key in block_queue:
+        name_dict[next_block_key] = {}
+        for next_layout in next_block_node.findall("Layout"):
+            parse_field_set(next_layout, name_dict, next_block_key, regolith_map)
+
+def initialize_definitions(root, regolith_map):
+    name_dict = {}
+    node_key = root.get("name") or layout.tag
+    if node_key not in name_dict:
+        name_dict[node_key] = {}
+    for layout in root.findall("Layout"):
+        parse_field_set(layout, name_dict, node_key, None, regolith_map)

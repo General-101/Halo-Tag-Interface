@@ -198,6 +198,44 @@ def upgrade_function(merged_defs, field_element, tag_block_fields, endian_overri
             field_element["TagBlock_%s" % field_key] = {"unk1": 0,"unk2": 0}
             field_element["TagBlockHeader_%s" % field_key] = {"name": "tbfd", "version": 0, "size": 1}
 
+def upgrade_effect_function(function_type, function_1_value, min_value, field_element, tag_block_fields, endian_override):
+    field_set = None
+    for layout in tag_block_fields:
+        for struct_field_set in layout:
+            if int(struct_field_set.attrib.get('version')) == 1:
+                field_set = struct_field_set
+
+    function_stream = io.BytesIO()
+    function_stream.write(struct.pack('%sb' % endian_override, function_type)) # Transition function type
+    function_stream.write(struct.pack('%sb' % endian_override, 0))
+    function_stream.write(struct.pack('%sb' % endian_override, function_1_value))
+    function_stream.write(struct.pack('%sb' % endian_override, 0))
+    function_stream.write(struct.pack('%s4B' % endian_override, *(0, 0, 0), 0))
+    function_stream.write(struct.pack('%s4B' % endian_override, *(0, 0, 0), 0))
+    function_stream.write(struct.pack('%s4B' % endian_override, *(0, 0, 0), 0))
+    function_stream.write(struct.pack('%s4B' % endian_override, *(0, 0, 0), 0))
+    write_real(function_stream, '%sf' % endian_override, min_value)
+    write_real(function_stream, '%sf' % endian_override, 0.0)
+    write_real(function_stream, '%sf' % endian_override, 0.0)
+    write_real(function_stream, '%sf' % endian_override, 0.0)
+
+    for field_node_element in field_set:
+        unsigned_key = field_node_element.get("unsigned")
+        field_endian = field_node_element.get("endianOverride")
+        if field_endian:
+            endian_override = field_endian
+
+        field_key = field_node_element.get("name")
+        field_tag = field_node_element.tag
+        if field_tag == "Block":
+            tag_block = field_element[field_key] = []
+            for byte in function_stream.getbuffer():
+                signed_byte = byte if byte < 128 else byte - 256
+                tag_block.append({"Value": signed_byte})
+
+            field_element["TagBlock_%s" % field_key] = {"unk1": 0,"unk2": 0}
+            field_element["TagBlockHeader_%s" % field_key] = {"name": "tbfd", "version": 0, "size": 1}
+
 def biped_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
     if not preserve_version:
         biped_def = merged_defs["bipd"]
@@ -207,7 +245,7 @@ def biped_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
         if tag_block_header is not None:
             tag_block_version = tag_block_header["version"]
 
-        function_struct_field = biped_def.find(f".//Struct[@name='{"default function"}']")
+        function_struct_field = biped_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
 
         if tag_block_version == 0:
             root["flags_2"] = root.pop("Skip", 0)
@@ -219,13 +257,13 @@ def biped_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
             root["living material name"] = root.pop("collision global material name", "")
             root["dead material name"] = root.pop("dead collision global material name", "")
 
-            root["StructHeader_%s" % "ground physics"] = {"name": "chgr", "version": 0, "size": 48}
-            root["StructHeader_%s" % "flying physics"] = {"name": "chfl", "version": 0, "size": 44}
+            root["StructHeader_ground physics"] = {"name": "chgr", "version": 0, "size": 48}
+            root["StructHeader_flying physics"] = {"name": "chfl", "version": 0, "size": 44}
 
         function_tag_block = root.get("functions")
         if function_tag_block is not None:
             for function_element in function_tag_block:
-                struct_header = function_element.get("StructHeader_%s" % "default function")
+                struct_header = function_element.get("StructHeader_default function")
                 if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
                     struct_header = {"name": "MAPP", "version": 1, "size": 12}
                     upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
@@ -242,7 +280,7 @@ def biped_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
                     seat_element["pitch rate bounds"] = {"Min": pitch, "Max": pitch}
 
                 seat_element["acceleration range"] = seat_element.pop("acceleration scale", (0.0, 0.0, 0.0))
-                seat_element["StructHeader_%s" % "acceleration"] = {"name": "usas", "version": 0, "size": 20}
+                seat_element["StructHeader_acceleration"] = {"name": "usas", "version": 0, "size": 20}
 
 def bitmap_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
     root = tag_dict["Data"]
@@ -288,20 +326,16 @@ def breakable_surface_postprocess(merged_defs, tag_dict, file_endian, preserve_v
     if not preserve_version:
         breakable_surface_def = merged_defs["bsdt"]
         root = tag_dict["Data"]
-        tag_block_version = 1
-        tag_block_header = root.get("TagBlockHeader_breakable_surface")
-        if tag_block_header is not None:
-            tag_block_version = tag_block_header["version"]
 
-        mapping_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping"}']")
-        mapping_1_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_1"}']")
-        mapping_2_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_2"}']")
-        mapping_3_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_3"}']")
-        mapping_4_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_4"}']")
-        mapping_5_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_5"}']")
-        mapping_6_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_6"}']")
-        mapping_7_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_7"}']")
-        mapping_8_struct_field = breakable_surface_def.find(f".//Struct[@name='{"Mapping_8"}']")
+        mapping_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping"}']")
+        mapping_1_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_1"}']")
+        mapping_2_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_2"}']")
+        mapping_3_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_3"}']")
+        mapping_4_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_4"}']")
+        mapping_5_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_5"}']")
+        mapping_6_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_6"}']")
+        mapping_7_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_7"}']")
+        mapping_8_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_8"}']")
 
         particle_effects_tag_block = root.get("particle effects")
         if particle_effects_tag_block is not None:
@@ -309,15 +343,15 @@ def breakable_surface_postprocess(merged_defs, tag_dict, file_endian, preserve_v
                 emitters_tag_block = particle_effect_element.get("emitters")
                 if emitters_tag_block is not None:
                     for emitter_element in emitters_tag_block:
-                        mapping_header = emitter_element.get("StructHeader_%s" % "Mapping")
-                        mapping_1_header = emitter_element.get("StructHeader_%s" % "Mapping_1")
-                        mapping_2_header = emitter_element.get("StructHeader_%s" % "Mapping_2")
-                        mapping_3_header = emitter_element.get("StructHeader_%s" % "Mapping_3")
-                        mapping_4_header = emitter_element.get("StructHeader_%s" % "Mapping_4")
-                        mapping_5_header = emitter_element.get("StructHeader_%s" % "Mapping_5")
-                        mapping_6_header = emitter_element.get("StructHeader_%s" % "Mapping_6")
-                        mapping_7_header = emitter_element.get("StructHeader_%s" % "Mapping_7")
-                        mapping_8_header = emitter_element.get("StructHeader_%s" % "Mapping_8")
+                        mapping_header = emitter_element.get("StructHeader_Mapping")
+                        mapping_1_header = emitter_element.get("StructHeader_Mapping_1")
+                        mapping_2_header = emitter_element.get("StructHeader_Mapping_2")
+                        mapping_3_header = emitter_element.get("StructHeader_Mapping_3")
+                        mapping_4_header = emitter_element.get("StructHeader_Mapping_4")
+                        mapping_5_header = emitter_element.get("StructHeader_Mapping_5")
+                        mapping_6_header = emitter_element.get("StructHeader_Mapping_6")
+                        mapping_7_header = emitter_element.get("StructHeader_Mapping_7")
+                        mapping_8_header = emitter_element.get("StructHeader_Mapping_8")
                         if mapping_header is not None and mapping_header["name"] == "MAPP" and mapping_header["version"] == 0:
                             mapping_header = {"name": "MAPP", "version": 1, "size": 12}
                             upgrade_function(merged_defs, emitter_element, mapping_struct_field, file_endian)
@@ -450,7 +484,127 @@ def character_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
                     charge_element["ideal leap velocity"] = melee_leap_velocity
                     charge_element["max leap velocity"] = melee_leap_velocity
 
+def chocolate_mountain_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        chocolate_mountain_def = merged_defs["gldf"]
+        root = tag_dict["Data"]
 
+        function_struct_field = chocolate_mountain_def.find(f".//Struct[@name='{"StructHeader_function"}']")
+        function_1_struct_field = chocolate_mountain_def.find(f".//Struct[@name='{"StructHeader_function_1"}']")
+        function_2_struct_field = chocolate_mountain_def.find(f".//Struct[@name='{"StructHeader_function_2"}']")
+        function_3_struct_field = chocolate_mountain_def.find(f".//Struct[@name='{"StructHeader_function 1"}']")
+
+        lighting_tag_block = root.get("lighting variables")
+        if lighting_tag_block is not None:
+            for lighting_element in lighting_tag_block:
+                function_header = lighting_element.get("StructHeader_function")
+                function_1_header = lighting_element.get("StructHeader_function_1")
+                function_2_header = lighting_element.get("StructHeader_function_2")
+                function_3_header = lighting_element.get("StructHeader_function 1")
+                if function_header is not None and function_header["name"] == "MAPP" and function_header["version"] == 0:
+                    function_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, lighting_element, function_struct_field, file_endian)
+                if function_1_header is not None and function_1_header["name"] == "MAPP" and function_1_header["version"] == 0:
+                    function_1_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, lighting_element, function_1_struct_field, file_endian)
+                if function_2_header is not None and function_2_header["name"] == "MAPP" and function_2_header["version"] == 0:
+                    function_2_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, lighting_element, function_2_struct_field, file_endian)
+                if function_3_header is not None and function_3_header["name"] == "MAPP" and function_3_header["version"] == 0:
+                    function_3_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, lighting_element, function_3_struct_field, file_endian)
+
+def crate_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        crate_def = merged_defs["bloc"]
+        root = tag_dict["Data"]
+
+        function_struct_field = crate_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+        function_tag_block = root.get("functions")
+        if function_tag_block is not None:
+            for function_element in function_tag_block:
+                struct_header = function_element.get("StructHeader_default function")
+                if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
+                    struct_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def creature_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        creature_def = merged_defs["crea"]
+        root = tag_dict["Data"]
+
+        function_struct_field = creature_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+        function_tag_block = root.get("functions")
+        if function_tag_block is not None:
+            for function_element in function_tag_block:
+                struct_header = function_element.get("StructHeader_default function")
+                if struct_header is not None and struct_header["name"] == "MAPP" and struct_header["version"] == 0:
+                    struct_header = {"name": "MAPP", "version": 1, "size": 12}
+                    upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def damage_effect_postprocess(merged_defs, tag_dict, file_endian, preserve_version):
+    if not preserve_version:
+        damage_effect_def = merged_defs["jpt!"]
+        root = tag_dict["Data"]
+
+        tag_block_header = tag_dict.get("TagBlockHeader_damage_effect")
+        if tag_block_header["version"] == 0:
+            tag_block_header = tag_dict["TagBlockHeader_damage_effect"] = {"name": "tbfd","version": 1,"size": 212}
+
+            player_responses_block = root.get("TagBlock_player responses")
+            player_responses_header = root.get("TagBlockHeader_player responses")
+            player_responses_data = root.get("player responses")
+            if player_responses_block is None:
+                root["TagBlock_player responses"] = {"unk1": 0, "unk2": 0}
+            if player_responses_header is None:
+                root["TagBlockHeader_player responses"] = {"name": "tbfd", "version": 0, "size": 88}
+            if player_responses_data is None:
+                player_responses_data = root["player responses"] = []
+
+            player_response_element = {
+                                "response type": {"type": "ShortEnum","value": 2,"value name": ""}, 
+                                "type": root.pop("type", 0), 
+                                "priority": root.pop("priority", 0),
+                                "duration": root.pop("duration", 0.0),
+                                "fade function": root.pop("fade function", 0),
+                                "maximum intensity": root.pop("maximum intensity", 0.0),
+                                "color": root.pop("color", 0.0),
+                                "duration_2": root.pop("duration_1", 0.0),
+                                "TagBlock_data": {"unk1": 0,"unk2": 0},
+                                "TagBlockHeader_data": {"name": "tbfd", "version": 0, "size": 1},
+                                "data_1": [],
+                                "duration_3": root.pop("duration_2", 0.0),
+                                "TagBlock_data_1": {"unk1": 0,"unk2": 0},
+                                "TagBlockHeader_data_1": {"name": "tbfd", "version": 0, "size": 1},
+                                "data_2": [],
+                                "effect name": "",
+                                "duration_1": 0.0,
+                                "TagBlock_data_2": {"unk1": 0,"unk2": 0},
+                                "TagBlockHeader_data_2": {"name": "tbfd", "version": 0, "size": 1},
+                                "data": [],
+                                }
+
+            root["rider direct damage scale"] = root.pop("Real", 0.0)
+            root["rider maximum transfer damage scale"] = root.pop("Real_1", 0.0)
+            root["rider minimum transfer damage scale"] = root.pop("Real_2", 0.0)
+
+            root["duration"] = root.pop("duration_3", 0.0)
+            root["fade function"] = root.pop("fade function_3", 0)
+
+            root["duration_1"] = root.pop("duration_4", 0.0)
+ 
+
+            vibration_function_field = damage_effect_def.find(f".//Struct[@name='{"StructHeader_dirty whore"}']")
+            frequency_function_field = damage_effect_def.find(f".//Struct[@name='{"StructHeader_dirty whore_1"}']")
+            scale_function_field = damage_effect_def.find(f".//Struct[@name='{"StructHeader_effect scale function"}']")
+
+            upgrade_effect_function(2, (root.pop("fade function_1", {}) or {}).get("Value", 0), root.pop("frequency", 0.0), player_response_element, vibration_function_field, file_endian)
+            upgrade_effect_function(2, (root.pop("fade function_2", {}) or {}).get("Value", 0), root.pop("frequency_1", 0.0), player_response_element, frequency_function_field, file_endian)
+            upgrade_effect_function(0, 0, 0, player_response_element, scale_function_field, file_endian)
+
+            player_responses_data.append(player_response_element)
 
 
 postprocess_functions = {
@@ -468,8 +622,8 @@ postprocess_functions = {
     "bipd": biped_postprocess,
     "vehi": None,
     "scen": None,
-    "bloc": None,
-    "crea": None,
+    "bloc": crate_postprocess,
+    "crea": creature_postprocess,
     "phys": None,
     "cont": None,
     "weap": None,
@@ -513,7 +667,7 @@ postprocess_functions = {
     "metr": None,
     "deca": None,
     "coln": None,
-    "jpt!": None,
+    "jpt!": damage_effect_postprocess,
     "udlg": None,
     "itmc": None,
     "vehc": None,
@@ -563,7 +717,7 @@ postprocess_functions = {
     "mulg": None,
     "<fx>": None,
     "sfx+": None,
-    "gldf": None,
+    "gldf": chocolate_mountain_postprocess,
     "jmad": None,
     "clwd": None,
     "egor": None,
