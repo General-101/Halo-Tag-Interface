@@ -264,4 +264,4 @@ def initialize_definitions(root, regolith_map):
     if node_key not in name_dict:
         name_dict[node_key] = {}
     for layout in root.findall("Layout"):
-        parse_field_set(layout, name_dict, node_key, None, regolith_map)
+        parse_field_set(layout, name_dict, node_key, regolith_map)
