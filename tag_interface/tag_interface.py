@@ -1776,8 +1776,8 @@ def read_file(merged_defs, file_path="", engine_tag=EngineTag.H2Latest.value, fi
                     set_encoded_result("LeftOverData_%s" % tag_extension, tag_dict["Data"], leftover_data)
 
         postprocess_step = postprocess_functions.get(tag_header["tag group"])
-        if postprocess_step is not None:
-            postprocess_step(merged_defs, tag_dict, file_endian, PRESERVE_VERSION)
+        if postprocess_step is not None and not PRESERVE_VERSION:
+            postprocess_step(merged_defs, tag_dict, file_endian)
 
         return tag_dict
 
@@ -1943,8 +1943,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.damage_effect"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.damage_effect"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.model_animation_graph"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.model_animation_graph"
 
     tag_dict = read_file(merged_defs, read_path)
     with open(os.path.join(os.path.dirname(output_path), "%s.json" % os.path.basename(output_path).rsplit(".", 1)[0]), 'w', encoding ='utf8') as json_file:
