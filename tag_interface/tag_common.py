@@ -122,6 +122,7 @@ h2_tag_groups = {
             "item": "item",
             "unit": "unit",
             "hlmt": "model",
+            "DECP": "decorators",
             "mode": "render_model",
             "coll": "collision_model",
             "phmo": "physics_model",
