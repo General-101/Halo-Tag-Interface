@@ -1664,7 +1664,6 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                 else:    
                     block_stream.write(struct.pack(struct_string, *field_default))
 
-def read_file(merged_defs, file_path="", engine_tag=EngineTag.H2Latest.value, file_endian_override=None):
 def read_file(merged_defs, tag_directory, file_path="", engine_tag=EngineTag.H2Latest.value, file_endian_override=None):
     if engine_tag == EngineTag.H1Latest.value:
         file_endian = ">"
