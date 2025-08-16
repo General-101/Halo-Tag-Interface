@@ -1471,7 +1471,6 @@ def projectile_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
 def render_model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
-    print("test")
     render_model_def = merged_defs["mode"]
     root = tag_dict["Data"]
 
