@@ -494,7 +494,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                                 get_fields(tag_stream, current_block_stream, tag_header, current_field_header_data, field_node, block_element, block_idx)
 
                             leftover_data = get_result("LeftOverData_%s" % field_key, block_element)
-                            if leftover_data is not None:
+                            if leftover_data is not None and PRESERVE_VERSION:
                                 leftover_bytes = base64.b64decode(leftover_data)
                                 if PRESERVE_PADDING:
                                     current_block_stream.write(leftover_bytes)
@@ -1665,6 +1665,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                     block_stream.write(struct.pack(struct_string, *field_default))
 
 def read_file(merged_defs, file_path="", engine_tag=EngineTag.H2Latest.value, file_endian_override=None):
+def read_file(merged_defs, tag_directory, file_path="", engine_tag=EngineTag.H2Latest.value, file_endian_override=None):
     if engine_tag == EngineTag.H1Latest.value:
         file_endian = ">"
         if file_endian_override:
@@ -1777,7 +1778,7 @@ def read_file(merged_defs, file_path="", engine_tag=EngineTag.H2Latest.value, fi
 
         postprocess_step = postprocess_functions.get(tag_header["tag group"])
         if postprocess_step is not None and not PRESERVE_VERSION:
-            postprocess_step(merged_defs, tag_dict, file_endian)
+            postprocess_step(merged_defs, tag_dict, file_endian, tag_directory)
 
         return tag_dict
 
@@ -1921,8 +1922,9 @@ def h1_single_tag():
 
     read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\camera\airplane_large_loose.camera_track"
     output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\tag2.camera_track"
+    tag_directory = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags"
 
-    tag_dict = read_file(merged_defs, read_path, engine_tag=EngineTag.H1Latest.value)
+    tag_dict = read_file(merged_defs, tag_directory, read_path, engine_tag=EngineTag.H1Latest.value)
     with open(os.path.join(os.path.dirname(output_path), "%s.json" % os.path.basename(output_path).rsplit(".", 1)[0]), 'w', encoding ='utf8') as json_file:
         json.dump(tag_dict, json_file, ensure_ascii = True, indent=4)
 
@@ -1943,10 +1945,11 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.model_animation_graph"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.model_animation_graph"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.render_model"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag3.render_model"
+    tag_directory = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags"
 
-    tag_dict = read_file(merged_defs, read_path)
+    tag_dict = read_file(merged_defs, tag_directory, read_path)
     with open(os.path.join(os.path.dirname(output_path), "%s.json" % os.path.basename(output_path).rsplit(".", 1)[0]), 'w', encoding ='utf8') as json_file:
         json.dump(tag_dict, json_file, ensure_ascii = True, indent=4)
 
@@ -1987,7 +1990,7 @@ def h1_directory():
                     output_path = os.path.join(output_dir, file)
 
                     try:
-                        tag_dict = read_file(merged_defs, read_path, engine_tag=EngineTag.H1Latest.value)
+                        tag_dict = read_file(merged_defs, input_dir, read_path, engine_tag=EngineTag.H1Latest.value)
                         if DUMP_JSON:
                             try:
                                 json_filename = os.path.basename(output_path).rsplit(".", 1)[0] + ".json"
@@ -2056,7 +2059,7 @@ def h2_directory():
                     output_path = os.path.join(output_dir, file)
 
                     try:
-                        tag_dict = read_file(merged_defs, read_path)
+                        tag_dict = read_file(merged_defs, input_dir, read_path)
                         
                         if DUMP_JSON:
                             try:

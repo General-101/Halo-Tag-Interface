@@ -54,6 +54,40 @@ class OutputTypeFlags(Flag):
     _3_color = 48
     _4_color = 64
 
+def pack24(format_string: str, value: int) -> bytes:
+    if len(format_string) != 2 or format_string[1] not in ('u', 'U'):
+        raise ValueError("Format must be '<u', '>u', '<U', or '>U'")
+
+    byteorder = 'little' if format_string[0] == '<' else 'big'
+    is_unsigned = format_string[1] == 'U'
+
+    if is_unsigned:
+        if not (0 <= value <= 0xFFFFFF):
+            raise ValueError("Value out of range for unsigned 24-bit integer")
+    else:
+        if not (-0x800000 <= value <= 0x7FFFFF):
+            raise ValueError("Value out of range for signed 24-bit integer")
+        if value < 0:
+            value += 1 << 24
+
+    return value.to_bytes(3, byteorder=byteorder)
+
+def unpack24(format_string: str, data: bytes) -> tuple[int]:
+    if len(format_string) != 2 or format_string[1] not in ('u', 'U'):
+        raise ValueError("Format must be '<u', '>u', '<U', or '>U'")
+    if len(data) != 3:
+        raise ValueError("Must provide exactly 3 bytes for 24-bit integer")
+
+    byteorder = 'little' if format_string[0] == '<' else 'big'
+    is_unsigned = format_string[1] == 'U'
+
+    value = int.from_bytes(data, byteorder=byteorder)
+
+    if not is_unsigned and (value & 0x800000):
+        value -= 1 << 24
+
+    return value
+
 def restore_neg_zero(val):
     if val == "-0":
         val =  -0.0
@@ -237,7 +271,7 @@ def upgrade_effect_function(function_type, function_1_value, min_value, field_el
             field_element["TagBlock_%s" % field_key] = {"unk1": 0,"unk2": 0}
             field_element["TagBlockHeader_%s" % field_key] = {"name": "tbfd", "version": 0, "size": 1}
 
-def biped_postprocess(merged_defs, tag_dict, file_endian):
+def biped_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     biped_def = merged_defs["bipd"]
     root = tag_dict["Data"]
 
@@ -282,7 +316,7 @@ def biped_postprocess(merged_defs, tag_dict, file_endian):
 
         seat_header = root["TagBlockHeader_seats"] = {"name": "tbfd", "version": 3, "size": 192}
 
-def bitmap_postprocess(merged_defs, tag_dict, file_endian):
+def bitmap_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     root = tag_dict["Data"]
 
     bitmap_block = root.get("bitmaps")
@@ -310,7 +344,7 @@ def bitmap_postprocess(merged_defs, tag_dict, file_endian):
 
         bitmap_header = root["TagBlockHeader_bitmaps"] = {"name": "tbfd", "version": 2, "size": 140}
 
-def breakable_surface_postprocess(merged_defs, tag_dict, file_endian):
+def breakable_surface_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     breakable_surface_def = merged_defs["bsdt"]
     root = tag_dict["Data"]
 
@@ -367,7 +401,7 @@ def breakable_surface_postprocess(merged_defs, tag_dict, file_endian):
                         mapping_8_header = emitter_element["StructHeader_Mapping_8"] = {"name": "MAPP", "version": 1, "size": 12}
                         upgrade_function(merged_defs, emitter_element, mapping_8_struct_field, file_endian)
 
-def character_postprocess(merged_defs, tag_dict, file_endian):
+def character_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     character_def = merged_defs["bipd"]
     root = tag_dict["Data"]
 
@@ -470,7 +504,7 @@ def character_postprocess(merged_defs, tag_dict, file_endian):
                 charge_element["ideal leap velocity"] = melee_leap_velocity
                 charge_element["max leap velocity"] = melee_leap_velocity
 
-def chocolate_mountain_postprocess(merged_defs, tag_dict, file_endian):
+def chocolate_mountain_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     chocolate_mountain_def = merged_defs["gldf"]
     root = tag_dict["Data"]
 
@@ -499,7 +533,34 @@ def chocolate_mountain_postprocess(merged_defs, tag_dict, file_endian):
                 function_3_header = lighting_element["StructHeader_function_3"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, lighting_element, function_3_struct_field, file_endian)
 
-def crate_postprocess(merged_defs, tag_dict, file_endian):
+def collision_model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    collision_model_def = merged_defs["coll"]
+    root = tag_dict["Data"]
+
+    regions_block = root.get("regions")
+    if regions_block is not None:
+        for region_element in regions_block:
+            permutations_block = region_element.get("permutations")
+            if permutations_block is not None:
+                for permutation_element in permutations_block:
+                    bsps_block = permutation_element.get("bsps")
+                    if bsps_block is not None:
+                        for bsp_element in bsps_block:
+                            bsp_header = bsp_element.get("StructHeader_bsp")
+                            if bsp_header is not None and not bsp_header["version"] == 2:
+                                bsp3d_nodes_block = bsp_element.get("bsp3d nodes")
+                                if bsp3d_nodes_block is not None:
+                                    for bsp3d_node_element in bsp3d_nodes_block:
+                                        skip_stream = io.BytesIO()
+                                        skip_stream.write(struct.pack('%sh' % file_endian, bsp3d_node_element.pop("plane", 0)))
+                                        skip_stream.write(pack24('%su' % file_endian, bsp3d_node_element.pop("back child", 0)))
+                                        skip_stream.write(pack24('%su' % file_endian, bsp3d_node_element.pop("back child", 0)))
+
+                                        bsp_element["Skip"] = base64.b64encode(skip_stream.getvalue()).decode('utf-8')
+
+                                bsp_header = bsp_element["StructHeader_bsp"] = {"name": "cbsp", "version": 2, "size": 96}
+                                
+def crate_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     crate_def = merged_defs["bloc"]
     root = tag_dict["Data"]
 
@@ -513,7 +574,7 @@ def crate_postprocess(merged_defs, tag_dict, file_endian):
                 struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
-def creature_postprocess(merged_defs, tag_dict, file_endian):
+def creature_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     creature_def = merged_defs["crea"]
     root = tag_dict["Data"]
 
@@ -527,7 +588,7 @@ def creature_postprocess(merged_defs, tag_dict, file_endian):
                 struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
-def damage_effect_postprocess(merged_defs, tag_dict, file_endian):
+def damage_effect_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     damage_effect_def = merged_defs["jpt!"]
     root = tag_dict["Data"]
 
@@ -588,7 +649,7 @@ def damage_effect_postprocess(merged_defs, tag_dict, file_endian):
 
         player_responses_data.append(player_response_element)
 
-def device_postprocess(merged_defs, tag_dict, file_endian):
+def device_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     device_def = merged_defs["devi"]
     root = tag_dict["Data"]
 
@@ -602,7 +663,7 @@ def device_postprocess(merged_defs, tag_dict, file_endian):
                 struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
-def device_control_postprocess(merged_defs, tag_dict, file_endian):
+def device_control_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     device_control_def = merged_defs["ctrl"]
     root = tag_dict["Data"]
 
@@ -616,7 +677,7 @@ def device_control_postprocess(merged_defs, tag_dict, file_endian):
                 struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
-def device_light_fixture_postprocess(merged_defs, tag_dict, file_endian):
+def device_light_fixture_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     device_light_fixture_def = merged_defs["lifi"]
     root = tag_dict["Data"]
 
@@ -630,7 +691,7 @@ def device_light_fixture_postprocess(merged_defs, tag_dict, file_endian):
                 struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
-def device_machine_postprocess(merged_defs, tag_dict, file_endian):
+def device_machine_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     device_machine_def = merged_defs["mach"]
     root = tag_dict["Data"]
 
@@ -644,7 +705,7 @@ def device_machine_postprocess(merged_defs, tag_dict, file_endian):
                 struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
-def effect_postprocess(merged_defs, tag_dict, file_endian):
+def effect_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     effect_def = merged_defs["effe"]
     root = tag_dict["Data"]
 
@@ -737,7 +798,7 @@ def effect_postprocess(merged_defs, tag_dict, file_endian):
                                 mapping_8_header = emitter_element["StructHeader_Mapping_8"] = {"name": "MAPP", "version": 1, "size": 12}
                                 upgrade_function(merged_defs, emitter_element, mapping_8_struct_field, file_endian)
 
-def equipment_postprocess(merged_defs, tag_dict, file_endian):
+def equipment_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     equipment_def = merged_defs["eqip"]
     root = tag_dict["Data"]
 
@@ -751,7 +812,7 @@ def equipment_postprocess(merged_defs, tag_dict, file_endian):
                 struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
-def garbage_postprocess(merged_defs, tag_dict, file_endian):
+def garbage_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     garbage_def = merged_defs["garb"]
     root = tag_dict["Data"]
 
@@ -765,7 +826,7 @@ def garbage_postprocess(merged_defs, tag_dict, file_endian):
                 struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
-def globals_postprocess(merged_defs, tag_dict, file_endian):
+def globals_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     globals_def = merged_defs["matg"]
     root = tag_dict["Data"]
 
@@ -782,7 +843,7 @@ def globals_postprocess(merged_defs, tag_dict, file_endian):
                 
         sound_globals_header = root["TagBlockHeader_sound globals"] = {"name": "tbfd", "version": 2, "size": 84}
 
-def item_postprocess(merged_defs, tag_dict, file_endian):
+def item_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     item_def = merged_defs["item"]
     root = tag_dict["Data"]
 
@@ -796,7 +857,7 @@ def item_postprocess(merged_defs, tag_dict, file_endian):
                 struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
-def lens_flare_postprocess(merged_defs, tag_dict, file_endian):
+def lens_flare_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     lens_flare_def = merged_defs["lens"]
     root = tag_dict["Data"]
 
@@ -828,7 +889,7 @@ def lens_flare_postprocess(merged_defs, tag_dict, file_endian):
                 function_2_header = rotation_element["StructHeader_function_1"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, rotation_element, function_2_struct_field, file_endian)
 
-def light_postprocess(merged_defs, tag_dict, file_endian):
+def light_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     light_def = merged_defs["ligh"]
     root = tag_dict["Data"]
 
@@ -865,7 +926,7 @@ def light_postprocess(merged_defs, tag_dict, file_endian):
                 function_3_header = gel_animation_element["StructHeader_dy"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, gel_animation_element, function_3_struct_field, file_endian)
 
-def light_volume_postprocess(merged_defs, tag_dict, file_endian):
+def light_volume_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     light_volume_def = merged_defs["MGS2"]
     root = tag_dict["Data"]
 
@@ -913,7 +974,7 @@ def light_volume_postprocess(merged_defs, tag_dict, file_endian):
                     function_6_header = aspect_element["StructHeader_function_1"] = {"name": "MAPP", "version": 1, "size": 12}
                     upgrade_function(merged_defs, aspect_element, function_6_struct_field, file_endian)
 
-def liquid_postprocess(merged_defs, tag_dict, file_endian):
+def liquid_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     liquid_def = merged_defs["tdtl"]
     root = tag_dict["Data"]
 
@@ -976,7 +1037,21 @@ def liquid_postprocess(merged_defs, tag_dict, file_endian):
                     function_9_header = arc_element["StructHeader_function_4"] = {"name": "MAPP", "version": 1, "size": 12}
                     upgrade_function(merged_defs, core_element, function_9_struct_field, file_endian)
 
-def model_postprocess(merged_defs, tag_dict, file_endian):
+def material_effects_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    material_effects_def = merged_defs["foot"]
+    root = tag_dict["Data"]
+
+    material_effects_header = tag_dict.get("TagBlockHeader_material_effects")
+    if material_effects_header["version"] == 0:
+        material_effects_header = tag_dict["TagBlockHeader_material_effects"] = {"name": "tbfd", "version": 1, "size": 12}
+        effects_block = root.get("effects")
+        if effects_block is not None:
+            for effect_element in effects_block:
+                effect_element["old materials (DO NOT USE)"] = effect_element.pop("materials", [])
+                effect_element["TagBlock_old materials (DO NOT USE)"] = {"unk1": 0, "unk2": 0}
+                effect_element["TagBlockHeader_old materials (DO NOT USE)"] = {"name": "tbfd", "version": 0, "size": 44}
+
+def model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     model_def = merged_defs["hlmt"]
     root = tag_dict["Data"]
 
@@ -989,7 +1064,7 @@ def model_postprocess(merged_defs, tag_dict, file_endian):
         root["disappear distance"] = max_draw_distance
         root["begin fade distance"] = max_draw_distance
 
-def model_animation_graph_postprocess(merged_defs, tag_dict, file_endian):
+def model_animation_graph_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     animation_def = merged_defs["jmad"]
     root = tag_dict["Data"]
 
@@ -1037,7 +1112,7 @@ def model_animation_graph_postprocess(merged_defs, tag_dict, file_endian):
 
         animation_header = root["TagBlockHeader_animations|ABCDCC"] = {"name": "tbfd", "version": 5, "size": 124}
 
-def new_hud_definition_postprocess(merged_defs, tag_dict, file_endian):
+def new_hud_definition_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     hud_def = merged_defs["nhdt"]
     root = tag_dict["Data"]
 
@@ -1106,7 +1181,7 @@ def new_hud_definition_postprocess(merged_defs, tag_dict, file_endian):
                         function_4_header = effect_1_element["StructHeader_function_9"] = {"name": "MAPP", "version": 1, "size": 12}
                         upgrade_function(merged_defs, effect_1_element, function_9_struct_field, file_endian)
 
-def object_postprocess(merged_defs, tag_dict, file_endian):
+def object_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     object_def = merged_defs["obje"]
     root = tag_dict["Data"]
 
@@ -1120,7 +1195,7 @@ def object_postprocess(merged_defs, tag_dict, file_endian):
                 struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
                 upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
-def particle_postprocess(merged_defs, tag_dict, file_endian):
+def particle_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     particle_def = merged_defs["prt3"]
     root = tag_dict["Data"]
 
@@ -1139,6 +1214,10 @@ def particle_postprocess(merged_defs, tag_dict, file_endian):
     function_12_struct_field = particle_def.find(".//Block[@name='attached particle systems']//Block[@name='emitters']//Struct[@name='StructHeader_Mapping_6']")
     function_13_struct_field = particle_def.find(".//Block[@name='attached particle systems']//Block[@name='emitters']//Struct[@name='StructHeader_Mapping_7']")
     function_14_struct_field = particle_def.find(".//Block[@name='attached particle systems']//Block[@name='emitters']//Struct[@name='StructHeader_Mapping_8']")
+    function_15_struct_field = particle_def.find(".//Block[@name='Block']//Block[@name='overlays']//Struct[@name='StructHeader_function_1']")
+    function_16_struct_field = particle_def.find(".//Block[@name='Block']//Block[@name='old levels of detail']//Block[@name='bitmap transform overlays']//Struct[@name='StructHeader_function_1']")
+    function_17_struct_field = particle_def.find(".//Block[@name='Block']//Block[@name='old levels of detail']//Block[@name='value overlays']//Struct[@name='StructHeader_function_1']")
+    function_18_struct_field = particle_def.find(".//Block[@name='Block']//Block[@name='old levels of detail']//Block[@name='color overlays']//Struct[@name='StructHeader_function_1']")
 
     function_1_header = root.get("StructHeader_Mapping")
     if function_1_header is not None and function_1_header["version"] == 0:
@@ -1219,7 +1298,45 @@ def particle_postprocess(merged_defs, tag_dict, file_endian):
                         function_14_header = emitter_element["StructHeader_Mapping_8"] = {"name": "MAPP", "version": 1, "size": 12}
                         upgrade_function(merged_defs, emitter_element, function_14_struct_field, file_endian)
 
-def particle_model_postprocess(merged_defs, tag_dict, file_endian):
+    shader_postprocess_block = root.get("Block")
+    if shader_postprocess_block is not None:
+        for shader_postprocess_element in shader_postprocess_block:
+            overlays_block = shader_postprocess_element.get("overlays")
+            if overlays_block is not None:
+                for overlay_element in overlays_block:
+                    function_15_header = overlay_element.get("StructHeader_function_1")
+                    if function_15_header is not None and function_15_header["version"] == 0:
+                        function_15_header = overlay_element["StructHeader_function_1"] = {"name": "MAPP", "version": 1, "size": 12}
+                        upgrade_function(merged_defs, overlay_element, function_15_struct_field, file_endian)
+
+            old_levels_of_detail_block = shader_postprocess_element.get("old levels of detail")
+            if old_levels_of_detail_block is not None:
+                for old_levels_of_detail_element in old_levels_of_detail_block:
+                    bitmap_transform_overlays_block = old_levels_of_detail_element.get("bitmap transform overlays")
+                    if bitmap_transform_overlays_block is not None:
+                        for bitmap_transform_overlay_element in bitmap_transform_overlays_block:
+                            function_16_header = bitmap_transform_overlay_element.get("StructHeader_function_1")
+                            if function_16_header is not None and function_16_header["version"] == 0:
+                                function_16_header = bitmap_transform_overlay_element["StructHeader_function_1"] = {"name": "MAPP", "version": 1, "size": 12}
+                                upgrade_function(merged_defs, bitmap_transform_overlay_element, function_16_struct_field, file_endian)
+
+                    value_overlays_block = old_levels_of_detail_element.get("value overlays")
+                    if value_overlays_block is not None:
+                        for value_overlay_element in value_overlays_block:
+                            function_17_header = value_overlay_element.get("StructHeader_function_1")
+                            if function_17_header is not None and function_17_header["version"] == 0:
+                                function_17_header = value_overlay_element["StructHeader_function_1"] = {"name": "MAPP", "version": 1, "size": 12}
+                                upgrade_function(merged_defs, value_overlay_element, function_17_struct_field, file_endian)
+
+                    color_overlays_block = old_levels_of_detail_element.get("color overlays")
+                    if color_overlays_block is not None:
+                        for color_overlay_element in color_overlays_block:
+                            function_18_header = color_overlay_element.get("StructHeader_function_1")
+                            if function_18_header is not None and function_18_header["version"] == 0:
+                                function_18_header = color_overlay_element["StructHeader_function_1"] = {"name": "MAPP", "version": 1, "size": 12}
+                                upgrade_function(merged_defs, color_overlay_element, function_18_struct_field, file_endian)
+
+def particle_model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     particle_model_def = merged_defs["PRTM"]
     root = tag_dict["Data"]
 
@@ -1300,7 +1417,7 @@ def particle_model_postprocess(merged_defs, tag_dict, file_endian):
                         function_12_header = emitter_element["StructHeader_Mapping_8"] = {"name": "MAPP", "version": 1, "size": 12}
                         upgrade_function(merged_defs, emitter_element, function_12_struct_field, file_endian)
 
-def particle_physics_postprocess(merged_defs, tag_dict, file_endian):
+def particle_physics_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     particle_physics_def = merged_defs["pmov"]
     root = tag_dict["Data"]
 
@@ -1317,35 +1434,706 @@ def particle_physics_postprocess(merged_defs, tag_dict, file_endian):
                         function_header = parameter_element["StructHeader_Mapping"] = {"name": "MAPP", "version": 1, "size": 12}
                         upgrade_function(merged_defs, parameter_element, function_struct_field, file_endian)
 
+def physics_model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    physics_model_def = merged_defs["phmo"]
+    root = tag_dict["Data"]
+
+    rigid_bodies_block = root.get("rigid bodies")
+    rigid_bodies_header = root.get("TagBlockHeader_rigid bodies")
+    if rigid_bodies_block is not None and rigid_bodies_header is not None and rigid_bodies_header["version"] == 0:
+        for rigid_body_element in rigid_bodies_block:
+            rigid_body_element["permutattion"] = rigid_body_element.pop("permutation", 0)
+
+        rigid_bodies_header = root["TagBlockHeader_rigid bodies"] = {"name": "tbfd", "version": 1, "size": 144}
+
+def projectile_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    projectile_def = merged_defs["proj"]
+    root = tag_dict["Data"]
+
+    function_struct_field = projectile_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+    projectile_header = tag_dict.get("TagBlockHeader_projectile")
+    if projectile_header is not None and projectile_header["version"] == 0:
+        projectile_header = tag_dict["TagBlockHeader_projectile"] = {"name": "tbfd","version": 1,"size": 604}
+
+        effect_tag = root.pop("effect", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+        root["detonation effect (airborne)"] = effect_tag
+        root["detonation effect (ground)"] = effect_tag
+
+        root["guided angular velocity (upper)"] = root.pop("guided angular velocity", 0.0)
+
+    function_block = root.get("functions")
+    if function_block is not None:
+        for function_element in function_block:
+            struct_header = function_element.get("StructHeader_default function")
+            if struct_header is not None and struct_header["version"] == 0:
+                struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
+                upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def render_model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    print("test")
+    render_model_def = merged_defs["mode"]
+    root = tag_dict["Data"]
+
+    sections_block = root.get("sections")
+    if sections_block is not None:
+        for section_element in sections_block:
+            section_data_block = section_element.get("section data")
+            section_data_header = section_element.get("TagBlockHeader_section data")
+            if section_data_block is not None and section_data_header is not None:
+                for section_data_element in section_data_block:
+                    if section_data_header["version"] == 0:
+                        section_data_element["raw vertices"] = section_data_element.pop("raw vertices_1", [])
+                        section_data_element["strip indices"] = section_data_element.pop("strip indices_1", [])
+                        
+                        subparts_block = section_data_element.get("TagBlock_subparts")
+                        subparts_header = section_data_element.get("TagBlockHeader_subparts")
+                        subparts_data = section_data_element.get("subparts")
+                        if subparts_block is None:
+                            section_data_element["TagBlock_subparts"] = {"unk1": 0, "unk2": 0}
+                        if subparts_header is None:
+                            section_data_element["TagBlockHeader_subparts"] = {"name": "tbfd", "version": 0, "size": 8}
+                        if subparts_data is None:
+                            subparts_data = section_data_element["subparts"] = []
+
+                        parts_block = section_data_element.get("TagBlock_parts")
+                        parts_header = section_data_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
+                        parts_data = section_data_element.get("parts")
+                        if parts_block is None:
+                            section_data_element["TagBlock_parts"] = {"unk1": 0, "unk2": 0}
+                        if parts_data is None:
+                            parts_data = section_data_element["parts"] = []
+
+                        for part_idx, part_element in enumerate(parts_data):
+                            part_element["first subpart index"] = part_idx
+                            part_element["subpart count"] = 1
+
+                            subparts_element = {
+                            "indices_start_index": part_element["strip start index"], 
+                            "indices_length": part_element["strip length"], 
+                            "visibility_bounds_index": 0,
+                            "part index": part_idx
+                            }
+
+                            subparts_data.append(subparts_element)
+
+                    section_data_header = section_element["TagBlockHeader_section data"] = {"name": "tbfd", "version": 1, "size": 180}
+
+def scenery_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    scenery_def = merged_defs["scen"]
+    root = tag_dict["Data"]
+
+    function_struct_field = scenery_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+    function_block = root.get("functions")
+    if function_block is not None:
+        for function_element in function_block:
+            struct_header = function_element.get("StructHeader_default function")
+            if struct_header is not None and struct_header["version"] == 0:
+                struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
+                upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def shader_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    shader_def = merged_defs["shad"]
+    root = tag_dict["Data"]
+
+    function_struct_field = shader_def.find(".//Block[@name='parameters']//Block[@name='animation properties']//Struct[@name='StructHeader_function']")
+    function_1_struct_field = shader_def.find(".//Block[@name='postprocess definition']//Block[@name='overlays']//Struct[@name='StructHeader_function_1']")
+    function_2_struct_field = shader_def.find(".//Block[@name='postprocess definition']//Block[@name='old levels of detail']//Block[@name='bitmap transform overlays']//Struct[@name='StructHeader_function_1']")
+    function_3_struct_field = shader_def.find(".//Block[@name='postprocess definition']//Block[@name='old levels of detail']//Block[@name='value overlays']//Struct[@name='StructHeader_function_1']")
+    function_4_struct_field = shader_def.find(".//Block[@name='postprocess definition']//Block[@name='old levels of detail']//Block[@name='color overlays']//Struct[@name='StructHeader_function_1']")
+
+    parameters_block = root.get("parameters")
+    if parameters_block is not None:
+        for parameter_element in parameters_block:
+            animation_properties_block = parameter_element.get("animation properties")
+            if animation_properties_block is not None:
+                for animation_property_element in animation_properties_block:
+                    function_header = animation_property_element.get("StructHeader_function")
+                    if function_header is not None and function_header["version"] == 0:
+                        function_header = animation_property_element["StructHeader_function"] = {"name": "MAPP", "version": 1, "size": 12}
+                        upgrade_function(merged_defs, animation_property_element, function_struct_field, file_endian)
+
+    postprocess_definition_block = root.get("postprocess definition")
+    if postprocess_definition_block is not None:
+        for postprocess_definition_element in postprocess_definition_block:
+            overlays_block = postprocess_definition_element.get("overlays")
+            if overlays_block is not None:
+                for overlay_element in overlays_block:
+                    function_1_header = overlay_element.get("StructHeader_function_1")
+                    if function_1_header is not None and function_1_header["version"] == 0:
+                        function_1_header = overlay_element["StructHeader_function_1"] = {"name": "MAPP", "version": 1, "size": 12}
+                        upgrade_function(merged_defs, overlay_element, function_1_struct_field, file_endian)
+
+            old_levels_of_detail_block = postprocess_definition_element.get("old levels of detail")
+            if old_levels_of_detail_block is not None:
+                for old_levels_of_detail_element in old_levels_of_detail_block:
+                    bitmap_transform_overlays_block = old_levels_of_detail_element.get("bitmap transform overlays")
+                    if bitmap_transform_overlays_block is not None:
+                        for bitmap_transform_overlay_element in bitmap_transform_overlays_block:
+                            function_2_header = bitmap_transform_overlay_element.get("StructHeader_function_1")
+                            if function_2_header is not None and function_2_header["version"] == 0:
+                                function_2_header = bitmap_transform_overlay_element["StructHeader_function_1"] = {"name": "MAPP", "version": 1, "size": 12}
+                                upgrade_function(merged_defs, bitmap_transform_overlay_element, function_2_struct_field, file_endian)
+
+                    value_overlays_block = old_levels_of_detail_element.get("value overlays")
+                    if value_overlays_block is not None:
+                        for value_overlay_element in value_overlays_block:
+                            function_3_header = value_overlay_element.get("StructHeader_function_1")
+                            if function_3_header is not None and function_3_header["version"] == 0:
+                                function_3_header = value_overlay_element["StructHeader_function_1"] = {"name": "MAPP", "version": 1, "size": 12}
+                                upgrade_function(merged_defs, value_overlay_element, function_3_struct_field, file_endian)
+
+                    color_overlays_block = old_levels_of_detail_element.get("color overlays")
+                    if color_overlays_block is not None:
+                        for color_overlay_element in color_overlays_block:
+                            function_3_header = color_overlay_element.get("StructHeader_function_1")
+                            if function_3_header is not None and function_3_header["version"] == 0:
+                                function_3_header = color_overlay_element["StructHeader_function_1"] = {"name": "MAPP", "version": 1, "size": 12}
+                                upgrade_function(merged_defs, color_overlay_element, function_4_struct_field, file_endian)
+
+def sound_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    sound_def = merged_defs["snd!"]
+    root = tag_dict["Data"]
+
+    sound_header = tag_dict.get("TagBlockHeader_sound")
+    if sound_header is not None:
+        if sound_header["version"] == 0:
+            # This version does not transfer this data. Why? - Gen
+            outer_cone_gain = root.pop("outer cone gain", 0.0)
+            gain_modifier = root.pop("gain modifier", 0.0)
+            gain_modifier_min = root.pop("gain modifier_1", 0.0)
+            gain_modifier_max = root.pop("gain modifier_2", 0.0)
+
+            pitch_modifier_min = root.pop("pitch modifier", 0.0)
+            pitch_modifier_max = root.pop("pitch modifier_1", 0.0)
+            skip_fraction_min = root.pop("skip fraction modifier", 0.0)
+            skip_fraction_max = root.pop("skip fraction modifier_1", 0.0)
+
+            # CE gain_modifier converter
+            # 20 * math.log10(fraction)
+            root["outer cone gain"] = outer_cone_gain
+            root["gain base"] = gain_modifier 
+            root["gain modifier"] = {"Min": gain_modifier_min, "Max": gain_modifier_max}
+            root["pitch modifier"] = {"Min": pitch_modifier_min, "Max": pitch_modifier_max}
+            root["skip fraction modifier"] = {"Min": skip_fraction_min, "Max": skip_fraction_max}
+
+            root["StructHeader_scale"] = {"name": "snsc", "version": 0, "size": 20}
+
+            if sound_header["version"] == 0 or sound_header["version"] == 1 or sound_header["version"] == 2 or sound_header["version"] == 3 or sound_header["version"] == 4:
+                # This version does not transfer this data. Why? - Gen
+                output_effect = root.pop("output effect", 0)
+
+                root["CharEnum"] = output_effect
+
+    function_struct_field = sound_def.find(".//Block[@name='pitch ranges']//Struct[@name='StructHeader_Struct']")
+    function_1_struct_field = sound_def.find(".//Block[@name='platform parameters']//Block[@name='sound effect']//Block[@name='Block']//Block[@name='overrides']//Struct[@name='StructHeader_function value']")
+    function_2_struct_field = sound_def.find(".//Block[@name='platform parameters']//Block[@name='sound effect']//Block[@name='Block_1']//Block[@name='sound effects']//Block[@name='function inputs']//Struct[@name='StructHeader_function']")
+    function_3_struct_field = sound_def.find(".//Block[@name='platform parameters']//Block[@name='sound effect']//Block[@name='Block_1']//Block[@name='low frequency input']//Struct[@name='StructHeader_function']")
+    function_4_struct_field = sound_def.find(".//Struct[@name='StructHeader_Mapping']")
+
+    struct_header = root.get("StructHeader_Mapping")
+    if struct_header is not None and struct_header["version"] == 0:
+        struct_header = root["StructHeader_Mapping"] = {"name": "MAPP", "version": 1, "size": 12}
+        upgrade_function(merged_defs, root, function_4_struct_field, file_endian)
+
+    sound_sample_lengths = []
+    pitch_ranges_block = root.get("pitch ranges")
+    if pitch_ranges_block is not None:
+        for pitch_range_element in pitch_ranges_block:
+            struct_header = pitch_range_element.get("StructHeader_Struct")
+            if struct_header is not None and struct_header["version"] == 0:
+                struct_header = pitch_range_element["StructHeader_Struct"] = {"name": "MAPP", "version": 1, "size": 12}
+                upgrade_function(merged_defs, pitch_range_element, function_struct_field, file_endian)
+
+            permutations_block = pitch_range_element.get("permutations")
+            if permutations_block is not None:
+                for permutation_element in permutations_block:
+                    if sound_header["version"] == 0:
+                        sample_length = 0
+                        samples_data = permutation_element.get("samples")
+                        if samples_data is not None:
+                            sample_length = permutation_element["samples"]["length"]
+
+                        sound_sample_lengths.append(sample_length)
+                    else:
+                        sample_length = 0
+                        samples_data = permutation_element.get("Data")
+                        if samples_data is not None:
+                            sample_length = permutation_element["Data"]["length"]
+
+                        sound_sample_lengths.append(sample_length)
+
+    platform_parameters_block = root.get("platform parameters")
+    if platform_parameters_block is not None:
+        for platform_parameter_element in platform_parameters_block:
+            sound_effect_block = platform_parameter_element.get("sound effect")
+            if sound_effect_block is not None:
+                for sound_effect_element in sound_effect_block:
+                    sound_override_block = sound_effect_element.get("Block")
+                    if sound_override_block is not None:
+                        for sound_override_element in sound_override_block:
+                            overrides_block = sound_override_element.get("overrides")
+                            if overrides_block is not None:
+                                for override_element in overrides_block:
+                                    struct_1_header = override_element.get("StructHeader_function value")
+                                    if struct_1_header is not None and struct_1_header["version"] == 0:
+                                        struct_1_header = override_element["StructHeader_function value"] = {"name": "MAPP", "version": 1, "size": 12}
+                                        upgrade_function(merged_defs, override_element, function_1_struct_field, file_endian)
+
+                    sound_effect_collection_block = sound_effect_element.get("Block_1")
+                    if sound_effect_collection_block is not None:
+                        for sound_effect_collection_element in sound_effect_collection_block:
+                            sound_effects_block = sound_effect_collection_element.get("sound effects")
+                            if sound_effects_block is not None:
+                                for sound_effect_element in sound_effects_block:
+                                    function_inputs_block = sound_effect_element.get("function inputs")
+                                    if function_inputs_block is not None:
+                                        for function_input_element in function_inputs_block:
+                                            struct_2_header = function_input_element.get("StructHeader_function")
+                                            if struct_2_header is not None and struct_2_header["version"] == 0:
+                                                struct_2_header = function_input_element["StructHeader_function"] = {"name": "MAPP", "version": 1, "size": 12}
+                                                upgrade_function(merged_defs, function_input_element, function_2_struct_field, file_endian)
+
+                            low_frequency_input_block = sound_effect_collection_element.get("low frequency input")
+                            if low_frequency_input_block is not None:
+                                for low_frequency_input_element in low_frequency_input_block:
+                                    struct_3_header = low_frequency_input_element.get("StructHeader_function")
+                                    if struct_3_header is not None and struct_3_header["version"] == 0:
+                                        struct_3_header = low_frequency_input_element["StructHeader_function"] = {"name": "MAPP", "version": 1, "size": 12}
+                                        upgrade_function(merged_defs, low_frequency_input_element, function_3_struct_field, file_endian)
+
+    sound_extra_info_block = root.get("Block")
+    if sound_extra_info_block is not None:
+        for sound_extra_info_element in sound_extra_info_block:
+            language_permutation_info_block = sound_extra_info_element.get("language permutation info")
+            language_permutation_info_header = sound_extra_info_element.get("TagBlockHeader_language permutation info")
+            if language_permutation_info_block is not None and language_permutation_info_header is not None:
+                for perm_idx, language_permutation_info_element in enumerate(language_permutation_info_block):
+                    sample_length = sound_sample_lengths[perm_idx]
+                    if language_permutation_info_header["version"] == 0:
+                        skip_fraction_name = language_permutation_info_element.pop("skip fraction name", "")
+                        data = language_permutation_info_element.pop("Data", {"length":0, "unk1":0, "unk2":0, "unk3":0, "unk4":0, "encoded": ""})
+                        data_1 = language_permutation_info_element.pop("Data_1", {"length":0, "unk1":0, "unk2":0, "unk3":0, "unk4":0, "encoded": ""})
+                        data_2 = language_permutation_info_element.pop("Data_2", {"length":0, "unk1":0, "unk2":0, "unk3":0, "unk4":0, "encoded": ""})
+                        sound_permutation_marker = language_permutation_info_element.pop("Block", [])
+                        compression = language_permutation_info_element.pop("compression", 0)
+                        language = language_permutation_info_element.pop("language", 0)
+
+                        raw_info_block = language_permutation_info_element.get("TagBlock_raw info block v3")
+                        raw_info_header = language_permutation_info_element.get("TagBlockHeader_raw info block v3")
+                        raw_info_data = language_permutation_info_element.get("raw info block v3")
+                        if raw_info_block is None:
+                            language_permutation_info_element["TagBlock_raw info block v3"] = {"unk1": 0, "unk2": 0}
+                        if raw_info_header is None:
+                            language_permutation_info_element["TagBlockHeader_raw info block v3"] = {"name": "tbfd", "version": 2, "size": 12}
+                        if raw_info_data is None:
+                            raw_info_data = language_permutation_info_element["raw info block v3"] = []
+
+                        raw_info_element = {"skip fraction name": skip_fraction_name, 
+                                            "Data": data, 
+                                            "Data_1": data_1,
+                                            "Data_2": data_2,
+                                            "Block": sound_permutation_marker,
+                                            "compression": compression,
+                                            "language": language,
+                                            "Pad": "",
+                                            "Block_1": [],
+                                            "LongInteger": sample_length}
+
+                        raw_info_data.append(raw_info_element)
+
+                    elif language_permutation_info_header["version"] == 1:
+                        raw_info_data = language_permutation_info_element.pop("raw info block", [])
+                        language_permutation_info_element["raw info block v3"] = raw_info_data
+                        for raw_info_element in language_permutation_info_element["raw info block v3"]:
+                            raw_info_element["LongInteger"] = sample_length
+
+    sound_header = tag_dict["TagBlockHeader_sound"] = {"name": "tbfd", "version": 7, "size": 220}
+
+def sound_cache_file_gestalt_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    sound_cache_file_gestalt_def = merged_defs["ugh!"]
+    root = tag_dict["Data"]
+
+    function_struct_field = sound_cache_file_gestalt_def.find(".//Block[@name='lowpass cut off parameters']//Struct[@name='StructHeader_Mapping']")
+    function_1_struct_field = sound_cache_file_gestalt_def.find(".//Block[@name='custom playbacks']//Block[@name='sound effect']//Block[@name='Block']//Block[@name='overrides']//Struct[@name='StructHeader_function value']")
+    function_2_struct_field = sound_cache_file_gestalt_def.find(".//Block[@name='custom playbacks']//Block[@name='sound effect']//Block[@name='Block_1']//Block[@name='sound effects']//Block[@name='function inputs']//Struct[@name='StructHeader_function']")
+    function_3_struct_field = sound_cache_file_gestalt_def.find(".//Block[@name='custom playbacks']//Block[@name='sound effect']//Block[@name='Block_1']//Block[@name='low frequency input']//Struct[@name='StructHeader_function']")
+
+    lowpass_cut_off_parameters_block = root.get("lowpass cut off parameters")
+    if lowpass_cut_off_parameters_block is not None:
+        for parameter_element in lowpass_cut_off_parameters_block:
+            struct_header = parameter_element.get("StructHeader_Mapping")
+            if struct_header is not None and struct_header["version"] == 0:
+                struct_header = parameter_element["StructHeader_Mapping"] = {"name": "MAPP", "version": 1, "size": 12}
+                upgrade_function(merged_defs, parameter_element, function_struct_field, file_endian)
+
+    custom_playbacks_block = root.get("custom playbacks")
+    if custom_playbacks_block is not None:
+        for platform_parameter_element in custom_playbacks_block:
+            sound_effect_block = platform_parameter_element.get("sound effect")
+            if sound_effect_block is not None:
+                for sound_effect_element in sound_effect_block:
+                    sound_override_block = sound_effect_element.get("Block")
+                    if sound_override_block is not None:
+                        for sound_override_element in sound_override_block:
+                            overrides_block = sound_override_element.get("overrides")
+                            if overrides_block is not None:
+                                for override_element in overrides_block:
+                                    struct_1_header = override_element.get("StructHeader_function value")
+                                    if struct_1_header is not None and struct_1_header["version"] == 0:
+                                        struct_1_header = override_element["StructHeader_function value"] = {"name": "MAPP", "version": 1, "size": 12}
+                                        upgrade_function(merged_defs, override_element, function_1_struct_field, file_endian)
+
+                    sound_effect_collection_block = sound_effect_element.get("Block_1")
+                    if sound_effect_collection_block is not None:
+                        for sound_effect_collection_element in sound_effect_collection_block:
+                            sound_effects_block = sound_effect_collection_element.get("sound effects")
+                            if sound_effects_block is not None:
+                                for sound_effect_element in sound_effects_block:
+                                    function_inputs_block = sound_effect_element.get("function inputs")
+                                    if function_inputs_block is not None:
+                                        for function_input_element in function_inputs_block:
+                                            struct_2_header = function_input_element.get("StructHeader_function")
+                                            if struct_2_header is not None and struct_2_header["version"] == 0:
+                                                struct_2_header = function_input_element["StructHeader_function"] = {"name": "MAPP", "version": 1, "size": 12}
+                                                upgrade_function(merged_defs, function_input_element, function_2_struct_field, file_endian)
+
+                            low_frequency_input_block = sound_effect_collection_element.get("low frequency input")
+                            if low_frequency_input_block is not None:
+                                for low_frequency_input_element in low_frequency_input_block:
+                                    struct_3_header = low_frequency_input_element.get("StructHeader_function")
+                                    if struct_3_header is not None and struct_3_header["version"] == 0:
+                                        struct_3_header = low_frequency_input_element["StructHeader_function"] = {"name": "MAPP", "version": 1, "size": 12}
+                                        upgrade_function(merged_defs, low_frequency_input_element, function_3_struct_field, file_endian)
+
+def sound_classes_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    sound_classes_def = merged_defs["sncl"]
+    root = tag_dict["Data"]
+
+    function_struct_field = sound_classes_def.find(".//Block[@name='sound classes']//Struct[@name='StructHeader_Mapping']")
+
+    sound_classes_block = root.get("sound classes")
+    if sound_classes_block is not None:
+        for sound_classes_element in sound_classes_block:
+            struct_header = sound_classes_element.get("StructHeader_Mapping")
+            if struct_header is not None and struct_header["version"] == 0:
+                struct_header = sound_classes_element["StructHeader_Mapping"] = {"name": "MAPP", "version": 1, "size": 12}
+                upgrade_function(merged_defs, sound_classes_element, function_struct_field, file_endian)
+
+def sound_effect_collection_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    sound_effect_collection_def = merged_defs["sfx+"]
+    root = tag_dict["Data"]
+
+    function_struct_field = sound_effect_collection_def.find(".//Block[@name='sound effects']//Block[@name='sound effect']//Block[@name='Block']//Block[@name='overrides']//Struct[@name='StructHeader_function value']")
+    function_1_struct_field = sound_effect_collection_def.find(".//Block[@name='sound effects']//Block[@name='sound effect']//Block[@name='Block_1']//Block[@name='sound effects']//Block[@name='function inputs']//Struct[@name='StructHeader_function']")
+    function_2_struct_field = sound_effect_collection_def.find(".//Block[@name='sound effects']//Block[@name='sound effect']//Block[@name='Block_1']//Block[@name='low frequency input']//Struct[@name='StructHeader_function']")
+
+    sound_effects_block = root.get("sound effects")
+    if sound_effects_block is not None:
+        for sound_effects_element in sound_effects_block:
+            sound_effect_block = sound_effects_element.get("sound effect")
+            if sound_effect_block is not None:
+                for sound_effect_element in sound_effect_block:
+                    sound_override_block = sound_effect_element.get("Block")
+                    if sound_override_block is not None:
+                        for sound_override_element in sound_override_block:
+                            overrides_block = sound_override_element.get("overrides")
+                            if overrides_block is not None:
+                                for override_element in overrides_block:
+                                    struct_1_header = override_element.get("StructHeader_function value")
+                                    if struct_1_header is not None and struct_1_header["version"] == 0:
+                                        struct_1_header = override_element["StructHeader_function value"] = {"name": "MAPP", "version": 1, "size": 12}
+                                        upgrade_function(merged_defs, override_element, function_struct_field, file_endian)
+
+                    sound_effect_collection_block = sound_effect_element.get("Block_1")
+                    if sound_effect_collection_block is not None:
+                        for sound_effect_collection_element in sound_effect_collection_block:
+                            inner_sound_effects_block = sound_effect_collection_element.get("sound effects")
+                            if inner_sound_effects_block is not None:
+                                for inner_sound_effect_element in inner_sound_effects_block:
+                                    function_inputs_block = inner_sound_effect_element.get("function inputs")
+                                    if function_inputs_block is not None:
+                                        for function_input_element in function_inputs_block:
+                                            struct_2_header = function_input_element.get("StructHeader_function")
+                                            if struct_2_header is not None and struct_2_header["version"] == 0:
+                                                struct_2_header = function_input_element["StructHeader_function"] = {"name": "MAPP", "version": 1, "size": 12}
+                                                upgrade_function(merged_defs, function_input_element, function_1_struct_field, file_endian)
+
+                            low_frequency_input_block = sound_effect_collection_element.get("low frequency input")
+                            if low_frequency_input_block is not None:
+                                for low_frequency_input_element in low_frequency_input_block:
+                                    struct_3_header = low_frequency_input_element.get("StructHeader_function")
+                                    if struct_3_header is not None and struct_3_header["version"] == 0:
+                                        struct_3_header = low_frequency_input_element["StructHeader_function"] = {"name": "MAPP", "version": 1, "size": 12}
+                                        upgrade_function(merged_defs, low_frequency_input_element, function_2_struct_field, file_endian)
+
+def sound_effect_template_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    sound_effect_template_def = merged_defs["<fx>"]
+    root = tag_dict["Data"]
+
+    function_1_struct_field = sound_effect_template_def.find(".//Block[@name='template collection']//Block[@name='parameters']//Struct[@name='StructHeader_default function']")
+    function_2_struct_field = sound_effect_template_def.find(".//Block[@name='additional sound inputs']//Struct[@name='StructHeader_low frequency sound']")
+    
+    sound_effect_template_header = tag_dict.get("TagBlockHeader_sound_effect_template")
+    if sound_effect_template_header is not None and sound_effect_template_header["version"] == 0:
+        sound_effect_template_header = tag_dict["TagBlockHeader_sound_effect_template"] = {"name": "tbfd", "version": 1, "size": 40}
+
+        template_collection_block = root.get("TagBlock_template collection")
+        template_collection_header = root.get("TagBlockHeader_template collection")
+        template_collection_data = root.get("template collection")
+        if template_collection_block is None:
+            root["TagBlock_template collection"] = {"unk1": 0, "unk2": 0}
+        if template_collection_header is None:
+            root["TagBlockHeader_template collection"] = {"name": "tbfd", "version": 0, "size": 44}
+        if template_collection_data is None:
+            template_collection_data = root["template collection"] = []
+
+        template_element = {
+                            "dsp effect": root.pop("dsp effect", ""), 
+                            "explanation": root.pop("explanation", {"length":0, "unk1":0, "unk2":0, "unk3":0, "unk4":0, "encoded": ""}), 
+                            "flags": root.pop("flags", 0),
+                            "ShortInteger": root.pop("ShortInteger", 0),
+                            "ShortInteger_1": root.pop("ShortInteger_1", 0),
+                            "TagBlock_parameters": root.pop("TagBlock_parameters", {"unk1": 0,"unk2": 0}),
+                            "TagBlockHeader_parameters": root.pop("TagBlockHeader_parameters", {"name": "tbfd", "version": 0, "size": 40}),
+                            "parameters": root.pop("parameters", [])
+                            }
+
+        template_collection_data.append(template_element)
+
+    template_collection_block = root.get("template collection")
+    if template_collection_block is not None:
+        for template_element in template_collection_block:
+            parameters_block = template_element.get("parameters")
+            if parameters_block is not None:
+                for parameter_element in parameters_block:
+                    struct_1_header = parameter_element.get("StructHeader_default function")
+                    if struct_1_header is not None and struct_1_header["version"] == 0:
+                        struct_1_header = parameter_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
+                        upgrade_function(merged_defs, parameter_element, function_1_struct_field, file_endian)
+
+    additional_sound_inputs_block = root.get("additional sound inputs")
+    if additional_sound_inputs_block is not None:
+        for additional_sound_input_element in additional_sound_inputs_block:
+            struct_1_header = additional_sound_input_element.get("StructHeader_low frequency sound")
+            if struct_1_header is not None and struct_1_header["version"] == 0:
+                struct_1_header = additional_sound_input_element["StructHeader_low frequency sound"] = {"name": "MAPP", "version": 1, "size": 12}
+                upgrade_function(merged_defs, additional_sound_input_element, function_2_struct_field, file_endian)
+
+def sound_looping_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    sound_looping_def = merged_defs["lsnd"]
+    root = tag_dict["Data"]
+
+    sound_looping_header = tag_dict.get("TagBlockHeader_sound_looping")
+    if sound_looping_header is not None and sound_looping_header["version"] == 0:
+        sound_looping_header = tag_dict["TagBlockHeader_sound_looping"] = {"name": "tbfd", "version": 3, "size": 76}
+
+        root["TagReference"] = root.pop("continuous damage effect", 0.0)
+
+    tracks_block = root.get("tracks")
+    tracks_header = root.get("TagBlockHeader_tracks")
+    if tracks_block is not None and tracks_header is not None:
+        for track_element in tracks_block:
+            if tracks_header["version"] == 0:
+                track_element["name"] = "reimport_me"
+
+                # This version does not transfer this data. Why? - Gen
+                gain = track_element.pop("gain", 0.0)
+                track_element["gain"] = gain
+
+                track_element["in"] = track_element.pop("start", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+                track_element["loop"] = track_element.pop("loop", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+                track_element["out"] = track_element.pop("end", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+                track_element["alt loop"] = track_element.pop("alternate loop", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+                track_element["alt out"] = track_element.pop("alternate end", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+
+    detail_sounds_block = root.get("detail sounds")
+    detail_sounds_header = root.get("TagBlockHeader_detail sounds")
+    if detail_sounds_block is not None and detail_sounds_header is not None:
+        for detail_sound_element in detail_sounds_block:
+            if detail_sounds_header["version"] == 0:
+                detail_sound_element["name"] = "reimport_me"
+
+                # This version does not transfer this data. Why? - Gen
+                sound_tag = detail_sound_element.pop("sound", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+                random_period_bounds = detail_sound_element.pop("random period bounds", {"Min": 0.0, "Max": 0.0})
+                gain = detail_sound_element.pop("gain", 0.0)
+                flags = detail_sound_element.pop("flags", 0)
+                yaw_bounds = detail_sound_element.pop("yaw bounds", {"Min": 0.0, "Max": 0.0})
+                pitch_bounds = detail_sound_element.pop("pitch bounds", {"Min": 0.0, "Max": 0.0})
+                distance_bounds = detail_sound_element.pop("distance bounds", {"Min": 0.0, "Max": 0.0})
+                detail_sound_element["sound"] = sound_tag
+                detail_sound_element["random period bounds"] = random_period_bounds
+                detail_sound_element["Real"] = gain
+                detail_sound_element["flags"] = flags
+                detail_sound_element["yaw bounds"] = yaw_bounds
+                detail_sound_element["pitch bounds"] = pitch_bounds
+                detail_sound_element["distance bounds"] = distance_bounds
+
+def sound_scenery_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    sound_scenery_def = merged_defs["ssce"]
+    root = tag_dict["Data"]
+
+    function_struct_field = sound_scenery_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+
+    function_block = root.get("functions")
+    if function_block is not None:
+        for function_element in function_block:
+            struct_header = function_element.get("StructHeader_default function")
+            if struct_header is not None and struct_header["version"] == 0:
+                struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
+                upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+def unit_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    unit_def = merged_defs["unit"]
+    root = tag_dict["Data"]
+
+    function_struct_field = unit_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_block = root.get("functions")
+    if function_block is not None:
+        for function_element in function_block:
+            struct_header = function_element.get("StructHeader_default function")
+            if struct_header is not None and struct_header["version"] == 0:
+                struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
+                upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+    seats_block = root.get("seats")
+    seat_header = root.get("TagBlockHeader_seats")
+    if seats_block is not None and seat_header is not None and not seat_header["version"] == 3:
+        for seat_element in seats_block:
+            if seat_header["version"] == 0:
+                yaw = seat_element.pop("yaw rate", 0.0)
+                seat_element["yaw rate bounds"] = {"Min": yaw, "Max": yaw}
+
+                pitch = seat_element.pop("pitch rate", 0.0)
+                seat_element["pitch rate bounds"] = {"Min": pitch, "Max": pitch}
+
+            seat_element["acceleration range"] = seat_element.pop("acceleration scale", (0.0, 0.0, 0.0))
+            seat_element["StructHeader_acceleration"] = {"name": "usas", "version": 0, "size": 20}
+
+        seat_header = root["TagBlockHeader_seats"] = {"name": "tbfd", "version": 3, "size": 192}
+
+def vehicle_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    vehicle_def = merged_defs["vehi"]
+    root = tag_dict["Data"]
+
+    function_struct_field = vehicle_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_block = root.get("functions")
+    if function_block is not None:
+        for function_element in function_block:
+            struct_header = function_element.get("StructHeader_default function")
+            if struct_header is not None and struct_header["version"] == 0:
+                struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
+                upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
+
+    seats_block = root.get("seats")
+    seat_header = root.get("TagBlockHeader_seats")
+    if seats_block is not None and seat_header is not None and not seat_header["version"] == 3:
+        for seat_element in seats_block:
+            if seat_header["version"] == 0:
+                yaw = seat_element.pop("yaw rate", 0.0)
+                seat_element["yaw rate bounds"] = {"Min": yaw, "Max": yaw}
+
+                pitch = seat_element.pop("pitch rate", 0.0)
+                seat_element["pitch rate bounds"] = {"Min": pitch, "Max": pitch}
+
+            seat_element["acceleration range"] = seat_element.pop("acceleration scale", (0.0, 0.0, 0.0))
+            seat_element["StructHeader_acceleration"] = {"name": "usas", "version": 0, "size": 20}
+
+        seat_header = root["TagBlockHeader_seats"] = {"name": "tbfd", "version": 3, "size": 192}
+
+def weapon_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    weapon_def = merged_defs["weap"]
+    root = tag_dict["Data"]
+
+    weapon_header = tag_dict.get("TagBlockHeader_weapon")
+    if weapon_header is not None:
+        if weapon_header["version"] == 0 or weapon_header["version"] == 1:
+            if weapon_header["version"] == 0:
+                root["weapon power-on time"] = root.pop("light power-on time", 0.0)
+                root["weapon power-off time"] = root.pop("light power-on time", 0.0)
+                root["weapon power-on effect"] = root.pop("light power-on effect", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+                root["weapon power-off effect"] = root.pop("light power-off effect", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+
+            first_person_block = root.get("TagBlock_first person")
+            first_person_header = root.get("TagBlockHeader_first person")
+            first_person_data = root.get("first person")
+            if first_person_block is None:
+                root["TagBlock_first person"] = {"unk1": 0, "unk2": 0}
+            if first_person_header is None:
+                root["TagBlockHeader_first person"] = {"name": "tbfd", "version": 0, "size": 88}
+            if first_person_data is None:
+                first_person_data = root["first person"] = []
+
+            fp_model = root.pop("first person model", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+            fp_anim = root.pop("first person animations", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+
+            first_person_spartan_element = {
+                                "first person model": fp_model, 
+                                "first person animations": fp_anim
+                                }
+            
+            # Lets try to find the elite equivelent if we have spartan tags. - Gen
+            spartan_path = r"objects\characters\masterchief"
+            elite_path = r"objects\characters\dervish"
+            elite_fp_model = fp_model.copy()
+            elite_fp_anim = fp_anim.copy()
+            if elite_fp_model.path.startswith(spartan_path):
+                elite_fp_model_path = os.path.join(tag_directory, "%s.render_model" % elite_fp_model.path.replace(spartan_path, elite_path, 1))
+                if os.path.isfile(elite_fp_model_path):
+                    elite_fp_model = {"group name": "mode"," unk1": 0," length": len(elite_fp_model_path)," unk2": -1," path": elite_fp_model_path}
+
+            if elite_fp_anim.path.startswith(spartan_path):
+                elite_fp_anim_path = os.path.join(tag_directory, "%s.model_animation_graph" % elite_fp_anim.path.replace(spartan_path, elite_path, 1))
+                if os.path.isfile(elite_fp_anim_path):
+                    elite_fp_anim = {"group name": "jmad"," unk1": 0," length": len(elite_fp_model_path)," unk2": -1," path": elite_fp_anim_path}
+
+            first_person_elite_element = {
+                                "first person model": elite_fp_model, 
+                                "first person animations": elite_fp_anim
+                                }
+
+            first_person_data.append(first_person_spartan_element)
+            first_person_data.append(first_person_elite_element)
+
+    function_struct_field = weapon_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_block = root.get("functions")
+    if function_block is not None:
+        for function_element in function_block:
+            struct_header = function_element.get("StructHeader_default function")
+            if struct_header is not None and struct_header["version"] == 0:
+                struct_header = function_element["StructHeader_default function"] = {"name": "MAPP", "version": 1, "size": 12}
+                upgrade_function(merged_defs, function_element, function_struct_field, file_endian)
 
 postprocess_functions = {
     "obje": object_postprocess,
     "devi": device_postprocess,
     "item": item_postprocess,
-    "unit": None,
+    "unit": unit_postprocess,
     "hlmt": model_postprocess,
-    "mode": None,
-    "coll": None,
-    "phmo": None,
+    "mode": render_model_postprocess,
+    "coll": collision_model_postprocess,
+    "phmo": physics_model_postprocess,
     "bitm": bitmap_postprocess,
     "colo": None,
     "unic": None,
     "bipd": biped_postprocess,
-    "vehi": None,
-    "scen": None,
+    "vehi": vehicle_postprocess,
+    "scen": scenery_postprocess,
     "bloc": crate_postprocess,
     "crea": creature_postprocess,
     "phys": None,
     "cont": None,
-    "weap": None,
+    "weap": weapon_postprocess,
     "ligh": light_postprocess,
     "effe": effect_postprocess,
     "prt3": particle_postprocess,
     "PRTM": particle_model_postprocess,
     "pmov": particle_physics_postprocess,
     "matg": globals_postprocess,
-    "snd!": None,
-    "lsnd": None,
+    "snd!": sound_postprocess,
+    "lsnd": sound_looping_postprocess,
     "eqip": equipment_postprocess,
     "ant!": None,
     "MGS2": light_volume_postprocess,
@@ -1354,7 +2142,7 @@ postprocess_functions = {
     "whip": None,
     "BooM": None,
     "trak": None,
-    "proj": None,
+    "proj": projectile_postprocess,
     "mach": device_machine_postprocess,
     "ctrl": device_control_postprocess,
     "lifi": device_light_fixture_postprocess,
@@ -1362,7 +2150,7 @@ postprocess_functions = {
     "ltmp": None,
     "sbsp": None,
     "scnr": None,
-    "shad": None,
+    "shad": shader_postprocess,
     "stem": None,
     "slit": None,
     "spas": None,
@@ -1390,7 +2178,7 @@ postprocess_functions = {
     "hudg": None,
     "mply": None,
     "dobc": None,
-    "ssce": None,
+    "ssce": sound_scenery_postprocess,
     "hmt ": None,
     "wgit": None,
     "skin": None,
@@ -1398,7 +2186,7 @@ postprocess_functions = {
     "wigl": None,
     "sily": None,
     "goof": None,
-    "foot": None,
+    "foot": material_effects_postprocess,
     "garb": garbage_postprocess,
     "styl": None,
     "char": character_postprocess,
@@ -1424,10 +2212,10 @@ postprocess_functions = {
     "/**/": None,
     "bsdt": breakable_surface_postprocess,
     "mpdt": None,
-    "sncl": None,
+    "sncl": sound_classes_postprocess,
     "mulg": None,
-    "<fx>": None,
-    "sfx+": None,
+    "<fx>": sound_effect_template_postprocess,
+    "sfx+": sound_effect_collection_postprocess,
     "gldf": chocolate_mountain_postprocess,
     "jmad": model_animation_graph_postprocess,
     "clwd": None,
@@ -1435,7 +2223,7 @@ postprocess_functions = {
     "weat": None,
     "snmx": None,
     "spk!": None,
-    "ugh!": None,
+    "ugh!": sound_cache_file_gestalt_postprocess,
     "$#!+": None,
     "mcsr": None,
     "tag+": None,
