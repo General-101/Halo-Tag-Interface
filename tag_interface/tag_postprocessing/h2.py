@@ -2448,7 +2448,7 @@ postprocess_functions = {
     "lifi": device_light_fixture_postprocess,
     "pphy": None,
     "ltmp": None,
-    "sbsp": None,
+    "sbsp": scenario_structure_bsp_postprocess,
     "scnr": None,
     "shad": shader_postprocess,
     "stem": None,
