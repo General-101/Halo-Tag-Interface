@@ -1,0 +1,230 @@
+﻿<?xml version='1.0' encoding='utf-8-sig'?>
+<TagGroup group="*rea" name="scenario_creature_resource" version="1">
+  <Layout regolithID="block:scenario_creature_resource" internalName="scenario_creature_resource_block" name="scenario_creature_resource">
+    <FieldSet version="0" sizeofValue="76" sizeofSource="sizeof(struct scenario_objects_resource_definition)" isLatest="true">
+      <Block CStyleName="names" pascalStyleName="Names" name="names" maxElementCount="640" maxElementCountSource="MAXIMUM_OBJECT_NAMES_PER_SCENARIO">
+        <Layout regolithID="block:scenario_object_names" internalName="scenario_object_names_block" name="scenario_object_names_block">
+          <FieldSet version="0" sizeofValue="36" sizeofSource="sizeof(struct scenario_object_name)" isLatest="true">
+            <String CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true" />
+            <ShortBlockIndex name="ShortBlockIndex" />
+            <CustomShortBlockIndex name="CustomShortBlockIndex" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="going_away" pascalStyleName="GoingAway" name="going away" readOnly="true" expertOnly="true" maxElementCount="4096" maxElementCountSource="MAXIMUM_ENVIRONMENT_OBJECTS_PER_SCENARIO">
+        <Layout regolithID="block:dont_use_me_scenario_environment_object" internalName="dont_use_me_scenario_environment_object_block" name="dont_use_me_scenario_environment_object_block">
+          <FieldSet version="0" sizeofValue="64" sizeofSource="sizeof(struct scenario_environment_object)" isLatest="true">
+            <Custom name="SCENARIO_ENVIRONMENT_OBJECT_EDITOR_FLAGS_ID" tag="envf" />
+            <ShortBlockIndex CStyleName="bsp" pascalStyleName="Bsp" name="bsp" readOnly="true" blockReference="block:scenario_structure_bsp_reference" />
+            <ShortInteger CStyleName="runtime_object_type" pascalStyleName="RuntimeObjectType" name="runtime object type" expertOnly="true" />
+            <LongInteger CStyleName="unique_id" pascalStyleName="UniqueId" name="unique id" readOnly="true" />
+            <Pad sizeOfSource="sizeof(unsigned long)" length="4" name="Pad" />
+            <Tag CStyleName="object_definition_tag" pascalStyleName="ObjectDefinitionTag" name="object definition tag" readOnly="true" />
+            <LongInteger CStyleName="object" pascalStyleName="Object" name="object" blockNameSource="true" readOnly="true" />
+            <Pad sizeOfSource="sizeof(long)*11" length="44" name="Pad_1" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="structure_references" pascalStyleName="StructureReferences" name="structure references" maxElementCount="16" maxElementCountSource="MAXIMUM_STRUCTURE_BSPS_PER_SCENARIO">
+        <Layout regolithID="block:scenario_structure_bsp_reference" internalName="scenario_structure_bsp_reference_block" name="scenario_structure_bsp_reference_block">
+          <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(struct scenario_structure_bsp_reference_v1)">
+            <Pad sizeOfSource="4*sizeof(long)" length="16" name="Pad" />
+            <TagReference CStyleName="structure_bsp" pascalStyleName="StructureBsp" name="structure bsp" blockNameSource="true">
+              <tag>sbsp</tag>
+            </TagReference>
+          </FieldSet>
+          <FieldSet version="1" sizeofValue="84" sizeofSource="sizeof(struct scenario_structure_bsp_reference)" isLatest="true">
+            <Pad sizeOfSource="4*sizeof(long)" length="16" name="Pad" />
+            <TagReference CStyleName="structure_bsp" pascalStyleName="StructureBsp" name="structure bsp" blockNameSource="true">
+              <tag>sbsp</tag>
+            </TagReference>
+            <TagReference CStyleName="structure_lightmap" pascalStyleName="StructureLightmap" name="structure lightmap" blockNameSource="true">
+              <tag>ltmp</tag>
+            </TagReference>
+            <Pad sizeOfSource="1*sizeof(long)" length="4" name="Pad_1" />
+            <Real CStyleName="unused_radiance_est_search_distance" pascalStyleName="UnusedRadianceEstSearchDistance" name="UNUSED radiance est. search distance" expertOnly="true" />
+            <Pad sizeOfSource="1*sizeof(long)" length="4" name="Pad_2" />
+            <Real CStyleName="unused_luminels_per_world_unit" pascalStyleName="UnusedLuminelsPerWorldUnit" name="UNUSED luminels per world unit" expertOnly="true" />
+            <Real CStyleName="unused_output_white_reference" pascalStyleName="UnusedOutputWhiteReference" name="UNUSED output white reference" expertOnly="true" />
+            <Pad sizeOfSource="2*sizeof(long)" length="8" name="Pad_3" />
+            <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:bsp_reference_sky_flags" CStyleName="bsp_reference_sky_flags" pascalStyleName="BspReferenceSkyFlags">
+                <Bit name="default sky enabled" CStyleName="default_sky_enabled_bit" pascalStyleName="DefaultSkyEnabledBit" />
+              </Options>
+            </WordFlags>
+            <Pad sizeOfSource="sizeof(word)" length="2" name="Pad_4" />
+            <ShortBlockIndex CStyleName="default_sky" pascalStyleName="DefaultSky" name="default sky" blockReference="block:scenario_sky_reference" />
+            <Pad sizeOfSource="sizeof(word)" length="2" name="Pad_5" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="creature_palette" pascalStyleName="CreaturePalette" name="creature palette" maxElementCount="256" maxElementCountSource="MAXIMUM_SCENARIO_OBJECT_PALETTE_ENTRIES_PER_BLOCK">
+        <Layout regolithID="block:scenario_creature_palette" internalName="scenario_creature_palette_block" name="scenario_creature_palette_block">
+          <FieldSet version="0" sizeofValue="48" sizeofSource="sizeof(struct scenario_object_palette_entry)" isLatest="true">
+            <TagReference CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true">
+              <tag>crea</tag>
+            </TagReference>
+            <Pad sizeOfSource="8*sizeof(long)" length="32" name="Pad" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="creatures" pascalStyleName="Creatures" name="creatures" maxElementCount="128" maxElementCountSource="MAXIMUM_CREATURE_DATUMS_PER_SCENARIO">
+        <Layout regolithID="block:scenario_creature" internalName="scenario_creature_block" name="scenario_creature_block">
+          <FieldSet version="0" sizeofValue="52" sizeofSource="sizeof(s_scenario_creature)" isLatest="true">
+            <Custom name="FILTER_ON_NEXT_FIELD_ID,-1" tag="filt" />
+            <ShortBlockIndex CStyleName="type" pascalStyleName="Type" name="type" tag="type" blockReference="block:scenario_creature_palette" />
+            <Custom name="FILTER_ON_NEXT_FIELD_ID,-2" tag="filt" />
+            <ShortBlockIndex CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true" tag="name" blockReference="block:scenario_object_names" />
+            <Struct CStyleName="object_data" pascalStyleName="ObjectData" name="StructHeader_object data">
+              <Layout regolithID="structure:scenario_object_datum" tag="sobj" internalName="scenario_object_datum_struct" backingBlockInternalName="scenario_object_datum_struct_block" name="scenario_object_datum_struct">
+                <FieldSet version="0" sizeofValue="48" sizeofSource="sizeof(s_scenario_object_datum)">
+                  <Custom name="SCENARIO_OBJECT_EDIT_ID" tag="obed" />
+                  <LongFlags CStyleName="placement_flags" pascalStyleName="PlacementFlags" name="placement flags">
+                    <Options regolithID="enum:scenario_object_placement_flags" CStyleName="scenario_object_placement_flags" pascalStyleName="ScenarioObjectPlacementFlags">
+                      <Bit name="not automatically" CStyleName="not_automatically_bit" pascalStyleName="NotAutomaticallyBit" />
+                      <Bit name="unused" CStyleName="unused1_bit" pascalStyleName="Unused1Bit" />
+                      <Bit name="unused" CStyleName="unused2_bit" pascalStyleName="Unused2Bit" />
+                      <Bit name="unused" CStyleName="unused3_bit" pascalStyleName="Unused3Bit" />
+                      <Bit name="lock type to env. object" CStyleName="lock_type_to_env_object_bit" pascalStyleName="LockTypeToEnvObjectBit" />
+                      <Bit name="lock transform to env. object" CStyleName="lock_transform_to_env_object_bit" pascalStyleName="LockTransformToEnvObjectBit" />
+                      <Bit name="never placed" CStyleName="never_placed_bit" pascalStyleName="NeverPlacedBit" />
+                      <Bit name="lock name to env. object" CStyleName="lock_name_to_env_object_bit" pascalStyleName="LockNameToEnvObjectBit" />
+                      <Bit name="create at rest" CStyleName="create_at_rest_bit" pascalStyleName="CreateAtRestBit" />
+                    </Options>
+                  </LongFlags>
+                  <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" tag="poin" />
+                  <RealEulerAngles3D CStyleName="rotation" pascalStyleName="Rotation" name="rotation" tag="orie" />
+                  <Real CStyleName="scale" pascalStyleName="Scale" name="scale" tag="scal" />
+                  <WordFlags name="WordFlags">
+                    <Options regolithID="enum:object_datum_transform_flags" CStyleName="object_datum_transform_flags" pascalStyleName="ObjectDatumTransformFlags">
+                      <Bit name="mirrored" CStyleName="mirrored_bit" pascalStyleName="MirroredBit" />
+                    </Options>
+                  </WordFlags>
+                  <WordBlockFlags CStyleName="manual_bsp_flags" pascalStyleName="ManualBspFlags" name="manual bsp flags" readOnly="true" tag="mbsp" />
+                  <Struct CStyleName="object_id" pascalStyleName="ObjectId" name="StructHeader_object id">
+                    <Layout regolithID="structure:scenario_object_id" tag="obj#" internalName="scenario_object_id_struct" backingBlockInternalName="scenario_object_id_struct_block" name="scenario_object_id_struct">
+                      <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(c_object_identifier)" isLatest="true">
+                        <LongInteger CStyleName="unique_id" pascalStyleName="UniqueId" name="unique id" readOnly="true" tag="obj#" />
+                        <ShortBlockIndex CStyleName="origin_bsp_index" pascalStyleName="OriginBspIndex" name="origin bsp index" readOnly="true" tag="obj#" blockReference="block:scenario_structure_bsp_reference" />
+                        <CharEnum CStyleName="type" pascalStyleName="Type" name="type_1" readOnly="true" tag="obj#">
+                          <Options regolithID="enum:object_type" CStyleName="object_type" pascalStyleName="ObjectType">
+                            <Enum name="biped" CStyleName="biped" pascalStyleName="Biped" />
+                            <Enum name="vehicle" CStyleName="vehicle" pascalStyleName="Vehicle" />
+                            <Enum name="weapon" CStyleName="weapon" pascalStyleName="Weapon" />
+                            <Enum name="equipment" CStyleName="equipment" pascalStyleName="Equipment" />
+                            <Enum name="garbage" CStyleName="garbage" pascalStyleName="Garbage" />
+                            <Enum name="projectile" CStyleName="projectile" pascalStyleName="Projectile" />
+                            <Enum name="scenery" CStyleName="scenery" pascalStyleName="Scenery" />
+                            <Enum name="machine" CStyleName="machine" pascalStyleName="Machine" />
+                            <Enum name="control" CStyleName="control" pascalStyleName="Control" />
+                            <Enum name="light_fixture" CStyleName="light_fixture" pascalStyleName="LightFixture" />
+                            <Enum name="sound_scenery" CStyleName="sound_scenery" pascalStyleName="SoundScenery" />
+                            <Enum name="crate" CStyleName="crate" pascalStyleName="Crate" />
+                            <Enum name="creature" CStyleName="creature" pascalStyleName="Creature" />
+                          </Options>
+                        </CharEnum>
+                        <CharEnum CStyleName="source" pascalStyleName="Source" name="source" readOnly="true" tag="obj#">
+                          <Options regolithID="enum:object_source_type" CStyleName="object_source_type" pascalStyleName="ObjectSourceType">
+                            <Enum name="structure" CStyleName="structure" pascalStyleName="Structure" />
+                            <Enum name="editor" CStyleName="editor" pascalStyleName="Editor" />
+                            <Enum name="dynamic" CStyleName="dynamic" pascalStyleName="Dynamic" />
+                            <Enum name="legacy" CStyleName="legacy" pascalStyleName="Legacy" />
+                          </Options>
+                        </CharEnum>
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                  <CharEnum CStyleName="bsp_policy" pascalStyleName="BspPolicy" name="bsp policy" tag="enum">
+                    <Options regolithID="enum:object_bsp_placement_policy" CStyleName="object_bsp_placement_policy" pascalStyleName="ObjectBspPlacementPolicy">
+                      <Enum name="default" CStyleName="default_value" pascalStyleName="Default" />
+                      <Enum name="always placed" CStyleName="always_placed" pascalStyleName="AlwaysPlaced" />
+                      <Enum name="manual bsp placement" CStyleName="manual_bsp_placement" pascalStyleName="ManualBspPlacement" />
+                    </Options>
+                  </CharEnum>
+                  <Pad sizeOfSource="1*sizeof(char)" length="1" name="Pad" />
+                  <ShortBlockIndex tag="ugly" name="ShortBlockIndex" />
+                </FieldSet>
+                <FieldSet version="1" sizeofValue="48" sizeofSource="sizeof(s_scenario_object_datum)" isLatest="true">
+                  <Custom name="SCENARIO_OBJECT_EDIT_ID" tag="obed" />
+                  <LongFlags CStyleName="placement_flags" pascalStyleName="PlacementFlags" name="placement flags">
+                    <Options regolithID="enum:scenario_object_placement_flags" CStyleName="scenario_object_placement_flags" pascalStyleName="ScenarioObjectPlacementFlags">
+                      <Bit name="not automatically" CStyleName="not_automatically_bit" pascalStyleName="NotAutomaticallyBit" />
+                      <Bit name="unused" CStyleName="unused1_bit" pascalStyleName="Unused1Bit" />
+                      <Bit name="unused" CStyleName="unused2_bit" pascalStyleName="Unused2Bit" />
+                      <Bit name="unused" CStyleName="unused3_bit" pascalStyleName="Unused3Bit" />
+                      <Bit name="lock type to env. object" CStyleName="lock_type_to_env_object_bit" pascalStyleName="LockTypeToEnvObjectBit" />
+                      <Bit name="lock transform to env. object" CStyleName="lock_transform_to_env_object_bit" pascalStyleName="LockTransformToEnvObjectBit" />
+                      <Bit name="never placed" CStyleName="never_placed_bit" pascalStyleName="NeverPlacedBit" />
+                      <Bit name="lock name to env. object" CStyleName="lock_name_to_env_object_bit" pascalStyleName="LockNameToEnvObjectBit" />
+                      <Bit name="create at rest" CStyleName="create_at_rest_bit" pascalStyleName="CreateAtRestBit" />
+                    </Options>
+                  </LongFlags>
+                  <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" tag="poin" />
+                  <RealEulerAngles3D CStyleName="rotation" pascalStyleName="Rotation" name="rotation" tag="orie" />
+                  <Real CStyleName="scale" pascalStyleName="Scale" name="scale" tag="scal" />
+                  <WordFlags name="WordFlags">
+                    <Options regolithID="enum:object_datum_transform_flags" CStyleName="object_datum_transform_flags" pascalStyleName="ObjectDatumTransformFlags">
+                      <Bit name="mirrored" CStyleName="mirrored_bit" pascalStyleName="MirroredBit" />
+                    </Options>
+                  </WordFlags>
+                  <WordBlockFlags CStyleName="manual_bsp_flags" pascalStyleName="ManualBspFlags" name="manual bsp flags" readOnly="true" tag="mbsp" />
+                  <Struct CStyleName="object_id" pascalStyleName="ObjectId" name="StructHeader_object id">
+                    <Layout regolithID="structure:scenario_object_id" tag="obj#" internalName="scenario_object_id_struct" backingBlockInternalName="scenario_object_id_struct_block" name="scenario_object_id_struct">
+                      <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(c_object_identifier)" isLatest="true">
+                        <LongInteger CStyleName="unique_id" pascalStyleName="UniqueId" name="unique id" readOnly="true" tag="obj#" />
+                        <ShortBlockIndex CStyleName="origin_bsp_index" pascalStyleName="OriginBspIndex" name="origin bsp index" readOnly="true" tag="obj#" blockReference="block:scenario_structure_bsp_reference" />
+                        <CharEnum CStyleName="type" pascalStyleName="Type" name="type_1" readOnly="true" tag="obj#">
+                          <Options regolithID="enum:object_type" CStyleName="object_type" pascalStyleName="ObjectType">
+                            <Enum name="biped" CStyleName="biped" pascalStyleName="Biped" />
+                            <Enum name="vehicle" CStyleName="vehicle" pascalStyleName="Vehicle" />
+                            <Enum name="weapon" CStyleName="weapon" pascalStyleName="Weapon" />
+                            <Enum name="equipment" CStyleName="equipment" pascalStyleName="Equipment" />
+                            <Enum name="garbage" CStyleName="garbage" pascalStyleName="Garbage" />
+                            <Enum name="projectile" CStyleName="projectile" pascalStyleName="Projectile" />
+                            <Enum name="scenery" CStyleName="scenery" pascalStyleName="Scenery" />
+                            <Enum name="machine" CStyleName="machine" pascalStyleName="Machine" />
+                            <Enum name="control" CStyleName="control" pascalStyleName="Control" />
+                            <Enum name="light_fixture" CStyleName="light_fixture" pascalStyleName="LightFixture" />
+                            <Enum name="sound_scenery" CStyleName="sound_scenery" pascalStyleName="SoundScenery" />
+                            <Enum name="crate" CStyleName="crate" pascalStyleName="Crate" />
+                            <Enum name="creature" CStyleName="creature" pascalStyleName="Creature" />
+                          </Options>
+                        </CharEnum>
+                        <CharEnum CStyleName="source" pascalStyleName="Source" name="source" readOnly="true" tag="obj#">
+                          <Options regolithID="enum:object_source_type" CStyleName="object_source_type" pascalStyleName="ObjectSourceType">
+                            <Enum name="structure" CStyleName="structure" pascalStyleName="Structure" />
+                            <Enum name="editor" CStyleName="editor" pascalStyleName="Editor" />
+                            <Enum name="dynamic" CStyleName="dynamic" pascalStyleName="Dynamic" />
+                            <Enum name="legacy" CStyleName="legacy" pascalStyleName="Legacy" />
+                          </Options>
+                        </CharEnum>
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                  <CharEnum CStyleName="bsp_policy" pascalStyleName="BspPolicy" name="bsp policy" tag="enum">
+                    <Options regolithID="enum:object_bsp_placement_policy" CStyleName="object_bsp_placement_policy" pascalStyleName="ObjectBspPlacementPolicy">
+                      <Enum name="default" CStyleName="default_value" pascalStyleName="Default" />
+                      <Enum name="always placed" CStyleName="always_placed" pascalStyleName="AlwaysPlaced" />
+                      <Enum name="manual bsp placement" CStyleName="manual_bsp_placement" pascalStyleName="ManualBspPlacement" />
+                    </Options>
+                  </CharEnum>
+                  <Pad sizeOfSource="1*sizeof(char)" length="1" name="Pad" />
+                  <ShortBlockIndex tag="ugly" blockReference="block:g_scenario_editor_folder" name="ShortBlockIndex" />
+                </FieldSet>
+              </Layout>
+            </Struct>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <LongInteger CStyleName="next_object_id_salt" pascalStyleName="NextObjectIdSalt" name="next object id salt" readOnly="true" />
+      <Block CStyleName="editor_folders" pascalStyleName="EditorFolders" name="editor folders" readOnly="true" maxElementCount="32767" maxElementCountSource="k_maximum_scenario_editor_folders">
+        <Layout regolithID="block:g_scenario_editor_folder" internalName="g_scenario_editor_folder_block" name="g_scenario_editor_folder_block">
+          <FieldSet version="0" sizeofValue="260" sizeofSource="sizeof(s_scenario_editor_folder)" isLatest="true">
+            <LongBlockIndex CStyleName="parent_folder" pascalStyleName="ParentFolder" name="parent folder" blockReference="block:g_scenario_editor_folder" />
+            <LongString CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true" />
+          </FieldSet>
+        </Layout>
+      </Block>
+    </FieldSet>
+  </Layout>
+</TagGroup>

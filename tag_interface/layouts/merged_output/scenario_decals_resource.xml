@@ -1,0 +1,26 @@
+﻿<?xml version='1.0' encoding='utf-8-sig'?>
+<TagGroup group="dec*" name="scenario_decals_resource" version="1">
+  <Layout regolithID="block:scenario_decals_resource" internalName="scenario_decals_resource_block" name="scenario_decals_resource">
+    <FieldSet version="0" sizeofValue="24" sizeofSource="sizeof(struct scenario_decals_resource_definition)" isLatest="true">
+      <Block CStyleName="palette" pascalStyleName="Palette" name="palette" maxElementCount="128" maxElementCountSource="MAXIMUM_DECAL_PALETTES_PER_SCENARIO">
+        <Layout regolithID="block:scenario_decal_palette" internalName="scenario_decal_palette_block" name="scenario_decal_palette_block">
+          <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct scenario_decal_palette_entry)" isLatest="true">
+            <TagReference CStyleName="reference" pascalStyleName="Reference" name="reference" blockNameSource="true">
+              <tag>deca</tag>
+            </TagReference>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="decals" pascalStyleName="Decals" name="decals" maxElementCount="65536" maxElementCountSource="MAXIMUM_DECALS_PER_SCENARIO">
+        <Layout regolithID="block:scenario_decals" internalName="scenario_decals_block" name="scenario_decals_block">
+          <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct scenario_decal)" isLatest="true">
+            <ShortBlockIndex CStyleName="decal_type" pascalStyleName="DecalType" name="decal type" blockNameSource="true" blockReference="block:scenario_decal_palette" />
+            <CharInteger CStyleName="yaw_127127" pascalStyleName="Yaw127127" name="yaw[-127,127]" readOnly="true" />
+            <CharInteger CStyleName="pitch_127127" pascalStyleName="Pitch127127" name="pitch[-127,127]" readOnly="true" />
+            <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+          </FieldSet>
+        </Layout>
+      </Block>
+    </FieldSet>
+  </Layout>
+</TagGroup>

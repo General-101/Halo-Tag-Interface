@@ -1,0 +1,1387 @@
+﻿<?xml version='1.0' encoding='utf-8-sig'?>
+<TagGroup group="vehi" parent="unit" name="vehicle" version="1">
+  <Layout regolithID="block:vehicle" internalName="vehicle_block" name="vehicle">
+    <FieldSet version="0" sizeofValue="984" sizeofSource="sizeof(struct _vehicle_definition)" parentVersion="0" isLatest="true">
+      <Pad sizeOfSource="sizeof(word)" length="2" name="Pad" />
+      <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+        <Options regolithID="enum:object_flags" CStyleName="object_flags" pascalStyleName="ObjectFlags">
+          <Bit name="does not cast shadow" CStyleName="does_not_cast_shadow_bit" pascalStyleName="DoesNotCastShadowBit" />
+          <Bit name="search cardinal direction lightmaps on failure" CStyleName="search_cardinal_direction_lightmaps_on_failure_bit" pascalStyleName="SearchCardinalDirectionLightmapsOnFailureBit" />
+          <Bit name="unused" expertOnly="true" CStyleName="unused2_bit" pascalStyleName="Unused2Bit" />
+          <Bit name="not a pathfinding obstacle" CStyleName="not_a_pathfinding_obstacle_bit" pascalStyleName="NotAPathfindingObstacleBit" />
+          <Bit name="extension of parent" description="object passes all function values to parent and uses parent's markers" CStyleName="extension_of_parent_bit" pascalStyleName="ExtensionOfParentBit" />
+          <Bit name="does not cause collision damage" CStyleName="does_not_cause_collision_damage_bit" pascalStyleName="DoesNotCauseCollisionDamageBit" />
+          <Bit name="early mover" CStyleName="early_mover_bit" pascalStyleName="EarlyMoverBit" />
+          <Bit name="early mover localized physics" CStyleName="early_mover_localized_physics_bit" pascalStyleName="EarlyMoverLocalizedPhysicsBit" />
+          <Bit name="use static massive lightmap sample" description="cast A LOT of rays once and store the results for lighting" CStyleName="use_static_massive_lightmap_sample_bit" pascalStyleName="UseStaticMassiveLightmapSampleBit" />
+          <Bit name="object scales attachments" CStyleName="object_scales_attachments_bit" pascalStyleName="ObjectScalesAttachmentsBit" />
+          <Bit name="inherits player's appearance" CStyleName="inherits_players_appearance_bit" pascalStyleName="InheritsPlayersAppearanceBit" />
+          <Bit name="dead bipeds can't localize" CStyleName="dead_bipeds_cant_localize_bit" pascalStyleName="DeadBipedsCantLocalizeBit" />
+          <Bit name="attach to clusters by dynamic sphere" description="use this for the mac gun on spacestation" CStyleName="attach_to_clusters_by_dynamic_sphere_bit" pascalStyleName="AttachToClustersByDynamicSphereBit" />
+          <Bit name="effects created by this object do not spawn objects in multiplayer" CStyleName="effects_created_by_this_object_do_not_spawn_objects_in_multiplayer_bit" pascalStyleName="EffectsCreatedByThisObjectDoNotSpawnObjectsInMultiplayerBit" />
+          <Bit name="prophet is not displayed in pegasus builds" expertOnly="true" CStyleName="prophet_is_not_displayed_in_pegasus_builds_bit" pascalStyleName="ProphetIsNotDisplayedInPegasusBuildsBit" />
+        </Options>
+      </WordFlags>
+      <Real CStyleName="bounding_radius" pascalStyleName="BoundingRadius" name="bounding radius" units="world units" />
+      <RealPoint3D CStyleName="bounding_offset" pascalStyleName="BoundingOffset" name="bounding offset" />
+      <UselessPad length="12" name="UselessPad" />
+      <Real CStyleName="acceleration_scale" pascalStyleName="AccelerationScale" name="acceleration scale" units="[0,+inf]" description="marine 1.0, grunt 1.4, elite 0.9, hunter 0.5, etc." />
+      <ShortEnum CStyleName="lightmap_shadow_mode" pascalStyleName="LightmapShadowMode" name="lightmap shadow mode">
+        <Options regolithID="enum:object_lightmap_shadow_mode" CStyleName="object_lightmap_shadow_mode" pascalStyleName="ObjectLightmapShadowMode">
+          <Enum name="default" CStyleName="default_value" pascalStyleName="Default" />
+          <Enum name="never" CStyleName="never" pascalStyleName="Never" />
+          <Enum name="always" CStyleName="always" pascalStyleName="Always" />
+        </Options>
+      </ShortEnum>
+      <CharEnum CStyleName="sweetener_size" pascalStyleName="SweetenerSize" name="sweetener size">
+        <Options regolithID="enum:object_sweetener_size" CStyleName="object_sweetener_size" pascalStyleName="ObjectSweetenerSize">
+          <Enum name="small" CStyleName="small" pascalStyleName="Small" />
+          <Enum name="medium" CStyleName="medium" pascalStyleName="Medium" />
+          <Enum name="large" CStyleName="large" pascalStyleName="Large" />
+        </Options>
+      </CharEnum>
+      <Pad sizeOfSource="sizeof(byte)" length="1" name="Pad_1" />
+      <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_2" />
+      <UselessPad length="32" name="UselessPad_1" />
+      <Real CStyleName="dynamic_light_sphere_radius" pascalStyleName="DynamicLightSphereRadius" name="dynamic light sphere radius" description="sphere to use for dynamic lights and shadows. only used if not 0" />
+      <RealPoint3D CStyleName="dynamic_light_sphere_offset" pascalStyleName="DynamicLightSphereOffset" name="dynamic light sphere offset" description="only used if radius not 0" />
+      <StringId CStyleName="default_model_variant" pascalStyleName="DefaultModelVariant" name="default model variant" />
+      <TagReference CStyleName="model" pascalStyleName="Model" name="model">
+        <tag>hlmt</tag>
+      </TagReference>
+      <TagReference CStyleName="crate_object" pascalStyleName="CrateObject" name="crate object">
+        <tag>bloc</tag>
+      </TagReference>
+      <UselessPad length="16" name="UselessPad_2" />
+      <TagReference CStyleName="modifier_shader" pascalStyleName="ModifierShader" name="modifier shader">
+        <tag>shad</tag>
+      </TagReference>
+      <TagReference CStyleName="creation_effect" pascalStyleName="CreationEffect" name="creation effect">
+        <tag>effe</tag>
+      </TagReference>
+      <TagReference CStyleName="material_effects" pascalStyleName="MaterialEffects" name="material effects">
+        <tag>foot</tag>
+      </TagReference>
+      <UselessPad length="24" name="UselessPad_3" />
+      <Block CStyleName="ai_properties" pascalStyleName="AiProperties" name="ai properties" maxElementCount="1">
+        <Layout regolithID="block:object_ai_properties" internalName="object_ai_properties_block" name="object_ai_properties_block">
+          <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct object_ai_properties)" isLatest="true">
+            <LongFlags CStyleName="ai_flags" pascalStyleName="AiFlags" name="ai flags">
+              <Options regolithID="enum:object_ai_flags" CStyleName="object_ai_flags" pascalStyleName="ObjectAiFlags">
+                <Bit name="detroyable cover" CStyleName="detroyable_cover_bit" pascalStyleName="DetroyableCoverBit" />
+                <Bit name="pathfinding ignore when dead" CStyleName="pathfinding_ignore_when_dead_bit" pascalStyleName="PathfindingIgnoreWhenDeadBit" />
+                <Bit name="dynamic cover" CStyleName="dynamic_cover_bit" pascalStyleName="DynamicCoverBit" />
+              </Options>
+            </LongFlags>
+            <StringId CStyleName="ai_type_name" pascalStyleName="AiTypeName" name="ai type name" description="used for combat dialogue, etc." />
+            <Pad sizeOfSource="sizeof(long)" length="4" name="Pad" />
+            <ShortEnum CStyleName="ai_size" pascalStyleName="AiSize" name="ai size">
+              <Options regolithID="enum:ai_size" CStyleName="ai_size" pascalStyleName="AiSize">
+                <Enum name="default" CStyleName="default_value" pascalStyleName="Default" />
+                <Enum name="tiny" CStyleName="tiny" pascalStyleName="Tiny" />
+                <Enum name="small" CStyleName="small" pascalStyleName="Small" />
+                <Enum name="medium" CStyleName="medium" pascalStyleName="Medium" />
+                <Enum name="large" CStyleName="large" pascalStyleName="Large" />
+                <Enum name="huge" CStyleName="huge" pascalStyleName="Huge" />
+                <Enum name="immobile" CStyleName="immobile" pascalStyleName="Immobile" />
+              </Options>
+            </ShortEnum>
+            <ShortEnum CStyleName="leap_jump_speed" pascalStyleName="LeapJumpSpeed" name="leap jump speed">
+              <Options regolithID="enum:character_jump_mode" CStyleName="character_jump_mode" pascalStyleName="CharacterJumpMode">
+                <Enum name="NONE" CStyleName="none" pascalStyleName="None" />
+                <Enum name="down" CStyleName="down" pascalStyleName="Down" />
+                <Enum name="step" CStyleName="step" pascalStyleName="Step" />
+                <Enum name="crouch" CStyleName="crouch" pascalStyleName="Crouch" />
+                <Enum name="stand" CStyleName="stand" pascalStyleName="Stand" />
+                <Enum name="storey" CStyleName="storey" pascalStyleName="Storey" />
+                <Enum name="tower" CStyleName="tower" pascalStyleName="Tower" />
+                <Enum name="infinite" CStyleName="infinite" pascalStyleName="Infinite" />
+              </Options>
+            </ShortEnum>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <UselessPad length="24" name="UselessPad_4" />
+      <Block CStyleName="functions" pascalStyleName="Functions" name="functions" maxElementCount="256" maxElementCountSource="k_maximum_object_functions">
+        <Layout regolithID="block:object_function" internalName="object_function_block" name="object_function_block">
+          <FieldSet version="0" sizeofValue="36" sizeofSource="sizeof(s_object_function_definition)" isLatest="true">
+            <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:object_function_flags" CStyleName="object_function_flags" pascalStyleName="ObjectFunctionFlags">
+                <Bit name="invert" description="result of function is one minus actual result" CStyleName="invert_bit" pascalStyleName="InvertBit" />
+                <Bit name="mapping does not controls active" description="the curve mapping can make the function active/inactive" CStyleName="mapping_does_not_controls_active_bit" pascalStyleName="MappingDoesNotControlsActiveBit" />
+                <Bit name="always active" description="function does not deactivate when at or below lower bound" CStyleName="always_active_bit" pascalStyleName="AlwaysActiveBit" />
+                <Bit name="random time offset" description="function offsets periodic function input by random value between 0 and 1" CStyleName="random_time_offset_bit" pascalStyleName="RandomTimeOffsetBit" />
+              </Options>
+            </LongFlags>
+            <StringId CStyleName="import_name" pascalStyleName="ImportName" name="import name" tag="sted" />
+            <StringId CStyleName="export_name" pascalStyleName="ExportName" name="export name" />
+            <StringId CStyleName="turn_off_with" pascalStyleName="TurnOffWith" name="turn off with" description="if the specified function is off, so is this function" tag="sted" />
+            <Real CStyleName="min_value" pascalStyleName="MinValue" name="min value" description="function must exceed this value (after mapping) to be active 0. means do nothing" />
+            <Custom name="default function" tag="fned" />
+            <Struct CStyleName="default_function" pascalStyleName="DefaultFunction" name="StructHeader_default function">
+              <Layout regolithID="structure:mapping_function" Name="Mapping" tag="MAPP" internalName="mapping_function" backingBlockInternalName="mapping_function_block">
+                <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_function_definition_v1)">
+                  <Custom name="HIDE_GROUP_ID" tag="hide" />
+                  <CharInteger CStyleName="function_type" pascalStyleName="FunctionType" name="Function Type" />
+                  <ByteFlags CStyleName="flags" pascalStyleName="Flags" name="Flags">
+                    <Options regolithID="enum:mapping_function_flags" CStyleName="mapping_function_flags" pascalStyleName="MappingFunctionFlags">
+                      <Bit name="Range" CStyleName="range_bit" pascalStyleName="RangeBit" />
+                      <Bit name="Unused 0" CStyleName="unused_0_bit" pascalStyleName="Unused0Bit" />
+                      <Bit name="Unused 1" CStyleName="unused_1_bit" pascalStyleName="Unused1Bit" />
+                      <Bit name="Unused 2" CStyleName="unused_2_bit" pascalStyleName="Unused2Bit" />
+                      <Bit name="Color Bit 0" CStyleName="color_bit_0_bit" pascalStyleName="ColorBit0Bit" />
+                      <Bit name="Color Bit 1" CStyleName="color_bit_1_bit" pascalStyleName="ColorBit1Bit" />
+                      <Bit name="Color Bit 2" CStyleName="color_bit_2_bit" pascalStyleName="ColorBit2Bit" />
+                      <Bit name="Color Bit 3" CStyleName="color_bit_3_bit" pascalStyleName="ColorBit3Bit" />
+                    </Options>
+                  </ByteFlags>
+                  <CharInteger CStyleName="function_1" pascalStyleName="Function1" name="Function 1" />
+                  <CharInteger CStyleName="function_2" pascalStyleName="Function2" name="Function 2" />
+                  <RgbColor CStyleName="color_0" pascalStyleName="Color0" name="Color 0" />
+                  <RgbColor CStyleName="color_1" pascalStyleName="Color1" name="Color 1" />
+                  <RgbColor CStyleName="color_2" pascalStyleName="Color2" name="Color 2" />
+                  <RgbColor CStyleName="color_3" pascalStyleName="Color3" name="Color 3" />
+                  <Block CStyleName="values" pascalStyleName="Values" name="Values" maxElementCount="64">
+                    <Layout regolithID="block:real" internalName="real_block" name="real_block">
+                      <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(real)" isLatest="true">
+                        <Real CStyleName="value" pascalStyleName="Value" name="Value" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                </FieldSet>
+                <FieldSet version="1" sizeofValue="12" sizeofSource="sizeof(c_function_definition)" isLatest="true">
+                  <Custom name="HIDE_GROUP_ID" tag="hide" />
+                  <Block CStyleName="data" pascalStyleName="Data" name="data" maxElementCount="1024" maxElementCountSource="k_kilo">
+                    <Layout regolithID="block:byte" internalName="byte_block" name="byte_block">
+                      <FieldSet version="0" sizeofValue="1" sizeofSource="sizeof(byte)" isLatest="true">
+                        <CharInteger CStyleName="value" pascalStyleName="Value" name="Value" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <StringId CStyleName="scale_by" pascalStyleName="ScaleBy" name="scale by" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <UselessPad length="16" name="UselessPad_5" />
+      <Explanation name="Applying collision damage" description="for things that want to cause more or less collision damage" />
+      <Real CStyleName="apply_collision_damage_scale" pascalStyleName="ApplyCollisionDamageScale" name="Apply collision damage scale" description="0 means 1.  1 is standard scale.  Some things may want to apply more damage" />
+      <Explanation name="Game collision damage parameters" description="0 - means take default value from globals.globals" />
+      <Real CStyleName="min_game_acc_default" pascalStyleName="MinGameAccDefault" name="min game acc (default)" description="0-oo" />
+      <Real CStyleName="max_game_acc_default" pascalStyleName="MaxGameAccDefault" name="max game acc (default)" description="0-oo" />
+      <Real CStyleName="min_game_scale_default" pascalStyleName="MinGameScaleDefault" name="min game scale (default)" description="0-1" />
+      <Real CStyleName="max_game_scale_default" pascalStyleName="MaxGameScaleDefault" name="max game scale (default)" description="0-1" />
+      <Explanation name="Absolute collision damage parameters" description="0 - means take default value from globals.globals" />
+      <Real CStyleName="min_abs_acc_default" pascalStyleName="MinAbsAccDefault" name="min abs acc (default)" description="0-oo" />
+      <Real CStyleName="max_abs_acc_default" pascalStyleName="MaxAbsAccDefault" name="max abs acc (default)" description="0-oo" />
+      <Real CStyleName="min_abs_scale_default" pascalStyleName="MinAbsScaleDefault" name="min abs scale (default)" description="0-1" />
+      <Real CStyleName="max_abs_scale_default" pascalStyleName="MaxAbsScaleDefault" name="max abs scale (default)" description="0-1" />
+      <ShortInteger CStyleName="hud_text_message_index" pascalStyleName="HudTextMessageIndex" name="hud text message index" expertOnly="true" />
+      <Pad sizeOfSource="sizeof(word)" length="2" name="Pad_3" />
+      <Block CStyleName="attachments" pascalStyleName="Attachments" name="attachments" maxElementCount="16" maxElementCountSource="k_maximum_number_of_attachments_per_object">
+        <Layout regolithID="block:object_attachment" internalName="object_attachment_block" name="object_attachment_block">
+          <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(struct object_attachment_definition)" isLatest="true">
+            <TagReference CStyleName="type" pascalStyleName="Type" name="type" blockNameSource="true">
+              <tag />
+            </TagReference>
+            <OldStringId CStyleName="marker" pascalStyleName="Marker" name="marker" />
+            <UselessPad length="4" name="UselessPad" />
+            <ShortEnum CStyleName="change_color" pascalStyleName="ChangeColor" name="change color">
+              <Options regolithID="enum:object_attachment_change_color_level" CStyleName="object_attachment_change_color_level" pascalStyleName="ObjectAttachmentChangeColorLevel">
+                <Enum name="none" CStyleName="none" pascalStyleName="None" />
+                <Enum name="primary" CStyleName="primary" pascalStyleName="Primary" />
+                <Enum name="secondary" CStyleName="secondary" pascalStyleName="Secondary" />
+                <Enum name="tertiary" CStyleName="tertiary" pascalStyleName="Tertiary" />
+                <Enum name="quaternary" CStyleName="quaternary" pascalStyleName="Quaternary" />
+              </Options>
+            </ShortEnum>
+            <Pad sizeOfSource="sizeof(word)" length="2" name="Pad" />
+            <StringId CStyleName="primary_scale" pascalStyleName="PrimaryScale" name="primary scale" tag="sted" />
+            <StringId CStyleName="secondary_scale" pascalStyleName="SecondaryScale" name="secondary scale" tag="sted" />
+            <UselessPad length="8" name="UselessPad_1" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="widgets" pascalStyleName="Widgets" name="widgets" maxElementCount="4" maxElementCountSource="MAXIMUM_WIDGETS_PER_OBJECT">
+        <Layout regolithID="block:object_widget" internalName="object_widget_block" name="object_widget_block">
+          <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct object_definition_widget)" isLatest="true">
+            <TagReference CStyleName="type" pascalStyleName="Type" name="type" blockNameSource="true">
+              <tag />
+            </TagReference>
+            <UselessPad length="16" name="UselessPad" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="old_functions" pascalStyleName="OldFunctions" name="old functions" expertOnly="true" maxElementCount="4">
+        <Layout regolithID="block:old_object_function" internalName="old_object_function_block" name="old_object_function_block">
+          <FieldSet version="0" sizeofValue="80" sizeofSource="sizeof(s_old_object_function_definition)" isLatest="true">
+            <Pad sizeOfSource="sizeof(s_old_object_function_definition)-sizeof(c_old_string_id)" length="76" name="Pad" />
+            <OldStringId name="OldStringId" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="change_colors" pascalStyleName="ChangeColors" name="change colors" maxElementCount="4" maxElementCountSource="k_object_change_color_count">
+        <Layout regolithID="block:object_change_colors" internalName="object_change_colors" name="object_change_colors">
+          <FieldSet version="0" sizeofValue="24" sizeofSource="sizeof(struct object_change_color_definition)" isLatest="true">
+            <UselessPad length="32" name="UselessPad" />
+            <Block CStyleName="initial_permutations" pascalStyleName="InitialPermutations" name="initial permutations" maxElementCount="32" maxElementCountSource="MAXIMUM_NUMBER_OF_OBJECT_CHANGE_COLOR_INITIAL_PERMUTATIONS">
+              <Layout regolithID="block:object_change_color_initial_permutation" internalName="object_change_color_initial_permutation" name="object_change_color_initial_permutation">
+                <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(struct object_change_color_initial_permutation)" isLatest="true">
+                  <Real CStyleName="weight" pascalStyleName="Weight" name="weight" />
+                  <RealRgbColor CStyleName="color_lower_bound" pascalStyleName="ColorLowerBound" name="color lower bound" />
+                  <RealRgbColor CStyleName="color_upper_bound" pascalStyleName="ColorUpperBound" name="color upper bound" />
+                  <StringId CStyleName="variant_name" pascalStyleName="VariantName" name="variant name" description="if empty, may be used by any model variant" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Block CStyleName="functions" pascalStyleName="Functions" name="functions" maxElementCount="4" maxElementCountSource="MAXIMUM_NUMBER_OF_OBJECT_CHANGE_COLOR_FUNCTIONS">
+              <Layout regolithID="block:object_change_color_function" internalName="object_change_color_function" name="object_change_color_function">
+                <FieldSet version="0" sizeofValue="40" sizeofSource="sizeof(struct object_change_color_function)" isLatest="true">
+                  <Pad sizeOfSource="sizeof(long)" length="4" name="Pad" />
+                  <LongFlags CStyleName="scale_flags" pascalStyleName="ScaleFlags" name="scale flags">
+                    <Options regolithID="enum:color_interpolation_flags" CStyleName="color_interpolation_flags" pascalStyleName="ColorInterpolationFlags">
+                      <Bit name="blend in hsv" description="blends colors in hsv rather than rgb space" CStyleName="blend_in_hsv_bit" pascalStyleName="BlendInHsvBit" />
+                      <Bit name="...more colors" description="blends colors through more hues (goes the long way around the color wheel)" CStyleName="more_colors_bit" pascalStyleName="MoreColorsBit" />
+                    </Options>
+                  </LongFlags>
+                  <RealRgbColor CStyleName="color_lower_bound" pascalStyleName="ColorLowerBound" name="color lower bound" />
+                  <RealRgbColor CStyleName="color_upper_bound" pascalStyleName="ColorUpperBound" name="color upper bound" />
+                  <StringId CStyleName="darken_by" pascalStyleName="DarkenBy" name="darken by" />
+                  <StringId CStyleName="scale_by" pascalStyleName="ScaleBy" name="scale by" />
+                </FieldSet>
+              </Layout>
+            </Block>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="predicted_resources" pascalStyleName="PredictedResources" name="predicted resources" readOnly="true" expertOnly="true" maxElementCount="2048">
+        <Layout regolithID="block:predicted_resource" internalName="predicted_resource_block" name="predicted_resource_block">
+          <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(struct predicted_resource)" isLatest="true">
+            <ShortEnum CStyleName="type" pascalStyleName="Type" name="type">
+              <Options regolithID="enum:predicted_resource_type" CStyleName="predicted_resource_type" pascalStyleName="PredictedResourceType">
+                <Enum name="bitmap" CStyleName="bitmap" pascalStyleName="Bitmap" />
+                <Enum name="sound" CStyleName="sound" pascalStyleName="Sound" />
+                <Enum name="render model geometry" CStyleName="render_model_geometry" pascalStyleName="RenderModelGeometry" />
+                <Enum name="cluster geometry" CStyleName="cluster_geometry" pascalStyleName="ClusterGeometry" />
+                <Enum name="cluster instanced geometry" CStyleName="cluster_instanced_geometry" pascalStyleName="ClusterInstancedGeometry" />
+                <Enum name="lightmap geometry object buckets" CStyleName="lightmap_geometry_object_buckets" pascalStyleName="LightmapGeometryObjectBuckets" />
+                <Enum name="lightmap geometry instance buckets" CStyleName="lightmap_geometry_instance_buckets" pascalStyleName="LightmapGeometryInstanceBuckets" />
+                <Enum name="lightmap cluster bitmaps" CStyleName="lightmap_cluster_bitmaps" pascalStyleName="LightmapClusterBitmaps" />
+                <Enum name="lightmap instance bitmaps" CStyleName="lightmap_instance_bitmaps" pascalStyleName="LightmapInstanceBitmaps" />
+              </Options>
+            </ShortEnum>
+            <ShortInteger CStyleName="resource_index" pascalStyleName="ResourceIndex" name="resource index" />
+            <LongInteger CStyleName="tag_index" pascalStyleName="TagIndex" name="tag index" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Explanation name="$$$ UNIT $$$" />
+      <LongFlags CStyleName="unit_flags" pascalStyleName="UnitFlags" name="flags_1">
+        <Options regolithID="enum:unit_flags" CStyleName="unit_flags" pascalStyleName="UnitFlags">
+          <Bit name="circular aiming" CStyleName="circular_aiming_bit" pascalStyleName="CircularAimingBit" />
+          <Bit name="destroyed after dying" CStyleName="destroyed_after_dying_bit" pascalStyleName="DestroyedAfterDyingBit" />
+          <Bit name="half-speed interpolation" CStyleName="half_speed_interpolation_bit" pascalStyleName="HalfSpeedInterpolationBit" />
+          <Bit name="fires from camera" CStyleName="fires_from_camera_bit" pascalStyleName="FiresFromCameraBit" />
+          <Bit name="entrance inside bounding sphere" CStyleName="entrance_inside_bounding_sphere_bit" pascalStyleName="EntranceInsideBoundingSphereBit" />
+          <Bit name="doesn't show readied weapon" CStyleName="doesnt_show_readied_weapon_bit" pascalStyleName="DoesntShowReadiedWeaponBit" />
+          <Bit name="causes passenger dialogue" CStyleName="causes_passenger_dialogue_bit" pascalStyleName="CausesPassengerDialogueBit" />
+          <Bit name="resists pings" CStyleName="resists_pings_bit" pascalStyleName="ResistsPingsBit" />
+          <Bit name="melee attack is fatal" CStyleName="melee_attack_is_fatal_bit" pascalStyleName="MeleeAttackIsFatalBit" />
+          <Bit name="don't reface during pings" CStyleName="dont_reface_during_pings_bit" pascalStyleName="DontRefaceDuringPingsBit" />
+          <Bit name="has no aiming" CStyleName="has_no_aiming_bit" pascalStyleName="HasNoAimingBit" />
+          <Bit name="simple creature" CStyleName="simple_creature_bit" pascalStyleName="SimpleCreatureBit" />
+          <Bit name="impact melee attaches to unit" CStyleName="impact_melee_attaches_to_unit_bit" pascalStyleName="ImpactMeleeAttachesToUnitBit" />
+          <Bit name="impact melee dies on shields" CStyleName="impact_melee_dies_on_shields_bit" pascalStyleName="ImpactMeleeDiesOnShieldsBit" />
+          <Bit name="cannot open doors automatically" CStyleName="cannot_open_doors_automatically_bit" pascalStyleName="CannotOpenDoorsAutomaticallyBit" />
+          <Bit name="melee attackers cannot attach" CStyleName="melee_attackers_cannot_attach_bit" pascalStyleName="MeleeAttackersCannotAttachBit" />
+          <Bit name="not instantly killed by melee" CStyleName="not_instantly_killed_by_melee_bit" pascalStyleName="NotInstantlyKilledByMeleeBit" />
+          <Bit name="unused17" expertOnly="true" CStyleName="unused17_bit" pascalStyleName="Unused17Bit" />
+          <Bit name="runs around flaming" CStyleName="runs_around_flaming_bit" pascalStyleName="RunsAroundFlamingBit" />
+          <Bit name="inconsequential" CStyleName="inconsequential_bit" pascalStyleName="InconsequentialBit" />
+          <Bit name="special cinematic unit" CStyleName="special_cinematic_unit_bit" pascalStyleName="SpecialCinematicUnitBit" />
+          <Bit name="ignored by autoaiming" CStyleName="ignored_by_autoaiming_bit" pascalStyleName="IgnoredByAutoaimingBit" />
+          <Bit name="shields fry infection forms" CStyleName="shields_fry_infection_forms_bit" pascalStyleName="ShieldsFryInfectionFormsBit" />
+          <Bit name="unused23" expertOnly="true" CStyleName="unused23_bit" pascalStyleName="Unused23Bit" />
+          <Bit name="unused24" expertOnly="true" CStyleName="unused24_bit" pascalStyleName="Unused24Bit" />
+          <Bit name="acts as gunner for parent" CStyleName="acts_as_gunner_for_parent_bit" pascalStyleName="ActsAsGunnerForParentBit" />
+          <Bit name="controlled by parent gunner" CStyleName="controlled_by_parent_gunner_bit" pascalStyleName="ControlledByParentGunnerBit" />
+          <Bit name="parent's primary weapon" CStyleName="parents_primary_weapon_bit" pascalStyleName="ParentsPrimaryWeaponBit" />
+          <Bit name="unit has boost" CStyleName="unit_has_boost_bit" pascalStyleName="UnitHasBoostBit" />
+        </Options>
+      </LongFlags>
+      <ShortEnum CStyleName="default_team" pascalStyleName="DefaultTeam" name="default team">
+        <Options regolithID="enum:unit_default_team" CStyleName="unit_default_team" pascalStyleName="UnitDefaultTeam">
+          <Enum name="default" CStyleName="default_value" pascalStyleName="Default" />
+          <Enum name="player" CStyleName="player" pascalStyleName="Player" />
+          <Enum name="human" CStyleName="human" pascalStyleName="Human" />
+          <Enum name="covenant" CStyleName="covenant" pascalStyleName="Covenant" />
+          <Enum name="flood" CStyleName="flood" pascalStyleName="Flood" />
+          <Enum name="sentinel" CStyleName="sentinel" pascalStyleName="Sentinel" />
+          <Enum name="heretic" CStyleName="heretic" pascalStyleName="Heretic" />
+          <Enum name="prophet" CStyleName="prophet" pascalStyleName="Prophet" />
+          <Enum name="unused8" CStyleName="unused8" pascalStyleName="Unused8" />
+          <Enum name="unused9" CStyleName="unused9" pascalStyleName="Unused9" />
+          <Enum name="unused10" CStyleName="unused10" pascalStyleName="Unused10" />
+          <Enum name="unused11" CStyleName="unused11" pascalStyleName="Unused11" />
+          <Enum name="unused12" CStyleName="unused12" pascalStyleName="Unused12" />
+          <Enum name="unused13" CStyleName="unused13" pascalStyleName="Unused13" />
+          <Enum name="unused14" CStyleName="unused14" pascalStyleName="Unused14" />
+          <Enum name="unused15" CStyleName="unused15" pascalStyleName="Unused15" />
+        </Options>
+      </ShortEnum>
+      <ShortEnum CStyleName="constant_sound_volume" pascalStyleName="ConstantSoundVolume" name="constant sound volume">
+        <Options regolithID="enum:unit_firing_noise_level" CStyleName="unit_firing_noise_level" pascalStyleName="UnitFiringNoiseLevel">
+          <Enum name="silent" CStyleName="silent" pascalStyleName="Silent" />
+          <Enum name="medium" CStyleName="medium" pascalStyleName="Medium" />
+          <Enum name="loud" CStyleName="loud" pascalStyleName="Loud" />
+          <Enum name="shout" CStyleName="shout" pascalStyleName="Shout" />
+          <Enum name="quiet" CStyleName="quiet" pascalStyleName="Quiet" />
+        </Options>
+      </ShortEnum>
+      <UselessPad length="4" name="UselessPad_6" />
+      <TagReference CStyleName="integrated_light_toggle" pascalStyleName="IntegratedLightToggle" name="integrated light toggle">
+        <tag>effe</tag>
+      </TagReference>
+      <UselessPad length="8" name="UselessPad_7" />
+      <Angle CStyleName="camera_field_of_view" pascalStyleName="CameraFieldOfView" name="camera field of view" units="degrees" />
+      <Real CStyleName="camera_stiffness" pascalStyleName="CameraStiffness" name="camera stiffness" />
+      <Struct CStyleName="unit_camera" pascalStyleName="UnitCamera" name="StructHeader_unit camera">
+        <Layout regolithID="structure:unit_camera" Name="unit camera" tag="uncs" internalName="unit_camera_struct" backingBlockInternalName="unit_camera_struct_block">
+          <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_unit_camera)" sizeofOverride="88" isLatest="true">
+            <OldStringId CStyleName="camera_marker_name" pascalStyleName="CameraMarkerName" name="camera marker name" />
+            <OldStringId CStyleName="camera_submerged_marker_name" pascalStyleName="CameraSubmergedMarkerName" name="camera submerged marker name" />
+            <Angle CStyleName="pitch_auto_level" pascalStyleName="PitchAutoLevel" name="pitch auto-level" />
+            <AngleBounds CStyleName="pitch_range" pascalStyleName="PitchRange" name="pitch range" />
+            <Block CStyleName="camera_tracks" pascalStyleName="CameraTracks" name="camera tracks" maxElementCount="2" maxElementCountSource="MAXIMUM_NUMBER_OF_UNIT_CAMERA_TRACKS">
+              <Layout regolithID="block:unit_camera_track" internalName="unit_camera_track_block" name="unit_camera_track_block">
+                <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(s_unit_camera_track)" isLatest="true">
+                  <TagReference CStyleName="track" pascalStyleName="Track" name="track">
+                    <tag>trak</tag>
+                  </TagReference>
+                  <UselessPad length="12" name="UselessPad" />
+                </FieldSet>
+              </Layout>
+            </Block>
+          </FieldSet>
+        </Layout>
+      </Struct>
+      <Struct CStyleName="acceleration" pascalStyleName="Acceleration" name="StructHeader_acceleration">
+        <Layout regolithID="structure:unit_seat_acceleration" tag="usas" internalName="unit_seat_acceleration_struct" backingBlockInternalName="unit_seat_acceleration_struct_block" name="unit_seat_acceleration_struct">
+          <FieldSet version="0" sizeofValue="20" sizeofSource="sizeof(struct unit_seat_acceleration)" isLatest="true">
+            <RealVector3D CStyleName="acceleration_range" pascalStyleName="AccelerationRange" name="acceleration range" units="world units per second squared" />
+            <Real CStyleName="accel_action_scale" pascalStyleName="AccelActionScale" name="accel action scale" units="actions fail [0,1+]" />
+            <Real CStyleName="accel_attach_scale" pascalStyleName="AccelAttachScale" name="accel attach scale" units="detach unit [0,1+]" />
+          </FieldSet>
+        </Layout>
+      </Struct>
+      <UselessPad length="4" name="UselessPad_8" />
+      <Real CStyleName="soft_ping_threshold" pascalStyleName="SoftPingThreshold" name="soft ping threshold" units="[0,1]" />
+      <Real CStyleName="soft_ping_interrupt_time" pascalStyleName="SoftPingInterruptTime" name="soft ping interrupt time" units="seconds" />
+      <Real CStyleName="hard_ping_threshold" pascalStyleName="HardPingThreshold" name="hard ping threshold" units="[0,1]" />
+      <Real CStyleName="hard_ping_interrupt_time" pascalStyleName="HardPingInterruptTime" name="hard ping interrupt time" units="seconds" />
+      <Real CStyleName="hard_death_threshold" pascalStyleName="HardDeathThreshold" name="hard death threshold" units="[0,1]" />
+      <Real CStyleName="feign_death_threshold" pascalStyleName="FeignDeathThreshold" name="feign death threshold" units="[0,1]" />
+      <Real CStyleName="feign_death_time" pascalStyleName="FeignDeathTime" name="feign death time" units="seconds" />
+      <Real CStyleName="distance_of_evade_anim" pascalStyleName="DistanceOfEvadeAnim" name="distance of evade anim" units="world units" description="this must be set to tell the AI how far it should expect our evade animation to move us" />
+      <Real CStyleName="distance_of_dive_anim" pascalStyleName="DistanceOfDiveAnim" name="distance of dive anim" units="world units" description="this must be set to tell the AI how far it should expect our dive animation to move us" />
+      <UselessPad length="4" name="UselessPad_9" />
+      <Real CStyleName="stunned_movement_threshold" pascalStyleName="StunnedMovementThreshold" name="stunned movement threshold" units="[0,1]" description="if we take this much damage in a short space of time we will play our 'stunned movement' animations" />
+      <Real CStyleName="feign_death_chance" pascalStyleName="FeignDeathChance" name="feign death chance" units="[0,1]" />
+      <Real CStyleName="feign_repeat_chance" pascalStyleName="FeignRepeatChance" name="feign repeat chance" units="[0,1]" />
+      <TagReference CStyleName="spawned_turret_character" pascalStyleName="SpawnedTurretCharacter" name="spawned turret character" description="automatically created character when this unit is driven">
+        <tag>char</tag>
+      </TagReference>
+      <ShortBounds CStyleName="spawned_actor_count" pascalStyleName="SpawnedActorCount" name="spawned actor count" description="number of actors which we spawn" />
+      <Real CStyleName="spawned_velocity" pascalStyleName="SpawnedVelocity" name="spawned velocity" description="velocity at which we throw spawned actors" />
+      <Angle CStyleName="aiming_velocity_maximum" pascalStyleName="AimingVelocityMaximum" name="aiming velocity maximum" units="degrees per second" />
+      <Angle CStyleName="aiming_acceleration_maximum" pascalStyleName="AimingAccelerationMaximum" name="aiming acceleration maximum" units="degrees per second squared" />
+      <RealFraction CStyleName="casual_aiming_modifier" pascalStyleName="CasualAimingModifier" name="casual aiming modifier" units="[0,1]" />
+      <Angle CStyleName="looking_velocity_maximum" pascalStyleName="LookingVelocityMaximum" name="looking velocity maximum" units="degrees per second" />
+      <Angle CStyleName="looking_acceleration_maximum" pascalStyleName="LookingAccelerationMaximum" name="looking acceleration maximum" units="degrees per second squared" />
+      <StringId CStyleName="right_hand_node" pascalStyleName="RightHandNode" name="right_hand_node" description="where the primary weapon is attached" />
+      <StringId CStyleName="left_hand_node" pascalStyleName="LeftHandNode" name="left_hand_node" description="where the seconday weapon is attached (for dual-pistol modes)" />
+      <Struct CStyleName="more_damn_nodes" pascalStyleName="MoreDamnNodes" name="StructHeader_more damn nodes">
+        <Layout regolithID="structure:unit_additional_node_names" tag="uHnd" internalName="unit_additional_node_names_struct" backingBlockInternalName="unit_additional_node_names_struct_block" name="unit_additional_node_names_struct">
+          <FieldSet version="0" sizeofValue="0" sizeofSource="0" />
+          <FieldSet version="1" sizeofValue="4" sizeofSource="sizeof(struct s_unit_additional_node_names)" isLatest="true">
+            <StringId CStyleName="preferred_gun_node" pascalStyleName="PreferredGunNode" name="preferred_gun_node" description="if found, use this gun marker" />
+          </FieldSet>
+        </Layout>
+      </Struct>
+      <UselessPad length="8" name="UselessPad_10" />
+      <TagReference CStyleName="melee_damage" pascalStyleName="MeleeDamage" name="melee damage">
+        <tag>jpt!</tag>
+      </TagReference>
+      <Struct CStyleName="your_momma" pascalStyleName="YourMomma" name="StructHeader_your momma">
+        <Layout regolithID="structure:unit_boarding_melee" tag="ubms" internalName="unit_boarding_melee_struct" backingBlockInternalName="unit_boarding_melee_struct_block" name="unit_boarding_melee_struct">
+          <FieldSet version="0" sizeofValue="0" sizeofSource="0" />
+          <FieldSet version="1" sizeofValue="80" sizeofSource="sizeof(struct tag_reference)*5" isLatest="true">
+            <TagReference CStyleName="boarding_melee_damage" pascalStyleName="BoardingMeleeDamage" name="boarding melee damage">
+              <tag>jpt!</tag>
+            </TagReference>
+            <TagReference CStyleName="boarding_melee_response" pascalStyleName="BoardingMeleeResponse" name="boarding melee response">
+              <tag>jpt!</tag>
+            </TagReference>
+            <TagReference CStyleName="landing_melee_damage" pascalStyleName="LandingMeleeDamage" name="landing melee damage">
+              <tag>jpt!</tag>
+            </TagReference>
+            <TagReference CStyleName="flurry_melee_damage" pascalStyleName="FlurryMeleeDamage" name="flurry melee damage">
+              <tag>jpt!</tag>
+            </TagReference>
+            <TagReference CStyleName="obstacle_smash_damage" pascalStyleName="ObstacleSmashDamage" name="obstacle smash damage">
+              <tag>jpt!</tag>
+            </TagReference>
+          </FieldSet>
+        </Layout>
+      </Struct>
+      <ShortEnum CStyleName="motion_sensor_blip_size" pascalStyleName="MotionSensorBlipSize" name="motion sensor blip size">
+        <Options regolithID="enum:motion_sensor_blip_size" CStyleName="motion_sensor_blip_size" pascalStyleName="MotionSensorBlipSize">
+          <Enum name="medium" CStyleName="medium" pascalStyleName="Medium" />
+          <Enum name="small" CStyleName="small" pascalStyleName="Small" />
+          <Enum name="large" CStyleName="large" pascalStyleName="Large" />
+        </Options>
+      </ShortEnum>
+      <Struct CStyleName="campaign_metagame_bucket" pascalStyleName="CampaignMetagameBucket" name="StructHeader_campaign metagame bucket">
+        <Layout regolithID="structure:campaign_metagame_bucket" tag="cmtb" internalName="campaign_metagame_bucket_struct" backingBlockInternalName="campaign_metagame_bucket_struct_block" name="campaign_metagame_bucket_struct">
+          <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(s_campaign_metagame_bucket)" isLatest="true">
+            <CharEnum CStyleName="type" pascalStyleName="Type" name="type_1">
+              <Options regolithID="enum:campaign_metagame_bucket_type" CStyleName="campaign_metagame_bucket_type" pascalStyleName="CampaignMetagameBucketType">
+                <Enum name="brute" CStyleName="brute" pascalStyleName="Brute" />
+                <Enum name="grunt" CStyleName="grunt" pascalStyleName="Grunt" />
+                <Enum name="jackal" CStyleName="jackal" pascalStyleName="Jackal" />
+                <Enum name="skirmisher" CStyleName="skirmisher" pascalStyleName="Skirmisher" />
+                <Enum name="marine" CStyleName="marine" pascalStyleName="Marine" />
+                <Enum name="spartan" CStyleName="spartan" pascalStyleName="Spartan" />
+                <Enum name="bugger" CStyleName="bugger" pascalStyleName="Bugger" />
+                <Enum name="hunter" CStyleName="hunter" pascalStyleName="Hunter" />
+                <Enum name="flood_infection" CStyleName="flood_infection" pascalStyleName="FloodInfection" />
+                <Enum name="flood_carrier" CStyleName="flood_carrier" pascalStyleName="FloodCarrier" />
+                <Enum name="flood_combat" CStyleName="flood_combat" pascalStyleName="FloodCombat" />
+                <Enum name="flood_pure" CStyleName="flood_pure" pascalStyleName="FloodPure" />
+                <Enum name="sentinel" CStyleName="sentinel" pascalStyleName="Sentinel" />
+                <Enum name="elite" CStyleName="elite" pascalStyleName="Elite" />
+                <Enum name="engineer" CStyleName="engineer" pascalStyleName="Engineer" />
+                <Enum name="mule" CStyleName="mule" pascalStyleName="Mule" />
+                <Enum name="turret" CStyleName="turret" pascalStyleName="Turret" />
+                <Enum name="mongoose" CStyleName="mongoose" pascalStyleName="Mongoose" />
+                <Enum name="warthog" CStyleName="warthog" pascalStyleName="Warthog" />
+                <Enum name="scorpion" CStyleName="scorpion" pascalStyleName="Scorpion" />
+                <Enum name="hornet" CStyleName="hornet" pascalStyleName="Hornet" />
+                <Enum name="pelican" CStyleName="pelican" pascalStyleName="Pelican" />
+                <Enum name="revenant" CStyleName="revenant" pascalStyleName="Revenant" />
+                <Enum name="seraph" CStyleName="seraph" pascalStyleName="Seraph" />
+                <Enum name="shade" CStyleName="shade" pascalStyleName="Shade" />
+                <Enum name="watchtower" CStyleName="watchtower" pascalStyleName="Watchtower" />
+                <Enum name="ghost" CStyleName="ghost" pascalStyleName="Ghost" />
+                <Enum name="chopper" CStyleName="chopper" pascalStyleName="Chopper" />
+                <Enum name="mauler" CStyleName="mauler" pascalStyleName="Mauler" />
+                <Enum name="wraith" CStyleName="wraith" pascalStyleName="Wraith" />
+                <Enum name="banshee" CStyleName="banshee" pascalStyleName="Banshee" />
+                <Enum name="phantom" CStyleName="phantom" pascalStyleName="Phantom" />
+                <Enum name="scarab" CStyleName="scarab" pascalStyleName="Scarab" />
+                <Enum name="guntower" CStyleName="guntower" pascalStyleName="Guntower" />
+                <Enum name="tuning_fork" CStyleName="tuning_fork" pascalStyleName="TuningFork" />
+                <Enum name="broadsword" CStyleName="broadsword" pascalStyleName="Broadsword" />
+                <Enum name="mammoth" CStyleName="mammoth" pascalStyleName="Mammoth" />
+                <Enum name="lich" CStyleName="lich" pascalStyleName="Lich" />
+                <Enum name="mantis" CStyleName="mantis" pascalStyleName="Mantis" />
+                <Enum name="wasp" CStyleName="wasp" pascalStyleName="Wasp" />
+                <Enum name="phaeton" CStyleName="phaeton" pascalStyleName="Phaeton" />
+                <Enum name="bishop" CStyleName="bishop" pascalStyleName="Bishop" />
+                <Enum name="knight" CStyleName="knight" pascalStyleName="Knight" />
+                <Enum name="pawn" CStyleName="pawn" pascalStyleName="Pawn" />
+                <Enum name="engineer_recharge_station" CStyleName="engineer_recharge_station" pascalStyleName="EngineerRechargeStation" />
+              </Options>
+            </CharEnum>
+            <CharEnum CStyleName="_class" pascalStyleName="Class" name="class">
+              <Options regolithID="enum:vehicle_class" CStyleName="vehicle_class" pascalStyleName="VehicleClass">
+                <Enum name="infantry" CStyleName="infantry" pascalStyleName="Infantry" />
+                <Enum name="leader" CStyleName="leader" pascalStyleName="Leader" />
+                <Enum name="hero" CStyleName="hero" pascalStyleName="Hero" />
+                <Enum name="specialist" CStyleName="specialist" pascalStyleName="Specialist" />
+                <Enum name="light vehicle" CStyleName="light_vehicle" pascalStyleName="LightVehicle" />
+                <Enum name="heavy vehicle" CStyleName="heavy_vehicle" pascalStyleName="HeavyVehicle" />
+                <Enum name="giant vehicle" CStyleName="giant_vehicle" pascalStyleName="GiantVehicle" />
+                <Enum name="standard vehicle" CStyleName="standard_vehicle" pascalStyleName="StandardVehicle" />
+              </Options>
+            </CharEnum>
+          </FieldSet>
+        </Layout>
+      </Struct>
+      <Block CStyleName="postures" pascalStyleName="Postures" name="postures" maxElementCount="20" maxElementCountSource="MAXIMUM_POSTURES_PER_UNIT">
+        <Layout regolithID="block:unit_postures" internalName="unit_postures_block" name="unit_postures_block">
+          <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(s_posture_definition)" isLatest="true">
+            <StringId CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true" />
+            <UselessPad length="24" name="UselessPad" />
+            <RealVector3D CStyleName="pill_offset" pascalStyleName="PillOffset" name="pill offset" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="new_hud_interfaces" pascalStyleName="NewHudInterfaces" name="NEW HUD INTERFACES" maxElementCount="2" maxElementCountSource="NUMBER_OF_UNIT_HUD_TYPES">
+        <Layout regolithID="block:unit_hud_reference" internalName="unit_hud_reference_block" name="unit_hud_reference_block">
+          <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct unit_hud_reference)" isLatest="true">
+            <UselessPad length="16" name="UselessPad" />
+            <TagReference CStyleName="new_unit_hud_interface" pascalStyleName="NewUnitHudInterface" name="new unit hud interface">
+              <tag>nhdt</tag>
+            </TagReference>
+            <UselessPad length="16" name="UselessPad_1" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="dialogue_variants" pascalStyleName="DialogueVariants" name="dialogue variants" maxElementCount="16" maxElementCountSource="MAXIMUM_DIALOGUE_VARIANTS_PER_UNIT">
+        <Layout regolithID="block:dialogue_variant" internalName="dialogue_variant_block" name="dialogue_variant_block">
+          <FieldSet version="0" sizeofValue="20" sizeofSource="sizeof(struct dialogue_variant_definition)" isLatest="true">
+            <ShortInteger CStyleName="variant_number" pascalStyleName="VariantNumber" name="variant number" description="variant number to use this dialogue with (must match the suffix in the permutations on the unit's model)" />
+            <Pad sizeOfSource="sizeof(word)" length="2" name="Pad" />
+            <UselessPad length="4" name="UselessPad" />
+            <TagReference CStyleName="dialogue" pascalStyleName="Dialogue" name="dialogue">
+              <tag>udlg</tag>
+            </TagReference>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Real CStyleName="grenade_velocity" pascalStyleName="GrenadeVelocity" name="grenade velocity" units="world units per second" />
+      <ShortEnum CStyleName="grenade_type" pascalStyleName="GrenadeType" name="grenade type">
+        <Options regolithID="enum:character_grenade_type" CStyleName="character_grenade_type" pascalStyleName="CharacterGrenadeType">
+          <Enum name="human fragmentation" CStyleName="human_fragmentation" pascalStyleName="HumanFragmentation" />
+          <Enum name="covenant plasma" CStyleName="covenant_plasma" pascalStyleName="CovenantPlasma" />
+        </Options>
+      </ShortEnum>
+      <ShortInteger CStyleName="grenade_count" pascalStyleName="GrenadeCount" name="grenade count" />
+      <UselessPad length="4" name="UselessPad_11" />
+      <Block CStyleName="powered_seats" pascalStyleName="PoweredSeats" name="powered seats" maxElementCount="2" maxElementCountSource="k_powered_seats_count">
+        <Layout regolithID="block:powered_seat" internalName="powered_seat_block" name="powered_seat_block">
+          <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(struct powered_seat_definition)" isLatest="true">
+            <UselessPad length="4" name="UselessPad" />
+            <Real CStyleName="driver_powerup_time" pascalStyleName="DriverPowerupTime" name="driver powerup time" units="seconds" />
+            <Real CStyleName="driver_powerdown_time" pascalStyleName="DriverPowerdownTime" name="driver powerdown time" units="seconds" />
+            <UselessPad length="56" name="UselessPad_1" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="weapons" pascalStyleName="Weapons" name="weapons" maxElementCount="4" maxElementCountSource="MAXIMUM_INITIAL_WEAPONS_PER_UNIT">
+        <Layout regolithID="block:unit_weapon" internalName="unit_weapon_block" name="unit_weapon_block">
+          <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct unit_initial_weapon)" isLatest="true">
+            <TagReference CStyleName="weapon" pascalStyleName="Weapon" name="weapon" blockNameSource="true">
+              <tag>weap</tag>
+            </TagReference>
+            <UselessPad length="20" name="UselessPad" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="seats" pascalStyleName="Seats" name="seats" maxElementCount="32" maxElementCountSource="MAXIMUM_SEATS_PER_UNIT_DEFINITION">
+        <Layout regolithID="block:unit_seat" internalName="unit_seat_block" name="unit_seat_block">
+          <FieldSet version="0" sizeofValue="172" sizeofSource="sizeof(struct unit_seat_v1)">
+            <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:unit_seat_flags" CStyleName="unit_seat_flags" pascalStyleName="UnitSeatFlags">
+                <Bit name="invisible" CStyleName="invisible_bit" pascalStyleName="InvisibleBit" />
+                <Bit name="unused1" expertOnly="true" CStyleName="unused1_bit" pascalStyleName="Unused1Bit" />
+                <Bit name="driver" CStyleName="driver_bit" pascalStyleName="DriverBit" />
+                <Bit name="gunner" CStyleName="gunner_bit" pascalStyleName="GunnerBit" />
+                <Bit name="third person camera" CStyleName="third_person_camera_bit" pascalStyleName="ThirdPersonCameraBit" />
+                <Bit name="allows weapons" CStyleName="allows_weapons_bit" pascalStyleName="AllowsWeaponsBit" />
+                <Bit name="third person on enter" CStyleName="third_person_on_enter_bit" pascalStyleName="ThirdPersonOnEnterBit" />
+                <Bit name="first person camera slaved to gun." CStyleName="first_person_camera_slaved_to_gun_bit" pascalStyleName="FirstPersonCameraSlavedToGunBit" />
+                <Bit name="unused8" expertOnly="true" CStyleName="unused8_bit" pascalStyleName="Unused8Bit" />
+                <Bit name="not valid without driver" CStyleName="not_valid_without_driver_bit" pascalStyleName="NotValidWithoutDriverBit" />
+                <Bit name="allow AI noncombatants" CStyleName="allow_ai_noncombatants_bit" pascalStyleName="AllowAiNoncombatantsBit" />
+                <Bit name="boarding seat" CStyleName="boarding_seat_bit" pascalStyleName="BoardingSeatBit" />
+                <Bit name="ai firing disabled by max acceleration" CStyleName="ai_firing_disabled_by_max_acceleration_bit" pascalStyleName="AiFiringDisabledByMaxAccelerationBit" />
+                <Bit name="boarding enters seat" CStyleName="boarding_enters_seat_bit" pascalStyleName="BoardingEntersSeatBit" />
+                <Bit name="boarding need any passenger" CStyleName="boarding_need_any_passenger_bit" pascalStyleName="BoardingNeedAnyPassengerBit" />
+                <Bit name="controls open and close" CStyleName="controls_open_and_close_bit" pascalStyleName="ControlsOpenAndCloseBit" />
+                <Bit name="invalid for player" CStyleName="invalid_for_player_bit" pascalStyleName="InvalidForPlayerBit" />
+                <Bit name="invalid for non-player" CStyleName="invalid_for_non_player_bit" pascalStyleName="InvalidForNonPlayerBit" />
+                <Bit name="gunner (player only)" CStyleName="gunner_player_only_bit" pascalStyleName="GunnerPlayerOnlyBit" />
+                <Bit name="invisible under major damage" CStyleName="invisible_under_major_damage_bit" pascalStyleName="InvisibleUnderMajorDamageBit" />
+              </Options>
+            </LongFlags>
+            <OldStringId CStyleName="label" pascalStyleName="Label" name="label" />
+            <OldStringId CStyleName="marker_name" pascalStyleName="MarkerName" name="marker name" blockNameSource="true" />
+            <Pad sizeOfSource="8*sizeof(long)" length="32" name="Pad" />
+            <RealVector3D CStyleName="acceleration_scale" pascalStyleName="AccelerationScale" name="acceleration scale" />
+            <Real CStyleName="ai_scariness" pascalStyleName="AiScariness" name="AI scariness" />
+            <ShortEnum CStyleName="ai_seat_type" pascalStyleName="AiSeatType" name="ai seat type">
+              <Options regolithID="enum:unit_seat_type" CStyleName="unit_seat_type" pascalStyleName="UnitSeatType">
+                <Enum name="NONE" CStyleName="none" pascalStyleName="None" />
+                <Enum name="passenger" CStyleName="passenger" pascalStyleName="Passenger" />
+                <Enum name="gunner" CStyleName="gunner" pascalStyleName="Gunner" />
+                <Enum name="small cargo" CStyleName="small_cargo" pascalStyleName="SmallCargo" />
+                <Enum name="large cargo" CStyleName="large_cargo" pascalStyleName="LargeCargo" />
+                <Enum name="driver" CStyleName="driver" pascalStyleName="Driver" />
+              </Options>
+            </ShortEnum>
+            <ShortBlockIndex CStyleName="boarding_seat" pascalStyleName="BoardingSeat" name="boarding seat" />
+            <RealFraction CStyleName="listener_interpolation_factor" pascalStyleName="ListenerInterpolationFactor" name="listener interpolation factor" description="how far to interpolate listener position from camera to occupant's head" />
+            <Real CStyleName="yaw_rate" pascalStyleName="YawRate" name="yaw rate" units="degrees per second" />
+            <Real CStyleName="pitch_rate" pascalStyleName="PitchRate" name="pitch rate" units="degrees per second" />
+            <Struct CStyleName="unit_camera" pascalStyleName="UnitCamera" name="StructHeader_unit camera">
+              <Layout regolithID="structure:unit_camera" Name="unit camera" tag="uncs" internalName="unit_camera_struct" backingBlockInternalName="unit_camera_struct_block">
+                <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_unit_camera)" sizeofOverride="88" isLatest="true">
+                  <OldStringId CStyleName="camera_marker_name" pascalStyleName="CameraMarkerName" name="camera marker name" />
+                  <OldStringId CStyleName="camera_submerged_marker_name" pascalStyleName="CameraSubmergedMarkerName" name="camera submerged marker name" />
+                  <Angle CStyleName="pitch_auto_level" pascalStyleName="PitchAutoLevel" name="pitch auto-level" />
+                  <AngleBounds CStyleName="pitch_range" pascalStyleName="PitchRange" name="pitch range" />
+                  <Block CStyleName="camera_tracks" pascalStyleName="CameraTracks" name="camera tracks" maxElementCount="2" maxElementCountSource="MAXIMUM_NUMBER_OF_UNIT_CAMERA_TRACKS">
+                    <Layout regolithID="block:unit_camera_track" internalName="unit_camera_track_block" name="unit_camera_track_block">
+                      <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(s_unit_camera_track)" isLatest="true">
+                        <TagReference CStyleName="track" pascalStyleName="Track" name="track">
+                          <tag>trak</tag>
+                        </TagReference>
+                        <UselessPad length="12" name="UselessPad" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <Block CStyleName="unit_hud_interface" pascalStyleName="UnitHudInterface" name="unit hud interface" maxElementCount="2" maxElementCountSource="NUMBER_OF_UNIT_HUD_TYPES">
+              <Layout regolithID="block:unit_hud_reference" internalName="unit_hud_reference_block" name="unit_hud_reference_block">
+                <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct unit_hud_reference)" isLatest="true">
+                  <UselessPad length="16" name="UselessPad" />
+                  <TagReference CStyleName="new_unit_hud_interface" pascalStyleName="NewUnitHudInterface" name="new unit hud interface">
+                    <tag>nhdt</tag>
+                  </TagReference>
+                  <UselessPad length="16" name="UselessPad_1" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_1" />
+            <ShortInteger CStyleName="hud_text_message_index" pascalStyleName="HudTextMessageIndex" name="hud text message index" />
+            <Pad sizeOfSource="1*sizeof(short)" length="2" name="Pad_2" />
+            <Angle CStyleName="yaw_minimum" pascalStyleName="YawMinimum" name="yaw minimum" />
+            <Angle CStyleName="yaw_maximum" pascalStyleName="YawMaximum" name="yaw maximum" />
+            <TagReference CStyleName="built_in_gunner" pascalStyleName="BuiltInGunner" name="built-in gunner">
+              <tag>char</tag>
+            </TagReference>
+            <Pad sizeOfSource="5*sizeof(long)" length="20" name="Pad_3" />
+          </FieldSet>
+          <FieldSet version="1" sizeofValue="188" sizeofSource="sizeof(struct unit_seat_v2)">
+            <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:unit_seat_flags" CStyleName="unit_seat_flags" pascalStyleName="UnitSeatFlags">
+                <Bit name="invisible" CStyleName="invisible_bit" pascalStyleName="InvisibleBit" />
+                <Bit name="unused1" expertOnly="true" CStyleName="unused1_bit" pascalStyleName="Unused1Bit" />
+                <Bit name="driver" CStyleName="driver_bit" pascalStyleName="DriverBit" />
+                <Bit name="gunner" CStyleName="gunner_bit" pascalStyleName="GunnerBit" />
+                <Bit name="third person camera" CStyleName="third_person_camera_bit" pascalStyleName="ThirdPersonCameraBit" />
+                <Bit name="allows weapons" CStyleName="allows_weapons_bit" pascalStyleName="AllowsWeaponsBit" />
+                <Bit name="third person on enter" CStyleName="third_person_on_enter_bit" pascalStyleName="ThirdPersonOnEnterBit" />
+                <Bit name="first person camera slaved to gun." CStyleName="first_person_camera_slaved_to_gun_bit" pascalStyleName="FirstPersonCameraSlavedToGunBit" />
+                <Bit name="unused8" expertOnly="true" CStyleName="unused8_bit" pascalStyleName="Unused8Bit" />
+                <Bit name="not valid without driver" CStyleName="not_valid_without_driver_bit" pascalStyleName="NotValidWithoutDriverBit" />
+                <Bit name="allow AI noncombatants" CStyleName="allow_ai_noncombatants_bit" pascalStyleName="AllowAiNoncombatantsBit" />
+                <Bit name="boarding seat" CStyleName="boarding_seat_bit" pascalStyleName="BoardingSeatBit" />
+                <Bit name="ai firing disabled by max acceleration" CStyleName="ai_firing_disabled_by_max_acceleration_bit" pascalStyleName="AiFiringDisabledByMaxAccelerationBit" />
+                <Bit name="boarding enters seat" CStyleName="boarding_enters_seat_bit" pascalStyleName="BoardingEntersSeatBit" />
+                <Bit name="boarding need any passenger" CStyleName="boarding_need_any_passenger_bit" pascalStyleName="BoardingNeedAnyPassengerBit" />
+                <Bit name="controls open and close" CStyleName="controls_open_and_close_bit" pascalStyleName="ControlsOpenAndCloseBit" />
+                <Bit name="invalid for player" CStyleName="invalid_for_player_bit" pascalStyleName="InvalidForPlayerBit" />
+                <Bit name="invalid for non-player" CStyleName="invalid_for_non_player_bit" pascalStyleName="InvalidForNonPlayerBit" />
+                <Bit name="gunner (player only)" CStyleName="gunner_player_only_bit" pascalStyleName="GunnerPlayerOnlyBit" />
+                <Bit name="invisible under major damage" CStyleName="invisible_under_major_damage_bit" pascalStyleName="InvisibleUnderMajorDamageBit" />
+              </Options>
+            </LongFlags>
+            <OldStringId CStyleName="label" pascalStyleName="Label" name="label" />
+            <OldStringId CStyleName="marker_name" pascalStyleName="MarkerName" name="marker name" blockNameSource="true" />
+            <Pad sizeOfSource="8*sizeof(long)" length="32" name="Pad" />
+            <RealVector3D CStyleName="acceleration_scale" pascalStyleName="AccelerationScale" name="acceleration scale" />
+            <Real CStyleName="ai_scariness" pascalStyleName="AiScariness" name="AI scariness" />
+            <ShortEnum CStyleName="ai_seat_type" pascalStyleName="AiSeatType" name="ai seat type">
+              <Options regolithID="enum:unit_seat_type" CStyleName="unit_seat_type" pascalStyleName="UnitSeatType">
+                <Enum name="NONE" CStyleName="none" pascalStyleName="None" />
+                <Enum name="passenger" CStyleName="passenger" pascalStyleName="Passenger" />
+                <Enum name="gunner" CStyleName="gunner" pascalStyleName="Gunner" />
+                <Enum name="small cargo" CStyleName="small_cargo" pascalStyleName="SmallCargo" />
+                <Enum name="large cargo" CStyleName="large_cargo" pascalStyleName="LargeCargo" />
+                <Enum name="driver" CStyleName="driver" pascalStyleName="Driver" />
+              </Options>
+            </ShortEnum>
+            <ShortBlockIndex CStyleName="boarding_seat" pascalStyleName="BoardingSeat" name="boarding seat" />
+            <RealFraction CStyleName="listener_interpolation_factor" pascalStyleName="ListenerInterpolationFactor" name="listener interpolation factor" description="how far to interpolate listener position from camera to occupant's head" />
+            <RealBounds CStyleName="yaw_rate_bounds" pascalStyleName="YawRateBounds" name="yaw rate bounds" units="degrees per second" />
+            <RealBounds CStyleName="pitch_rate_bounds" pascalStyleName="PitchRateBounds" name="pitch rate bounds" units="degrees per second" />
+            <Real CStyleName="max_speed_reference" pascalStyleName="MaxSpeedReference" name="max speed reference" />
+            <Real CStyleName="speed_exponent" pascalStyleName="SpeedExponent" name="speed exponent" />
+            <Struct CStyleName="unit_camera" pascalStyleName="UnitCamera" name="StructHeader_unit camera">
+              <Layout regolithID="structure:unit_camera" Name="unit camera" tag="uncs" internalName="unit_camera_struct" backingBlockInternalName="unit_camera_struct_block">
+                <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_unit_camera)" sizeofOverride="88" isLatest="true">
+                  <OldStringId CStyleName="camera_marker_name" pascalStyleName="CameraMarkerName" name="camera marker name" />
+                  <OldStringId CStyleName="camera_submerged_marker_name" pascalStyleName="CameraSubmergedMarkerName" name="camera submerged marker name" />
+                  <Angle CStyleName="pitch_auto_level" pascalStyleName="PitchAutoLevel" name="pitch auto-level" />
+                  <AngleBounds CStyleName="pitch_range" pascalStyleName="PitchRange" name="pitch range" />
+                  <Block CStyleName="camera_tracks" pascalStyleName="CameraTracks" name="camera tracks" maxElementCount="2" maxElementCountSource="MAXIMUM_NUMBER_OF_UNIT_CAMERA_TRACKS">
+                    <Layout regolithID="block:unit_camera_track" internalName="unit_camera_track_block" name="unit_camera_track_block">
+                      <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(s_unit_camera_track)" isLatest="true">
+                        <TagReference CStyleName="track" pascalStyleName="Track" name="track">
+                          <tag>trak</tag>
+                        </TagReference>
+                        <UselessPad length="12" name="UselessPad" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <Block CStyleName="unit_hud_interface" pascalStyleName="UnitHudInterface" name="unit hud interface" maxElementCount="2" maxElementCountSource="NUMBER_OF_UNIT_HUD_TYPES">
+              <Layout regolithID="block:unit_hud_reference" internalName="unit_hud_reference_block" name="unit_hud_reference_block">
+                <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct unit_hud_reference)" isLatest="true">
+                  <UselessPad length="16" name="UselessPad" />
+                  <TagReference CStyleName="new_unit_hud_interface" pascalStyleName="NewUnitHudInterface" name="new unit hud interface">
+                    <tag>nhdt</tag>
+                  </TagReference>
+                  <UselessPad length="16" name="UselessPad_1" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_1" />
+            <ShortInteger CStyleName="hud_text_message_index" pascalStyleName="HudTextMessageIndex" name="hud text message index" />
+            <Pad sizeOfSource="1*sizeof(short)" length="2" name="Pad_2" />
+            <Angle CStyleName="yaw_minimum" pascalStyleName="YawMinimum" name="yaw minimum" />
+            <Angle CStyleName="yaw_maximum" pascalStyleName="YawMaximum" name="yaw maximum" />
+            <TagReference CStyleName="built_in_gunner" pascalStyleName="BuiltInGunner" name="built-in gunner">
+              <tag>char</tag>
+            </TagReference>
+            <Pad sizeOfSource="5*sizeof(long)" length="20" name="Pad_3" />
+          </FieldSet>
+          <FieldSet version="2" sizeofValue="240" sizeofSource="sizeof(struct unit_seat_v3)">
+            <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:unit_seat_flags" CStyleName="unit_seat_flags" pascalStyleName="UnitSeatFlags">
+                <Bit name="invisible" CStyleName="invisible_bit" pascalStyleName="InvisibleBit" />
+                <Bit name="unused1" expertOnly="true" CStyleName="unused1_bit" pascalStyleName="Unused1Bit" />
+                <Bit name="driver" CStyleName="driver_bit" pascalStyleName="DriverBit" />
+                <Bit name="gunner" CStyleName="gunner_bit" pascalStyleName="GunnerBit" />
+                <Bit name="third person camera" CStyleName="third_person_camera_bit" pascalStyleName="ThirdPersonCameraBit" />
+                <Bit name="allows weapons" CStyleName="allows_weapons_bit" pascalStyleName="AllowsWeaponsBit" />
+                <Bit name="third person on enter" CStyleName="third_person_on_enter_bit" pascalStyleName="ThirdPersonOnEnterBit" />
+                <Bit name="first person camera slaved to gun." CStyleName="first_person_camera_slaved_to_gun_bit" pascalStyleName="FirstPersonCameraSlavedToGunBit" />
+                <Bit name="unused8" expertOnly="true" CStyleName="unused8_bit" pascalStyleName="Unused8Bit" />
+                <Bit name="not valid without driver" CStyleName="not_valid_without_driver_bit" pascalStyleName="NotValidWithoutDriverBit" />
+                <Bit name="allow AI noncombatants" CStyleName="allow_ai_noncombatants_bit" pascalStyleName="AllowAiNoncombatantsBit" />
+                <Bit name="boarding seat" CStyleName="boarding_seat_bit" pascalStyleName="BoardingSeatBit" />
+                <Bit name="ai firing disabled by max acceleration" CStyleName="ai_firing_disabled_by_max_acceleration_bit" pascalStyleName="AiFiringDisabledByMaxAccelerationBit" />
+                <Bit name="boarding enters seat" CStyleName="boarding_enters_seat_bit" pascalStyleName="BoardingEntersSeatBit" />
+                <Bit name="boarding need any passenger" CStyleName="boarding_need_any_passenger_bit" pascalStyleName="BoardingNeedAnyPassengerBit" />
+                <Bit name="controls open and close" CStyleName="controls_open_and_close_bit" pascalStyleName="ControlsOpenAndCloseBit" />
+                <Bit name="invalid for player" CStyleName="invalid_for_player_bit" pascalStyleName="InvalidForPlayerBit" />
+                <Bit name="invalid for non-player" CStyleName="invalid_for_non_player_bit" pascalStyleName="InvalidForNonPlayerBit" />
+                <Bit name="gunner (player only)" CStyleName="gunner_player_only_bit" pascalStyleName="GunnerPlayerOnlyBit" />
+                <Bit name="invisible under major damage" CStyleName="invisible_under_major_damage_bit" pascalStyleName="InvisibleUnderMajorDamageBit" />
+              </Options>
+            </LongFlags>
+            <OldStringId CStyleName="label" pascalStyleName="Label" name="label" blockNameSource="true" />
+            <OldStringId CStyleName="marker_name" pascalStyleName="MarkerName" name="marker name" />
+            <StringId CStyleName="entry_markers_name" pascalStyleName="EntryMarkersName" name="entry marker(s) name" />
+            <StringId CStyleName="boarding_grenade_marker" pascalStyleName="BoardingGrenadeMarker" name="boarding grenade marker" />
+            <Pad sizeOfSource="5*sizeof(long)" length="20" name="Pad" />
+            <Real CStyleName="turnover_time" pascalStyleName="TurnoverTime" name="turnover time" units="seconds" description="how much time it takes to evict a rider from a flipped vehicle" />
+            <RealVector3D CStyleName="acceleration_scale" pascalStyleName="AccelerationScale" name="acceleration scale" />
+            <Real CStyleName="ai_scariness" pascalStyleName="AiScariness" name="AI scariness" />
+            <ShortEnum CStyleName="ai_seat_type" pascalStyleName="AiSeatType" name="ai seat type">
+              <Options regolithID="enum:unit_seat_type" CStyleName="unit_seat_type" pascalStyleName="UnitSeatType">
+                <Enum name="NONE" CStyleName="none" pascalStyleName="None" />
+                <Enum name="passenger" CStyleName="passenger" pascalStyleName="Passenger" />
+                <Enum name="gunner" CStyleName="gunner" pascalStyleName="Gunner" />
+                <Enum name="small cargo" CStyleName="small_cargo" pascalStyleName="SmallCargo" />
+                <Enum name="large cargo" CStyleName="large_cargo" pascalStyleName="LargeCargo" />
+                <Enum name="driver" CStyleName="driver" pascalStyleName="Driver" />
+              </Options>
+            </ShortEnum>
+            <ShortBlockIndex CStyleName="boarding_seat" pascalStyleName="BoardingSeat" name="boarding seat" />
+            <RealFraction CStyleName="listener_interpolation_factor" pascalStyleName="ListenerInterpolationFactor" name="listener interpolation factor" description="how far to interpolate listener position from camera to occupant's head" />
+            <Explanation name="speed dependant turn rates" description="when the unit velocity is 0, the yaw/pitch rates are the left values&#10;at [max speed reference], the yaw/pitch rates are the right values.&#10;the max speed reference is what the code uses to generate a clamped speed from 0..1&#10;the exponent controls how midrange speeds are interpreted." />
+            <RealBounds CStyleName="yaw_rate_bounds" pascalStyleName="YawRateBounds" name="yaw rate bounds" units="degrees per second" />
+            <RealBounds CStyleName="pitch_rate_bounds" pascalStyleName="PitchRateBounds" name="pitch rate bounds" units="degrees per second" />
+            <Real CStyleName="min_speed_reference" pascalStyleName="MinSpeedReference" name="min speed reference" />
+            <Real CStyleName="max_speed_reference" pascalStyleName="MaxSpeedReference" name="max speed reference" />
+            <Real CStyleName="speed_exponent" pascalStyleName="SpeedExponent" name="speed exponent" />
+            <Pad sizeOfSource="sizeof(long)*3" length="12" name="Pad_1" />
+            <Explanation name="camera fields" />
+            <Struct CStyleName="unit_camera" pascalStyleName="UnitCamera" name="StructHeader_unit camera">
+              <Layout regolithID="structure:unit_camera" Name="unit camera" tag="uncs" internalName="unit_camera_struct" backingBlockInternalName="unit_camera_struct_block">
+                <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_unit_camera)" sizeofOverride="88" isLatest="true">
+                  <OldStringId CStyleName="camera_marker_name" pascalStyleName="CameraMarkerName" name="camera marker name" />
+                  <OldStringId CStyleName="camera_submerged_marker_name" pascalStyleName="CameraSubmergedMarkerName" name="camera submerged marker name" />
+                  <Angle CStyleName="pitch_auto_level" pascalStyleName="PitchAutoLevel" name="pitch auto-level" />
+                  <AngleBounds CStyleName="pitch_range" pascalStyleName="PitchRange" name="pitch range" />
+                  <Block CStyleName="camera_tracks" pascalStyleName="CameraTracks" name="camera tracks" maxElementCount="2" maxElementCountSource="MAXIMUM_NUMBER_OF_UNIT_CAMERA_TRACKS">
+                    <Layout regolithID="block:unit_camera_track" internalName="unit_camera_track_block" name="unit_camera_track_block">
+                      <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(s_unit_camera_track)" isLatest="true">
+                        <TagReference CStyleName="track" pascalStyleName="Track" name="track">
+                          <tag>trak</tag>
+                        </TagReference>
+                        <UselessPad length="12" name="UselessPad" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <Block CStyleName="unit_hud_interface" pascalStyleName="UnitHudInterface" name="unit hud interface" maxElementCount="2" maxElementCountSource="NUMBER_OF_UNIT_HUD_TYPES">
+              <Layout regolithID="block:unit_hud_reference" internalName="unit_hud_reference_block" name="unit_hud_reference_block">
+                <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct unit_hud_reference)" isLatest="true">
+                  <UselessPad length="16" name="UselessPad" />
+                  <TagReference CStyleName="new_unit_hud_interface" pascalStyleName="NewUnitHudInterface" name="new unit hud interface">
+                    <tag>nhdt</tag>
+                  </TagReference>
+                  <UselessPad length="16" name="UselessPad_1" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_2" />
+            <ShortInteger CStyleName="hud_text_message_index" pascalStyleName="HudTextMessageIndex" name="hud text message index" />
+            <Pad sizeOfSource="1*sizeof(short)" length="2" name="Pad_3" />
+            <Angle CStyleName="yaw_minimum" pascalStyleName="YawMinimum" name="yaw minimum" />
+            <Angle CStyleName="yaw_maximum" pascalStyleName="YawMaximum" name="yaw maximum" />
+            <TagReference CStyleName="built_in_gunner" pascalStyleName="BuiltInGunner" name="built-in gunner">
+              <tag>char</tag>
+            </TagReference>
+            <Pad sizeOfSource="5*sizeof(long)" length="20" name="Pad_4" />
+            <Explanation name="entry fields" description="note: the entry radius shouldn't exceed 3 world units, &#10;as that is as far as the player will search for a vehicle&#10;to enter." />
+            <Real CStyleName="entry_radius" pascalStyleName="EntryRadius" name="entry radius" description="how close to the entry marker a unit must be" />
+            <Angle CStyleName="entry_marker_cone_angle" pascalStyleName="EntryMarkerConeAngle" name="entry marker cone angle" description="angle from marker forward the unit must be" />
+            <Angle CStyleName="entry_marker_facing_angle" pascalStyleName="EntryMarkerFacingAngle" name="entry marker facing angle" description="angle from unit facing the marker must be" />
+            <Real CStyleName="maximum_relative_velocity" pascalStyleName="MaximumRelativeVelocity" name="maximum relative velocity" />
+            <Pad sizeOfSource="5*sizeof(long)" length="20" name="Pad_5" />
+          </FieldSet>
+          <FieldSet version="3" sizeofValue="192" sizeofSource="sizeof(struct unit_seat)" isLatest="true">
+            <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:unit_seat_flags" CStyleName="unit_seat_flags" pascalStyleName="UnitSeatFlags">
+                <Bit name="invisible" CStyleName="invisible_bit" pascalStyleName="InvisibleBit" />
+                <Bit name="unused1" expertOnly="true" CStyleName="unused1_bit" pascalStyleName="Unused1Bit" />
+                <Bit name="driver" CStyleName="driver_bit" pascalStyleName="DriverBit" />
+                <Bit name="gunner" CStyleName="gunner_bit" pascalStyleName="GunnerBit" />
+                <Bit name="third person camera" CStyleName="third_person_camera_bit" pascalStyleName="ThirdPersonCameraBit" />
+                <Bit name="allows weapons" CStyleName="allows_weapons_bit" pascalStyleName="AllowsWeaponsBit" />
+                <Bit name="third person on enter" CStyleName="third_person_on_enter_bit" pascalStyleName="ThirdPersonOnEnterBit" />
+                <Bit name="first person camera slaved to gun." CStyleName="first_person_camera_slaved_to_gun_bit" pascalStyleName="FirstPersonCameraSlavedToGunBit" />
+                <Bit name="unused8" expertOnly="true" CStyleName="unused8_bit" pascalStyleName="Unused8Bit" />
+                <Bit name="not valid without driver" CStyleName="not_valid_without_driver_bit" pascalStyleName="NotValidWithoutDriverBit" />
+                <Bit name="allow AI noncombatants" CStyleName="allow_ai_noncombatants_bit" pascalStyleName="AllowAiNoncombatantsBit" />
+                <Bit name="boarding seat" CStyleName="boarding_seat_bit" pascalStyleName="BoardingSeatBit" />
+                <Bit name="ai firing disabled by max acceleration" CStyleName="ai_firing_disabled_by_max_acceleration_bit" pascalStyleName="AiFiringDisabledByMaxAccelerationBit" />
+                <Bit name="boarding enters seat" CStyleName="boarding_enters_seat_bit" pascalStyleName="BoardingEntersSeatBit" />
+                <Bit name="boarding need any passenger" CStyleName="boarding_need_any_passenger_bit" pascalStyleName="BoardingNeedAnyPassengerBit" />
+                <Bit name="controls open and close" CStyleName="controls_open_and_close_bit" pascalStyleName="ControlsOpenAndCloseBit" />
+                <Bit name="invalid for player" CStyleName="invalid_for_player_bit" pascalStyleName="InvalidForPlayerBit" />
+                <Bit name="invalid for non-player" CStyleName="invalid_for_non_player_bit" pascalStyleName="InvalidForNonPlayerBit" />
+                <Bit name="gunner (player only)" CStyleName="gunner_player_only_bit" pascalStyleName="GunnerPlayerOnlyBit" />
+                <Bit name="invisible under major damage" CStyleName="invisible_under_major_damage_bit" pascalStyleName="InvisibleUnderMajorDamageBit" />
+              </Options>
+            </LongFlags>
+            <OldStringId CStyleName="label" pascalStyleName="Label" name="label" blockNameSource="true" />
+            <OldStringId CStyleName="marker_name" pascalStyleName="MarkerName" name="marker name" />
+            <StringId CStyleName="entry_markers_name" pascalStyleName="EntryMarkersName" name="entry marker(s) name" />
+            <StringId CStyleName="boarding_grenade_marker" pascalStyleName="BoardingGrenadeMarker" name="boarding grenade marker" />
+            <StringId CStyleName="boarding_grenade_string" pascalStyleName="BoardingGrenadeString" name="boarding grenade string" />
+            <StringId CStyleName="boarding_melee_string" pascalStyleName="BoardingMeleeString" name="boarding melee string" />
+            <RealFraction CStyleName="ping_scale" pascalStyleName="PingScale" name="ping scale" description="nathan is too lazy to make pings for each seat." />
+            <UselessPad length="8" name="UselessPad" />
+            <Real CStyleName="turnover_time" pascalStyleName="TurnoverTime" name="turnover time" units="seconds" description="how much time it takes to evict a rider from a flipped vehicle" />
+            <Struct CStyleName="acceleration" pascalStyleName="Acceleration" name="StructHeader_acceleration">
+              <Layout regolithID="structure:unit_seat_acceleration" tag="usas" internalName="unit_seat_acceleration_struct" backingBlockInternalName="unit_seat_acceleration_struct_block" name="unit_seat_acceleration_struct">
+                <FieldSet version="0" sizeofValue="20" sizeofSource="sizeof(struct unit_seat_acceleration)" isLatest="true">
+                  <RealVector3D CStyleName="acceleration_range" pascalStyleName="AccelerationRange" name="acceleration range" units="world units per second squared" />
+                  <Real CStyleName="accel_action_scale" pascalStyleName="AccelActionScale" name="accel action scale" units="actions fail [0,1+]" />
+                  <Real CStyleName="accel_attach_scale" pascalStyleName="AccelAttachScale" name="accel attach scale" units="detach unit [0,1+]" />
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <Real CStyleName="ai_scariness" pascalStyleName="AiScariness" name="AI scariness" />
+            <ShortEnum CStyleName="ai_seat_type" pascalStyleName="AiSeatType" name="ai seat type">
+              <Options regolithID="enum:unit_seat_type" CStyleName="unit_seat_type" pascalStyleName="UnitSeatType">
+                <Enum name="NONE" CStyleName="none" pascalStyleName="None" />
+                <Enum name="passenger" CStyleName="passenger" pascalStyleName="Passenger" />
+                <Enum name="gunner" CStyleName="gunner" pascalStyleName="Gunner" />
+                <Enum name="small cargo" CStyleName="small_cargo" pascalStyleName="SmallCargo" />
+                <Enum name="large cargo" CStyleName="large_cargo" pascalStyleName="LargeCargo" />
+                <Enum name="driver" CStyleName="driver" pascalStyleName="Driver" />
+              </Options>
+            </ShortEnum>
+            <ShortBlockIndex CStyleName="boarding_seat" pascalStyleName="BoardingSeat" name="boarding seat" blockReference="block:unit_seat" />
+            <RealFraction CStyleName="listener_interpolation_factor" pascalStyleName="ListenerInterpolationFactor" name="listener interpolation factor" description="how far to interpolate listener position from camera to occupant's head" />
+            <Explanation name="speed dependant turn rates" description="when the unit velocity is 0, the yaw/pitch rates are the left values&#10;at [max speed reference], the yaw/pitch rates are the right values.&#10;the max speed reference is what the code uses to generate a clamped speed from 0..1&#10;the exponent controls how midrange speeds are interpreted." />
+            <RealBounds CStyleName="yaw_rate_bounds" pascalStyleName="YawRateBounds" name="yaw rate bounds" units="degrees per second" />
+            <RealBounds CStyleName="pitch_rate_bounds" pascalStyleName="PitchRateBounds" name="pitch rate bounds" units="degrees per second" />
+            <Real CStyleName="min_speed_reference" pascalStyleName="MinSpeedReference" name="min speed reference" />
+            <Real CStyleName="max_speed_reference" pascalStyleName="MaxSpeedReference" name="max speed reference" />
+            <Real CStyleName="speed_exponent" pascalStyleName="SpeedExponent" name="speed exponent" />
+            <UselessPad length="12" name="UselessPad_1" />
+            <Explanation name="camera fields" />
+            <Struct CStyleName="unit_camera" pascalStyleName="UnitCamera" name="StructHeader_unit camera">
+              <Layout regolithID="structure:unit_camera" Name="unit camera" tag="uncs" internalName="unit_camera_struct" backingBlockInternalName="unit_camera_struct_block">
+                <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_unit_camera)" sizeofOverride="88" isLatest="true">
+                  <OldStringId CStyleName="camera_marker_name" pascalStyleName="CameraMarkerName" name="camera marker name" />
+                  <OldStringId CStyleName="camera_submerged_marker_name" pascalStyleName="CameraSubmergedMarkerName" name="camera submerged marker name" />
+                  <Angle CStyleName="pitch_auto_level" pascalStyleName="PitchAutoLevel" name="pitch auto-level" />
+                  <AngleBounds CStyleName="pitch_range" pascalStyleName="PitchRange" name="pitch range" />
+                  <Block CStyleName="camera_tracks" pascalStyleName="CameraTracks" name="camera tracks" maxElementCount="2" maxElementCountSource="MAXIMUM_NUMBER_OF_UNIT_CAMERA_TRACKS">
+                    <Layout regolithID="block:unit_camera_track" internalName="unit_camera_track_block" name="unit_camera_track_block">
+                      <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(s_unit_camera_track)" isLatest="true">
+                        <TagReference CStyleName="track" pascalStyleName="Track" name="track">
+                          <tag>trak</tag>
+                        </TagReference>
+                        <UselessPad length="12" name="UselessPad" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <Block CStyleName="unit_hud_interface" pascalStyleName="UnitHudInterface" name="unit hud interface" maxElementCount="2" maxElementCountSource="NUMBER_OF_UNIT_HUD_TYPES">
+              <Layout regolithID="block:unit_hud_reference" internalName="unit_hud_reference_block" name="unit_hud_reference_block">
+                <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct unit_hud_reference)" isLatest="true">
+                  <UselessPad length="16" name="UselessPad" />
+                  <TagReference CStyleName="new_unit_hud_interface" pascalStyleName="NewUnitHudInterface" name="new unit hud interface">
+                    <tag>nhdt</tag>
+                  </TagReference>
+                  <UselessPad length="16" name="UselessPad_1" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <StringId CStyleName="enter_seat_string" pascalStyleName="EnterSeatString" name="enter seat string" />
+            <UselessPad length="4" name="UselessPad_2" />
+            <Angle CStyleName="yaw_minimum" pascalStyleName="YawMinimum" name="yaw minimum" />
+            <Angle CStyleName="yaw_maximum" pascalStyleName="YawMaximum" name="yaw maximum" />
+            <TagReference CStyleName="built_in_gunner" pascalStyleName="BuiltInGunner" name="built-in gunner">
+              <tag>char</tag>
+            </TagReference>
+            <UselessPad length="20" name="UselessPad_3" />
+            <Explanation name="entry fields" description="note: the entry radius shouldn't exceed 3 world units, &#10;as that is as far as the player will search for a vehicle&#10;to enter." />
+            <Real CStyleName="entry_radius" pascalStyleName="EntryRadius" name="entry radius" description="how close to the entry marker a unit must be" />
+            <Angle CStyleName="entry_marker_cone_angle" pascalStyleName="EntryMarkerConeAngle" name="entry marker cone angle" description="angle from marker forward the unit must be" />
+            <Angle CStyleName="entry_marker_facing_angle" pascalStyleName="EntryMarkerFacingAngle" name="entry marker facing angle" description="angle from unit facing the marker must be" />
+            <Real CStyleName="maximum_relative_velocity" pascalStyleName="MaximumRelativeVelocity" name="maximum relative velocity" />
+            <UselessPad length="20" name="UselessPad_4" />
+            <StringId CStyleName="invisible_seat_region" pascalStyleName="InvisibleSeatRegion" name="invisible seat region" />
+            <LongInteger CStyleName="runtime_invisible_seat_region_index" pascalStyleName="RuntimeInvisibleSeatRegionIndex" name="runtime invisible seat region index" readOnly="true" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Explanation name="Boost" />
+      <Struct CStyleName="boost" pascalStyleName="Boost" name="StructHeader_boost">
+        <Layout regolithID="structure:unit_boost" tag="!@#$" internalName="unit_boost_struct" backingBlockInternalName="unit_boost_struct_block" name="unit_boost_struct">
+          <FieldSet version="0" sizeofValue="20" sizeofSource="sizeof(real)*5" sizeofOverride="0" isLatest="true">
+            <Real CStyleName="boost_peak_power" pascalStyleName="BoostPeakPower" name="boost peak power" />
+            <Real CStyleName="boost_rise_power" pascalStyleName="BoostRisePower" name="boost rise power" />
+            <Real CStyleName="boost_peak_time" pascalStyleName="BoostPeakTime" name="boost peak time" />
+            <Real CStyleName="boost_fall_power" pascalStyleName="BoostFallPower" name="boost fall power" />
+            <Real CStyleName="dead_time" pascalStyleName="DeadTime" name="dead time" />
+          </FieldSet>
+        </Layout>
+      </Struct>
+      <Explanation name="Lipsync" />
+      <Struct CStyleName="lipsync" pascalStyleName="Lipsync" name="StructHeader_lipsync">
+        <Layout regolithID="structure:unit_lipsync_scales" tag="ulYc" internalName="unit_lipsync_scales_struct" backingBlockInternalName="unit_lipsync_scales_struct_block" name="unit_lipsync_scales_struct">
+          <FieldSet version="0" sizeofValue="0" sizeofSource="0" />
+          <FieldSet version="1" sizeofValue="8" sizeofSource="sizeof(struct s_unit_lipsync_scales)" isLatest="true">
+            <RealFraction CStyleName="attack_weight" pascalStyleName="AttackWeight" name="attack weight" />
+            <RealFraction CStyleName="decay_weight" pascalStyleName="DecayWeight" name="decay weight" />
+          </FieldSet>
+        </Layout>
+      </Struct>
+      <Explanation name="$$$ VEHICLE $$$" />
+      <LongFlags CStyleName="vehicle_flags" pascalStyleName="VehicleFlags" name="flags_2">
+        <Options regolithID="enum:vehicle_flags" CStyleName="vehicle_flags" pascalStyleName="VehicleFlags">
+          <Bit name="speed wakes physics" CStyleName="speed_wakes_physics_bit" pascalStyleName="SpeedWakesPhysicsBit" />
+          <Bit name="turn wakes physics" CStyleName="turn_wakes_physics_bit" pascalStyleName="TurnWakesPhysicsBit" />
+          <Bit name="driver power wakes physics" CStyleName="driver_power_wakes_physics_bit" pascalStyleName="DriverPowerWakesPhysicsBit" />
+          <Bit name="gunner power wakes physics" CStyleName="gunner_power_wakes_physics_bit" pascalStyleName="GunnerPowerWakesPhysicsBit" />
+          <Bit name="control opposite speed sets brake" CStyleName="control_opposite_speed_sets_brake_bit" pascalStyleName="ControlOppositeSpeedSetsBrakeBit" />
+          <Bit name="slide wakes physics" CStyleName="slide_wakes_physics_bit" pascalStyleName="SlideWakesPhysicsBit" />
+          <Bit name="kills riders at terminal velocity" CStyleName="kills_riders_at_terminal_velocity_bit" pascalStyleName="KillsRidersAtTerminalVelocityBit" />
+          <Bit name="causes collision damage" CStyleName="causes_collision_damage_bit" pascalStyleName="CausesCollisionDamageBit" />
+          <Bit name="ai weapon cannot rotate" CStyleName="ai_weapon_cannot_rotate_bit" pascalStyleName="AiWeaponCannotRotateBit" />
+          <Bit name="ai does not require driver" CStyleName="ai_does_not_require_driver_bit" pascalStyleName="AiDoesNotRequireDriverBit" />
+          <Bit name="ai unused" CStyleName="ai_unused_bit" pascalStyleName="AiUnusedBit" />
+          <Bit name="ai driver enable" CStyleName="ai_driver_enable_bit" pascalStyleName="AiDriverEnableBit" />
+          <Bit name="ai driver flying" CStyleName="ai_driver_flying_bit" pascalStyleName="AiDriverFlyingBit" />
+          <Bit name="ai driver can-sidestep" CStyleName="ai_driver_can_sidestep_bit" pascalStyleName="AiDriverCanSidestepBit" />
+          <Bit name="ai driver hovering" CStyleName="ai_driver_hovering_bit" pascalStyleName="AiDriverHoveringBit" />
+          <Bit name="vehicle steers directly" CStyleName="vehicle_steers_directly_bit" pascalStyleName="VehicleSteersDirectlyBit" />
+          <Bit name="unused" CStyleName="unused16_bit" pascalStyleName="Unused16Bit" />
+          <Bit name="has e-brake" CStyleName="has_e_brake_bit" pascalStyleName="HasEBrakeBit" />
+          <Bit name="noncombat vehicle" CStyleName="noncombat_vehicle_bit" pascalStyleName="NoncombatVehicleBit" />
+          <Bit name="no friction w/driver" CStyleName="no_friction_wdriver_bit" pascalStyleName="NoFrictionWdriverBit" />
+          <Bit name="can trigger automatic opening doors" CStyleName="can_trigger_automatic_opening_doors_bit" pascalStyleName="CanTriggerAutomaticOpeningDoorsBit" />
+          <Bit name="autoaim when teamless" CStyleName="autoaim_when_teamless_bit" pascalStyleName="AutoaimWhenTeamlessBit" />
+        </Options>
+      </LongFlags>
+      <ShortEnum CStyleName="type" pascalStyleName="Type" name="type">
+        <Options regolithID="enum:vehicle_type" CStyleName="vehicle_type" pascalStyleName="VehicleType">
+          <Enum name="human tank" CStyleName="human_tank" pascalStyleName="HumanTank" />
+          <Enum name="human jeep" CStyleName="human_jeep" pascalStyleName="HumanJeep" />
+          <Enum name="human boat" CStyleName="human_boat" pascalStyleName="HumanBoat" />
+          <Enum name="human plane" CStyleName="human_plane" pascalStyleName="HumanPlane" />
+          <Enum name="alien scout" CStyleName="alien_scout" pascalStyleName="AlienScout" />
+          <Enum name="alien fighter" CStyleName="alien_fighter" pascalStyleName="AlienFighter" />
+          <Enum name="turret" CStyleName="turret" pascalStyleName="Turret" />
+        </Options>
+      </ShortEnum>
+      <ShortEnum CStyleName="control" pascalStyleName="Control" name="control">
+        <Options regolithID="enum:vehicle_control_mode" CStyleName="vehicle_control_mode" pascalStyleName="VehicleControlMode">
+          <Enum name="vehicle control normal" CStyleName="vehicle_control_normal" pascalStyleName="VehicleControlNormal" />
+          <Enum name="vehicle control unused" CStyleName="vehicle_control_unused" pascalStyleName="VehicleControlUnused" />
+          <Enum name="vehicle control tank" CStyleName="vehicle_control_tank" pascalStyleName="VehicleControlTank" />
+        </Options>
+      </ShortEnum>
+      <Real CStyleName="maximum_forward_speed" pascalStyleName="MaximumForwardSpeed" name="maximum forward speed" />
+      <Real CStyleName="maximum_reverse_speed" pascalStyleName="MaximumReverseSpeed" name="maximum reverse speed" />
+      <Real CStyleName="speed_acceleration" pascalStyleName="SpeedAcceleration" name="speed acceleration" />
+      <Real CStyleName="speed_deceleration" pascalStyleName="SpeedDeceleration" name="speed deceleration" />
+      <Real CStyleName="maximum_left_turn" pascalStyleName="MaximumLeftTurn" name="maximum left turn" />
+      <Real CStyleName="maximum_right_turn_negative" pascalStyleName="MaximumRightTurnNegative" name="maximum right turn (negative)" />
+      <Real CStyleName="wheel_circumference" pascalStyleName="WheelCircumference" name="wheel circumference" />
+      <Real CStyleName="turn_rate" pascalStyleName="TurnRate" name="turn rate" />
+      <Real CStyleName="blur_speed" pascalStyleName="BlurSpeed" name="blur speed" />
+      <ShortEnum CStyleName="specific_type" pascalStyleName="SpecificType" name="specific type" description="if your type corresponds to something in this list choose it">
+        <Options regolithID="enum:vehicle_specific_type" CStyleName="vehicle_specific_type" pascalStyleName="VehicleSpecificType">
+          <Enum name="none" CStyleName="none" pascalStyleName="None" />
+          <Enum name="ghost" CStyleName="ghost" pascalStyleName="Ghost" />
+          <Enum name="wraith" CStyleName="wraith" pascalStyleName="Wraith" />
+          <Enum name="spectre" CStyleName="spectre" pascalStyleName="Spectre" />
+          <Enum name="sentinel enforcer" CStyleName="sentinel_enforcer" pascalStyleName="SentinelEnforcer" />
+        </Options>
+      </ShortEnum>
+      <ShortEnum CStyleName="player_training_vehicle_type" pascalStyleName="PlayerTrainingVehicleType" name="player training vehicle type">
+        <Options regolithID="enum:player_training_vehicle_type" CStyleName="player_training_vehicle_type" pascalStyleName="PlayerTrainingVehicleType">
+          <Enum name="none" CStyleName="none" pascalStyleName="None" />
+          <Enum name="warthog" CStyleName="warthog" pascalStyleName="Warthog" />
+          <Enum name="warthog turret" CStyleName="warthog_turret" pascalStyleName="WarthogTurret" />
+          <Enum name="ghost" CStyleName="ghost" pascalStyleName="Ghost" />
+          <Enum name="banshee" CStyleName="banshee" pascalStyleName="Banshee" />
+          <Enum name="tank" CStyleName="tank" pascalStyleName="Tank" />
+          <Enum name="wraith" CStyleName="wraith" pascalStyleName="Wraith" />
+        </Options>
+      </ShortEnum>
+      <StringId CStyleName="flip_message" pascalStyleName="FlipMessage" name="flip message" />
+      <Real CStyleName="turn_scale" pascalStyleName="TurnScale" name="turn scale" />
+      <Real CStyleName="speed_turn_penalty_power_05__2" pascalStyleName="SpeedTurnPenaltyPower052" name="speed turn penalty power (0.5 .. 2)" />
+      <Real CStyleName="speed_turn_penalty_0__none_1__cant_turn_at_top_speed" pascalStyleName="SpeedTurnPenalty0None1CantTurnAtTopSpeed" name="speed turn penalty (0 = none, 1 = can't turn at top speed)" />
+      <Real CStyleName="maximum_left_slide" pascalStyleName="MaximumLeftSlide" name="maximum left slide" />
+      <Real CStyleName="maximum_right_slide" pascalStyleName="MaximumRightSlide" name="maximum right slide" />
+      <Real CStyleName="slide_acceleration" pascalStyleName="SlideAcceleration" name="slide acceleration" />
+      <Real CStyleName="slide_deceleration" pascalStyleName="SlideDeceleration" name="slide deceleration" />
+      <Real CStyleName="minimum_flipping_angular_velocity" pascalStyleName="MinimumFlippingAngularVelocity" name="minimum flipping angular velocity" />
+      <Real CStyleName="maximum_flipping_angular_velocity" pascalStyleName="MaximumFlippingAngularVelocity" name="maximum flipping angular velocity" />
+      <ShortEnum CStyleName="vehicle_size" pascalStyleName="VehicleSize" name="vehicle size" description="The size determine what kind of seats in larger vehicles it may occupy (i.e. small or large cargo seats)">
+        <Options regolithID="enum:vehicle_size" CStyleName="vehicle_size" pascalStyleName="VehicleSize">
+          <Enum name="small" CStyleName="small" pascalStyleName="Small" />
+          <Enum name="large" CStyleName="large" pascalStyleName="Large" />
+        </Options>
+      </ShortEnum>
+      <Pad sizeOfSource="sizeof(short)" length="2" name="Pad_4" />
+      <UselessPad length="20" name="UselessPad_12" />
+      <Real CStyleName="fixed_gun_yaw" pascalStyleName="FixedGunYaw" name="fixed gun yaw" />
+      <Real CStyleName="fixed_gun_pitch" pascalStyleName="FixedGunPitch" name="fixed gun pitch" />
+      <Explanation name="steering overdampening" description="when the steering is off by more than the cusp angle&#10;the steering will overcompensate more and more.  when it&#10;is less, it overcompensates less and less.  the exponent&#10;should be something in the neighborhood of 2.0&#10;" />
+      <Real CStyleName="overdampen_cusp_angle" pascalStyleName="OverdampenCuspAngle" name="overdampen cusp angle" units="degrees" />
+      <Real CStyleName="overdampen_exponent" pascalStyleName="OverdampenExponent" name="overdampen exponent" />
+      <Real CStyleName="crouch_transition_time" pascalStyleName="CrouchTransitionTime" name="crouch transition time" units="seconds" />
+      <Pad sizeOfSource="sizeof(real)" length="4" name="Pad_5" />
+      <Explanation name="engine" />
+      <Real CStyleName="engine_moment" pascalStyleName="EngineMoment" name="engine moment" description="higher moments make engine spin up slower" />
+      <Real CStyleName="engine_max_angular_velocity" pascalStyleName="EngineMaxAngularVelocity" name="engine max angular velocity" description="higher moments make engine spin up slower" />
+      <Block CStyleName="gears" pascalStyleName="Gears" name="gears" maxElementCount="16" maxElementCountSource="k_vehicle_gear_count_max">
+        <Layout regolithID="block:gear" internalName="gear_block" name="gear_block">
+          <FieldSet version="0" sizeofValue="68" sizeofSource="sizeof(struct s_vehicle_gear)" isLatest="true">
+            <Explanation name="loaded torque" />
+            <Struct CStyleName="loaded_torque_curve" pascalStyleName="LoadedTorqueCurve" name="StructHeader_loaded torque curve">
+              <Layout regolithID="structure:torque_curve" Name="power characteristics of engine" tag="trcv" internalName="torque_curve_struct" backingBlockInternalName="torque_curve_struct_block">
+                <FieldSet version="0" sizeofValue="24" sizeofSource="sizeof(s_toruqe_curve)" isLatest="true">
+                  <Real CStyleName="min_torque" pascalStyleName="MinTorque" name="min torque" />
+                  <Real CStyleName="max_torque" pascalStyleName="MaxTorque" name="max torque" />
+                  <Real CStyleName="peak_torque_scale" pascalStyleName="PeakTorqueScale" name="peak torque scale" />
+                  <Real CStyleName="past_peak_torque_exponent" pascalStyleName="PastPeakTorqueExponent" name="past peak torque exponent" />
+                  <Real CStyleName="torque_at_max_angular_velocity" pascalStyleName="TorqueAtMaxAngularVelocity" name="torque at max angular velocity" description="generally 0 for loading torque and something less than max torque for cruising torque" />
+                  <Real CStyleName="torque_at_2x_max_angular_velocity" pascalStyleName="TorqueAt2xMaxAngularVelocity" name="torque at 2x max angular velocity" />
+                  <UselessPad length="8" name="UselessPad_1" />
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <Explanation name="cruising torque" />
+            <Struct CStyleName="cruising_torque_curve" pascalStyleName="CruisingTorqueCurve" name="StructHeader_cruising torque curve">
+              <Layout regolithID="structure:torque_curve" Name="power characteristics of engine" tag="trcv" internalName="torque_curve_struct" backingBlockInternalName="torque_curve_struct_block">
+                <FieldSet version="0" sizeofValue="24" sizeofSource="sizeof(s_toruqe_curve)" isLatest="true">
+                  <Real CStyleName="min_torque" pascalStyleName="MinTorque" name="min torque_1" />
+                  <Real CStyleName="max_torque" pascalStyleName="MaxTorque" name="max torque_1" />
+                  <Real CStyleName="peak_torque_scale" pascalStyleName="PeakTorqueScale" name="peak torque scale_1" />
+                  <Real CStyleName="past_peak_torque_exponent" pascalStyleName="PastPeakTorqueExponent" name="past peak torque exponent_1" />
+                  <Real CStyleName="torque_at_max_angular_velocity" pascalStyleName="TorqueAtMaxAngularVelocity" name="torque at max angular velocity_1" description="generally 0 for loading torque and something less than max torque for cruising torque" />
+                  <Real CStyleName="torque_at_2x_max_angular_velocity" pascalStyleName="TorqueAt2xMaxAngularVelocity" name="torque at 2x max angular velocity_1" />
+                  <UselessPad length="8" name="UselessPad_2" />
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <Explanation name="gearing" />
+            <Real CStyleName="min_time_to_upshift" pascalStyleName="MinTimeToUpshift" name="min time to upshift" description="seconds" />
+            <Real CStyleName="engine_up_shift_scale" pascalStyleName="EngineUpShiftScale" name="engine up-shift scale" description="0-1" />
+            <Real CStyleName="gear_ratio" pascalStyleName="GearRatio" name="gear ratio" />
+            <Real CStyleName="min_time_to_downshift" pascalStyleName="MinTimeToDownshift" name="min time to downshift" description="seconds" />
+            <Real CStyleName="engine_down_shift_scale" pascalStyleName="EngineDownShiftScale" name="engine down-shift scale" description="0-1" />
+            <UselessPad length="12" name="UselessPad" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Real CStyleName="flying_torque_scale" pascalStyleName="FlyingTorqueScale" name="flying torque scale" description="big vehicles need to scale this down.  0 defaults to 1, which is generally a good value.  This is used with alien fighter physics" />
+      <Real CStyleName="seat_enterance_acceleration_scale" pascalStyleName="SeatEnteranceAccelerationScale" name="seat enterance acceleration scale" description="how much do we scale the force the biped the applies down on the seat when he enters. 0 == no acceleration" />
+      <Real CStyleName="seat_exit_accelersation_scale" pascalStyleName="SeatExitAccelersationScale" name="seat exit accelersation scale" description="how much do we scale the force the biped the applies down on the seat when he exits. 0 == no acceleration" />
+      <UselessPad length="16" name="UselessPad_13" />
+      <Real CStyleName="air_friction_deceleration" pascalStyleName="AirFrictionDeceleration" name="air friction deceleration" description="human plane physics only. 0 is nothing.  1 is like thowing the engine to full reverse" />
+      <Real CStyleName="thrust_scale" pascalStyleName="ThrustScale" name="thrust scale" description="human plane physics only. 0 is default (1)" />
+      <Explanation name="sounds and effects" />
+      <TagReference CStyleName="suspension_sound" pascalStyleName="SuspensionSound" name="suspension sound">
+        <tag>snd!</tag>
+      </TagReference>
+      <TagReference CStyleName="crash_sound" pascalStyleName="CrashSound" name="crash sound">
+        <tag>snd!</tag>
+      </TagReference>
+      <TagReference CStyleName="unused" pascalStyleName="Unused" name="UNUSED" readOnly="true">
+        <tag>foot</tag>
+      </TagReference>
+      <TagReference CStyleName="special_effect" pascalStyleName="SpecialEffect" name="special effect">
+        <tag>effe</tag>
+      </TagReference>
+      <TagReference CStyleName="unused_effect" pascalStyleName="UnusedEffect" name="unused effect">
+        <tag>effe</tag>
+      </TagReference>
+      <Explanation name="physics" />
+      <Struct CStyleName="havok_vehicle_physics" pascalStyleName="HavokVehiclePhysics" name="StructHeader_havok vehicle physics">
+        <Layout regolithID="structure:havok_vehicle_physics" Name="havok vehicle physics" tag="HVPH" internalName="havok_vehicle_physics_struct" backingBlockInternalName="havok_vehicle_physics_struct_block">
+          <FieldSet version="0" sizeofValue="96" sizeofSource="sizeof(s_havok_vehicle_physics_definition)" sizeofOverride="96" isLatest="true">
+            <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags_3" readOnly="true">
+              <Options regolithID="enum:vehicle_physics_flags" CStyleName="vehicle_physics_flags" pascalStyleName="VehiclePhysicsFlags">
+                <Bit name="invalid" CStyleName="invalid_bit" pascalStyleName="InvalidBit" />
+              </Options>
+            </LongFlags>
+            <Real CStyleName="ground_friction" pascalStyleName="GroundFriction" name="ground friction" description="for friction based vehicles only" />
+            <Real CStyleName="ground_depth" pascalStyleName="GroundDepth" name="ground depth" description="for friction based vehicles only" />
+            <Real CStyleName="ground_damp_factor" pascalStyleName="GroundDampFactor" name="ground damp factor" description="for friction based vehicles only" />
+            <Real CStyleName="ground_moving_friction" pascalStyleName="GroundMovingFriction" name="ground moving friction" description="for friction based vehicles only" />
+            <Real CStyleName="ground_maximum_slope_0" pascalStyleName="GroundMaximumSlope0" name="ground maximum slope 0" description="degrees 0-90" />
+            <Real CStyleName="ground_maximum_slope_1" pascalStyleName="GroundMaximumSlope1" name="ground maximum slope 1" description="degrees 0-90.  and greater than slope 0" />
+            <Pad sizeOfSource="4*sizeof(long)" length="16" name="Pad_6" />
+            <Real CStyleName="anti_gravity_bank_lift" pascalStyleName="AntiGravityBankLift" name="anti_gravity_bank_lift" description="lift per WU." />
+            <Real CStyleName="steering_bank_reaction_scale" pascalStyleName="SteeringBankReactionScale" name="steering_bank_reaction_scale" description="how quickly we bank when we steer" />
+            <Real CStyleName="gravity_scale" pascalStyleName="GravityScale" name="gravity scale" description="value of 0 defaults to 1.  .5 is half gravity" />
+            <Real CStyleName="radius" pascalStyleName="Radius" name="radius" description="generated from the radius of the hkConvexShape for this vehicle" readOnly="true" />
+            <Block CStyleName="anti_gravity_points" pascalStyleName="AntiGravityPoints" name="anti gravity points" maxElementCount="16" maxElementCountSource="k_maximum_anti_gravity_points_per_vehicle_physics_definition">
+              <Layout regolithID="block:anti_gravity_point_definition" internalName="anti_gravity_point_definition_block" name="anti_gravity_point_definition_block">
+                <FieldSet version="0" sizeofValue="76" sizeofSource="sizeof(struct s_anti_gravity_point_definition)" isLatest="true">
+                  <StringId CStyleName="marker_name" pascalStyleName="MarkerName" name="marker name" blockNameSource="true" />
+                  <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+                    <Options regolithID="enum:anti_gravity_point_flags" CStyleName="anti_gravity_point_flags" pascalStyleName="AntiGravityPointFlags">
+                      <Bit name="gets damage from region" CStyleName="gets_damage_from_region_bit" pascalStyleName="GetsDamageFromRegionBit" />
+                    </Options>
+                  </LongFlags>
+                  <Real CStyleName="antigrav_strength" pascalStyleName="AntigravStrength" name="antigrav strength" />
+                  <Real CStyleName="antigrav_offset" pascalStyleName="AntigravOffset" name="antigrav offset" />
+                  <Real CStyleName="antigrav_height" pascalStyleName="AntigravHeight" name="antigrav height" />
+                  <Real CStyleName="antigrav_damp_factor" pascalStyleName="AntigravDampFactor" name="antigrav damp factor" />
+                  <Real CStyleName="antigrav_normal_k1" pascalStyleName="AntigravNormalK1" name="antigrav normal k1" />
+                  <Real CStyleName="antigrav_normal_k0" pascalStyleName="AntigravNormalK0" name="antigrav normal k0" />
+                  <Real CStyleName="radius" pascalStyleName="Radius" name="radius" />
+                  <Pad sizeOfSource="3*sizeof(long)" length="12" name="Pad" />
+                  <Pad sizeOfSource="sizeof(word)" length="2" name="Pad_1" />
+                  <Pad sizeOfSource="sizeof(short)" length="2" name="Pad_2" />
+                  <StringId CStyleName="damage_source_region_name" pascalStyleName="DamageSourceRegionName" name="damage source region name" />
+                  <Real CStyleName="default_state_error" pascalStyleName="DefaultStateError" name="default state error" />
+                  <Real CStyleName="minor_damage_error" pascalStyleName="MinorDamageError" name="minor damage error" />
+                  <Real CStyleName="medium_damage_error" pascalStyleName="MediumDamageError" name="medium damage error" />
+                  <Real CStyleName="major_damage_error" pascalStyleName="MajorDamageError" name="major damage error" />
+                  <Real CStyleName="destroyed_state_error" pascalStyleName="DestroyedStateError" name="destroyed state error" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Block CStyleName="friction_points" pascalStyleName="FrictionPoints" name="friction points" maxElementCount="16" maxElementCountSource="k_maximum_friction_points_per_vehicle_physics_definition">
+              <Layout regolithID="block:friction_point_definition" internalName="friction_point_definition_block" name="friction_point_definition_block">
+                <FieldSet version="0" sizeofValue="76" sizeofSource="sizeof(struct s_friction_point_definition)" isLatest="true">
+                  <StringId CStyleName="marker_name" pascalStyleName="MarkerName" name="marker name" blockNameSource="true" />
+                  <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+                    <Options regolithID="enum:friction_point_flags" CStyleName="friction_point_flags" pascalStyleName="FrictionPointFlags">
+                      <Bit name="gets damage from region" CStyleName="gets_damage_from_region_bit" pascalStyleName="GetsDamageFromRegionBit" />
+                      <Bit name="powered" CStyleName="powered_bit" pascalStyleName="PoweredBit" />
+                      <Bit name="front turning" CStyleName="front_turning_bit" pascalStyleName="FrontTurningBit" />
+                      <Bit name="rear turning" CStyleName="rear_turning_bit" pascalStyleName="RearTurningBit" />
+                      <Bit name="attached to e-brake" CStyleName="attached_to_e_brake_bit" pascalStyleName="AttachedToEBrakeBit" />
+                      <Bit name="can be destroyed" CStyleName="can_be_destroyed_bit" pascalStyleName="CanBeDestroyedBit" />
+                    </Options>
+                  </LongFlags>
+                  <Real CStyleName="fraction_of_total_mass" pascalStyleName="FractionOfTotalMass" name="fraction of total mass" description="(0.0-1.0) fraction of total vehicle mass" />
+                  <Real CStyleName="radius" pascalStyleName="Radius" name="radius" />
+                  <Real CStyleName="damaged_radius" pascalStyleName="DamagedRadius" name="damaged radius" description="radius when the tire is blown off." />
+                  <ShortEnum CStyleName="friction_type" pascalStyleName="FrictionType" name="friction type">
+                    <Options regolithID="enum:friction_point_definition_friction_type" CStyleName="friction_point_definition_friction_type" pascalStyleName="FrictionPointDefinitionFrictionType">
+                      <Enum name="point" CStyleName="point" pascalStyleName="Point" />
+                      <Enum name="forward" CStyleName="forward" pascalStyleName="Forward" />
+                    </Options>
+                  </ShortEnum>
+                  <Pad sizeOfSource="2" length="2" name="Pad" />
+                  <Real CStyleName="moving_friction_velocity_diff" pascalStyleName="MovingFrictionVelocityDiff" name="moving friction velocity diff" />
+                  <Real CStyleName="e_brake_moving_friction" pascalStyleName="EBrakeMovingFriction" name="e-brake moving friction" />
+                  <Real CStyleName="e_brake_friction" pascalStyleName="EBrakeFriction" name="e-brake friction" />
+                  <Real CStyleName="e_brake_moving_friction_vel_diff" pascalStyleName="EBrakeMovingFrictionVelDiff" name="e-brake moving friction vel diff" />
+                  <Pad sizeOfSource="5*sizeof(long)" length="20" name="Pad_1" />
+                  <StringId CStyleName="collision_global_material_name" pascalStyleName="CollisionGlobalMaterialName" name="collision global material name" tag="sted" />
+                  <Pad sizeOfSource="sizeof(c_global_material_type)" length="2" name="Pad_2" />
+                  <Explanation name="friction point destruction data" />
+                  <ShortEnum CStyleName="model_state_destroyed" pascalStyleName="ModelStateDestroyed" name="model state destroyed" description="only need point can destroy flag set">
+                    <Options regolithID="enum:object_state" CStyleName="object_state" pascalStyleName="ObjectState">
+                      <Enum name="default" CStyleName="default_value" pascalStyleName="Default" />
+                      <Enum name="minor damage" CStyleName="minor_damage" pascalStyleName="MinorDamage" />
+                      <Enum name="medium damage" CStyleName="medium_damage" pascalStyleName="MediumDamage" />
+                      <Enum name="major damage" CStyleName="major_damage" pascalStyleName="MajorDamage" />
+                      <Enum name="destroyed" CStyleName="destroyed" pascalStyleName="Destroyed" />
+                    </Options>
+                  </ShortEnum>
+                  <StringId CStyleName="region_name" pascalStyleName="RegionName" name="region name" description="only need point can destroy flag set" />
+                  <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_3" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Block CStyleName="shape_phantom_shape" pascalStyleName="ShapePhantomShape" name="shape phantom shape" readOnly="true" maxElementCount="1">
+              <Layout regolithID="block:vehicle_phantom_shape" internalName="vehicle_phantom_shape_block" name="vehicle_phantom_shape_block">
+                <FieldSet version="0" alignment="4" sizeofValue="672" sizeofSource="sizeof(s_vehicle_phantom_shape_definition)" isLatest="true">
+                  <Ptr length="4" name="Ptr" />
+                  <ShortInteger CStyleName="size" pascalStyleName="Size" name="size" readOnly="true" />
+                  <ShortInteger CStyleName="count" pascalStyleName="Count" name="count" readOnly="true" />
+                  <Pad tag="pd64" length="4" name="Pad" />
+                  <Skip sizeOfSource="sizeof(int)" length="4" name="Skip" />
+                  <Pad tag="pd64" length="4" name="Pad_1" />
+                  <Ptr length="4" name="Ptr_1" />
+                  <LongInteger CStyleName="child_shapes_size" pascalStyleName="ChildShapesSize" name="child shapes size" readOnly="true" />
+                  <LongInteger CStyleName="child_shapes_capacity" pascalStyleName="ChildShapesCapacity" name="child shapes capacity" readOnly="true" />
+                  <Ptr length="4" name="Ptr_2" />
+                  <Pad sizeOfSource="sizeof(int)" length="4" name="Pad_2" />
+                  <Pad tag="pd64" length="4" name="Pad_3" />
+                  <Ptr length="4" name="Ptr_3" />
+                  <Pad sizeOfSource="sizeof(int)" length="4" name="Pad_4" />
+                  <Pad tag="pd64" length="4" name="Pad_5" />
+                  <Ptr length="4" name="Ptr_4" />
+                  <Pad sizeOfSource="sizeof(int)" length="4" name="Pad_6" />
+                  <Pad tag="pd64" length="4" name="Pad_7" />
+                  <Ptr length="4" name="Ptr_5" />
+                  <Pad sizeOfSource="sizeof(int)" length="4" name="Pad_8" />
+                  <Pad tag="pd64" length="4" name="Pad_9" />
+                  <LongInteger CStyleName="multisphere_count" pascalStyleName="MultisphereCount" name="multisphere count" readOnly="true" />
+                  <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+                    <Options regolithID="enum:vehicle_phantom_flags" CStyleName="vehicle_phantom_flags" pascalStyleName="VehiclePhantomFlags">
+                      <Bit name="has aabb phantom" CStyleName="has_aabb_phantom_bit" pascalStyleName="HasAabbPhantomBit" />
+                      <Bit CStyleName="unnamed_1_bit" pascalStyleName="Unnamed1Bit" />
+                    </Options>
+                  </LongFlags>
+                  <Pad sizeOfSource="2*sizeof(long)" length="8" name="Pad_10" />
+                  <Real CStyleName="x0" pascalStyleName="X0" name="x0" />
+                  <Real CStyleName="x1" pascalStyleName="X1" name="x1" />
+                  <Real CStyleName="y0" pascalStyleName="Y0" name="y0" />
+                  <Real CStyleName="y1" pascalStyleName="Y1" name="y1" />
+                  <Real CStyleName="z0" pascalStyleName="Z0" name="z0" />
+                  <Real CStyleName="z1" pascalStyleName="Z1" name="z1" />
+                  <Ptr length="4" name="Ptr_6" />
+                  <ShortInteger CStyleName="size" pascalStyleName="Size" name="size_1" readOnly="true" />
+                  <ShortInteger CStyleName="count" pascalStyleName="Count" name="count_1" readOnly="true" />
+                  <Pad tag="pd64" length="4" name="Pad_11" />
+                  <Skip sizeOfSource="sizeof(int)" length="4" name="Skip_1" />
+                  <Pad tag="pd64" length="4" name="Pad_12" />
+                  <LongInteger CStyleName="num_spheres" pascalStyleName="NumSpheres" name="num spheres" readOnly="true" />
+                  <Pad tag="pd64" length="4" name="Pad_13" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_2" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_1" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_3" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_2" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_4" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_3" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_5" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_4" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_6" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_5" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_7" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_6" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_8" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_7" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_9" />
+                  <Ptr length="4" name="Ptr_7" />
+                  <ShortInteger CStyleName="size" pascalStyleName="Size" name="size_2" readOnly="true" />
+                  <ShortInteger CStyleName="count" pascalStyleName="Count" name="count_2" readOnly="true" />
+                  <Pad tag="pd64" length="4" name="Pad_14" />
+                  <Skip sizeOfSource="sizeof(int)" length="4" name="Skip_10" />
+                  <Pad tag="pd64" length="4" name="Pad_15" />
+                  <LongInteger CStyleName="num_spheres" pascalStyleName="NumSpheres" name="num spheres_1" readOnly="true" />
+                  <Pad tag="pd64" length="4" name="Pad_16" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_8" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_11" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_9" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_12" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_10" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_13" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_11" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_14" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_12" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_15" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_13" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_16" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_14" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_17" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_15" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_18" />
+                  <Ptr length="4" name="Ptr_8" />
+                  <ShortInteger CStyleName="size" pascalStyleName="Size" name="size_3" readOnly="true" />
+                  <ShortInteger CStyleName="count" pascalStyleName="Count" name="count_3" readOnly="true" />
+                  <Pad tag="pd64" length="4" name="Pad_17" />
+                  <Skip sizeOfSource="sizeof(int)" length="4" name="Skip_19" />
+                  <Pad tag="pd64" length="4" name="Pad_18" />
+                  <LongInteger CStyleName="num_spheres" pascalStyleName="NumSpheres" name="num spheres_2" readOnly="true" />
+                  <Pad tag="pd64" length="4" name="Pad_19" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_16" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_20" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_17" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_21" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_18" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_22" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_19" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_23" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_20" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_24" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_21" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_25" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_22" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_26" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_23" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_27" />
+                  <Ptr length="4" name="Ptr_9" />
+                  <ShortInteger CStyleName="size" pascalStyleName="Size" name="size_4" readOnly="true" />
+                  <ShortInteger CStyleName="count" pascalStyleName="Count" name="count_4" readOnly="true" />
+                  <Pad tag="pd64" length="4" name="Pad_20" />
+                  <Skip sizeOfSource="sizeof(int)" length="4" name="Skip_28" />
+                  <Pad tag="pd64" length="4" name="Pad_21" />
+                  <LongInteger CStyleName="num_spheres" pascalStyleName="NumSpheres" name="num spheres_3" readOnly="true" />
+                  <Pad tag="pd64" length="4" name="Pad_22" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_24" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_29" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_25" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_30" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_26" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_31" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_27" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_32" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_28" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_33" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_29" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_34" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_30" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_35" />
+                  <RealVector3D CStyleName="sphere" pascalStyleName="Sphere" name="sphere_31" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(real)" length="4" name="Skip_36" />
+                </FieldSet>
+              </Layout>
+            </Block>
+          </FieldSet>
+        </Layout>
+      </Struct>
+    </FieldSet>
+  </Layout>
+</TagGroup>

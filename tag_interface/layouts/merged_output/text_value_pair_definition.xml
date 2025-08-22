@@ -1,0 +1,189 @@
+﻿<?xml version='1.0' encoding='utf-8-sig'?>
+<TagGroup group="sily" name="text_value_pair_definition" version="1">
+  <Layout regolithID="block:text_value_pair_definition" internalName="text_value_pair_definition_block" name="text_value_pair_definition">
+    <FieldSet version="0" sizeofValue="48" sizeofSource="sizeof(s_text_value_pair_definition)" isLatest="true">
+      <LongEnum CStyleName="parameter" pascalStyleName="Parameter" name="parameter">
+        <Options regolithID="enum:variant_settings_parameter" CStyleName="variant_settings_parameter" pascalStyleName="VariantSettingsParameter">
+          <Enum name="match round setting" CStyleName="match_round_setting" pascalStyleName="MatchRoundSetting" />
+          <Enum name="match ctf score to win" CStyleName="match_ctf_score_to_win" pascalStyleName="MatchCtfScoreToWin" />
+          <Enum name="match slayer score to win round" CStyleName="match_slayer_score_to_win_round" pascalStyleName="MatchSlayerScoreToWinRound" />
+          <Enum name="match oddball score to win round" CStyleName="match_oddball_score_to_win_round" pascalStyleName="MatchOddballScoreToWinRound" />
+          <Enum name="match king score to win round" CStyleName="match_king_score_to_win_round" pascalStyleName="MatchKingScoreToWinRound" />
+          <Enum name="match race score to win round" CStyleName="match_race_score_to_win_round" pascalStyleName="MatchRaceScoreToWinRound" />
+          <Enum name="match headhunter score to win round" CStyleName="match_headhunter_score_to_win_round" pascalStyleName="MatchHeadhunterScoreToWinRound" />
+          <Enum name="match juggernaut score to win round" CStyleName="match_juggernaut_score_to_win_round" pascalStyleName="MatchJuggernautScoreToWinRound" />
+          <Enum name="match territories score to win round" CStyleName="match_territories_score_to_win_round" pascalStyleName="MatchTerritoriesScoreToWinRound" />
+          <Enum name="match assault score to win round" CStyleName="match_assault_score_to_win_round" pascalStyleName="MatchAssaultScoreToWinRound" />
+          <Enum name="match round time limit" CStyleName="match_round_time_limit" pascalStyleName="MatchRoundTimeLimit" />
+          <Enum name="match rounds reset map" CStyleName="match_rounds_reset_map" pascalStyleName="MatchRoundsResetMap" />
+          <Enum name="match tie resolution" CStyleName="match_tie_resolution" pascalStyleName="MatchTieResolution" />
+          <Enum name="match observers" CStyleName="match_observers" pascalStyleName="MatchObservers" />
+          <Enum name="match join in progress" CStyleName="match_join_in_progress" pascalStyleName="MatchJoinInProgress" />
+          <Enum name="maximum players" CStyleName="maximum_players" pascalStyleName="MaximumPlayers" />
+          <Enum name="lives per round" CStyleName="lives_per_round" pascalStyleName="LivesPerRound" />
+          <Enum name="respawn time" CStyleName="respawn_time" pascalStyleName="RespawnTime" />
+          <Enum name="suicide penalty" CStyleName="suicide_penalty" pascalStyleName="SuicidePenalty" />
+          <Enum name="shields" CStyleName="shields" pascalStyleName="Shields" />
+          <Enum name="motion sensor" CStyleName="motion_sensor" pascalStyleName="MotionSensor" />
+          <Enum name="invisibility" CStyleName="invisibility" pascalStyleName="Invisibility" />
+          <Enum name="team changing" CStyleName="team_changing" pascalStyleName="TeamChanging" />
+          <Enum name="team scoring" CStyleName="team_scoring" pascalStyleName="TeamScoring" />
+          <Enum name="friendly fire" CStyleName="friendly_fire" pascalStyleName="FriendlyFire" />
+          <Enum name="team respawn setting" CStyleName="team_respawn_setting" pascalStyleName="TeamRespawnSetting" />
+          <Enum name="betrayal respawn penalty" CStyleName="betrayal_respawn_penalty" pascalStyleName="BetrayalRespawnPenalty" />
+          <Enum name="team killer management" CStyleName="team_killer_management" pascalStyleName="TeamKillerManagement" />
+          <Enum name="slayer bonus points" CStyleName="slayer_bonus_points" pascalStyleName="SlayerBonusPoints" />
+          <Enum name="slayer suicide point loss" CStyleName="slayer_suicide_point_loss" pascalStyleName="SlayerSuicidePointLoss" />
+          <Enum name="slayer death point loss" CStyleName="slayer_death_point_loss" pascalStyleName="SlayerDeathPointLoss" />
+          <Enum name="headhunter moving head bin" CStyleName="headhunter_moving_head_bin" pascalStyleName="HeadhunterMovingHeadBin" />
+          <Enum name="headhunter point multiplier" CStyleName="headhunter_point_multiplier" pascalStyleName="HeadhunterPointMultiplier" />
+          <Enum name="headhunter suicide point loss" CStyleName="headhunter_suicide_point_loss" pascalStyleName="HeadhunterSuicidePointLoss" />
+          <Enum name="headhunter death point loss" CStyleName="headhunter_death_point_loss" pascalStyleName="HeadhunterDeathPointLoss" />
+          <Enum name="headhunter uncontested bin" CStyleName="headhunter_uncontested_bin" pascalStyleName="HeadhunterUncontestedBin" />
+          <Enum name="headhunter speed with heads" CStyleName="headhunter_speed_with_heads" pascalStyleName="HeadhunterSpeedWithHeads" />
+          <Enum name="headhunter max heads carried" CStyleName="headhunter_max_heads_carried" pascalStyleName="HeadhunterMaxHeadsCarried" />
+          <Enum name="king uncontested hill" CStyleName="king_uncontested_hill" pascalStyleName="KingUncontestedHill" />
+          <Enum name="king team time multiplier" CStyleName="king_team_time_multiplier" pascalStyleName="KingTeamTimeMultiplier" />
+          <Enum name="king moving hill" CStyleName="king_moving_hill" pascalStyleName="KingMovingHill" />
+          <Enum name="king extra damage on hill" CStyleName="king_extra_damage_on_hill" pascalStyleName="KingExtraDamageOnHill" />
+          <Enum name="king dmg resistance on hill" CStyleName="king_dmg_resistance_on_hill" pascalStyleName="KingDmgResistanceOnHill" />
+          <Enum name="oddball ball spawn count" CStyleName="oddball_ball_spawn_count" pascalStyleName="OddballBallSpawnCount" />
+          <Enum name="oddball ball hit damage" CStyleName="oddball_ball_hit_damage" pascalStyleName="OddballBallHitDamage" />
+          <Enum name="oddball speed with ball" CStyleName="oddball_speed_with_ball" pascalStyleName="OddballSpeedWithBall" />
+          <Enum name="oddball driving gunning with ball" CStyleName="oddball_driving_gunning_with_ball" pascalStyleName="OddballDrivingGunningWithBall" />
+          <Enum name="oddball waypoint to ball" CStyleName="oddball_waypoint_to_ball" pascalStyleName="OddballWaypointToBall" />
+          <Enum name="race random track" CStyleName="race_random_track" pascalStyleName="RaceRandomTrack" />
+          <Enum name="race uncontested flag" CStyleName="race_uncontested_flag" pascalStyleName="RaceUncontestedFlag" />
+          <Enum name="ctf game type" CStyleName="ctf_game_type" pascalStyleName="CtfGameType" />
+          <Enum name="ctf sudden death" CStyleName="ctf_sudden_death" pascalStyleName="CtfSuddenDeath" />
+          <Enum name="ctf flag may be returned" CStyleName="ctf_flag_may_be_returned" pascalStyleName="CtfFlagMayBeReturned" />
+          <Enum name="ctf flag at home to score" CStyleName="ctf_flag_at_home_to_score" pascalStyleName="CtfFlagAtHomeToScore" />
+          <Enum name="ctf flag reset time" CStyleName="ctf_flag_reset_time" pascalStyleName="CtfFlagResetTime" />
+          <Enum name="ctf speed with flag" CStyleName="ctf_speed_with_flag" pascalStyleName="CtfSpeedWithFlag" />
+          <Enum name="ctf flag hit damage" CStyleName="ctf_flag_hit_damage" pascalStyleName="CtfFlagHitDamage" />
+          <Enum name="ctf driving gunning with flag" CStyleName="ctf_driving_gunning_with_flag" pascalStyleName="CtfDrivingGunningWithFlag" />
+          <Enum name="ctf waypoint to own flag" CStyleName="ctf_waypoint_to_own_flag" pascalStyleName="CtfWaypointToOwnFlag" />
+          <Enum name="assault game type" CStyleName="assault_game_type" pascalStyleName="AssaultGameType" />
+          <Enum name="assault sudden death" CStyleName="assault_sudden_death" pascalStyleName="AssaultSuddenDeath" />
+          <Enum name="assault detonation time" CStyleName="assault_detonation_time" pascalStyleName="AssaultDetonationTime" />
+          <Enum name="assault bomb at home to score" CStyleName="assault_bomb_at_home_to_score" pascalStyleName="AssaultBombAtHomeToScore" />
+          <Enum name="assault arming time" CStyleName="assault_arming_time" pascalStyleName="AssaultArmingTime" />
+          <Enum name="assault speed with bomb" CStyleName="assault_speed_with_bomb" pascalStyleName="AssaultSpeedWithBomb" />
+          <Enum name="assault bomb hit damage" CStyleName="assault_bomb_hit_damage" pascalStyleName="AssaultBombHitDamage" />
+          <Enum name="assault driving gunning with bomb" CStyleName="assault_driving_gunning_with_bomb" pascalStyleName="AssaultDrivingGunningWithBomb" />
+          <Enum name="assault waypoint to own bomb" CStyleName="assault_waypoint_to_own_bomb" pascalStyleName="AssaultWaypointToOwnBomb" />
+          <Enum name="juggernaut betrayal point loss" CStyleName="juggernaut_betrayal_point_loss" pascalStyleName="JuggernautBetrayalPointLoss" />
+          <Enum name="juggernaut juggy extra damage" CStyleName="juggernaut_juggy_extra_damage" pascalStyleName="JuggernautJuggyExtraDamage" />
+          <Enum name="juggernaut juggy infinite ammo" CStyleName="juggernaut_juggy_infinite_ammo" pascalStyleName="JuggernautJuggyInfiniteAmmo" />
+          <Enum name="juggernaut juggy overshields" CStyleName="juggernaut_juggy_overshields" pascalStyleName="JuggernautJuggyOvershields" />
+          <Enum name="juggernaut juggy active camo" CStyleName="juggernaut_juggy_active_camo" pascalStyleName="JuggernautJuggyActiveCamo" />
+          <Enum name="juggernaut juggy motion sensor" CStyleName="juggernaut_juggy_motion_sensor" pascalStyleName="JuggernautJuggyMotionSensor" />
+          <Enum name="territories territory count" CStyleName="territories_territory_count" pascalStyleName="TerritoriesTerritoryCount" />
+          <Enum name="veh. respawn" CStyleName="veh_respawn" pascalStyleName="VehRespawn" />
+          <Enum name="veh. primary light land" CStyleName="veh_primary_light_land" pascalStyleName="VehPrimaryLightLand" />
+          <Enum name="veh. secondary light land" CStyleName="veh_secondary_light_land" pascalStyleName="VehSecondaryLightLand" />
+          <Enum name="veh. primary heavy land" CStyleName="veh_primary_heavy_land" pascalStyleName="VehPrimaryHeavyLand" />
+          <Enum name="veh. primary flying" CStyleName="veh_primary_flying" pascalStyleName="VehPrimaryFlying" />
+          <Enum name="veh. secondary heavy land" CStyleName="veh_secondary_heavy_land" pascalStyleName="VehSecondaryHeavyLand" />
+          <Enum name="veh. primary turret" CStyleName="veh_primary_turret" pascalStyleName="VehPrimaryTurret" />
+          <Enum name="veh. secondary turret" CStyleName="veh_secondary_turret" pascalStyleName="VehSecondaryTurret" />
+          <Enum name="equip. weapons on map" CStyleName="equip_weapons_on_map" pascalStyleName="EquipWeaponsOnMap" />
+          <Enum name="equip. overshields on map" CStyleName="equip_overshields_on_map" pascalStyleName="EquipOvershieldsOnMap" />
+          <Enum name="equip. active camo on map" CStyleName="equip_active_camo_on_map" pascalStyleName="EquipActiveCamoOnMap" />
+          <Enum name="equip. grenades on map" CStyleName="equip_grenades_on_map" pascalStyleName="EquipGrenadesOnMap" />
+          <Enum name="equip. weapon respawn times" CStyleName="equip_weapon_respawn_times" pascalStyleName="EquipWeaponRespawnTimes" />
+          <Enum name="equip. starting grenades" CStyleName="equip_starting_grenades" pascalStyleName="EquipStartingGrenades" />
+          <Enum name="equip. primary starting equipment" CStyleName="equip_primary_starting_equipment" pascalStyleName="EquipPrimaryStartingEquipment" />
+          <Enum name="UNS. max. living players" CStyleName="uns_max_living_players" pascalStyleName="UnsMaxLivingPlayers" />
+          <Enum name="UNS. teams enabled" CStyleName="uns_teams_enabled" pascalStyleName="UnsTeamsEnabled" />
+          <Enum name="UNS. assault bomb may be returned" CStyleName="uns_assault_bomb_may_be_returned" pascalStyleName="UnsAssaultBombMayBeReturned" />
+          <Enum name="UNS. max. teams" CStyleName="uns_max_teams" pascalStyleName="UnsMaxTeams" />
+          <Enum name="UNS. equip. secondary starting equipment" CStyleName="uns_equip_secondary_starting_equipment" pascalStyleName="UnsEquipSecondaryStartingEquipment" />
+          <Enum name="UNS. assault fuse time" CStyleName="uns_assault_fuse_time" pascalStyleName="UnsAssaultFuseTime" />
+          <Enum name="UNS. juggy movement" CStyleName="uns_juggy_movement" pascalStyleName="UnsJuggyMovement" />
+          <Enum name="UNS. sticky fuse" CStyleName="uns_sticky_fuse" pascalStyleName="UnsStickyFuse" />
+          <Enum name="UNS. terr. contest time" CStyleName="uns_terr_contest_time" pascalStyleName="UnsTerrContestTime" />
+          <Enum name="UNS. terr. control time" CStyleName="uns_terr_control_time" pascalStyleName="UnsTerrControlTime" />
+          <Enum name="UNS. oddb. carr. invis" CStyleName="uns_oddb_carr_invis" pascalStyleName="UnsOddbCarrInvis" />
+          <Enum name="UNS. king invis in hill" CStyleName="uns_king_invis_in_hill" pascalStyleName="UnsKingInvisInHill" />
+          <Enum name="UNS. ball carr. dmg. resis." CStyleName="uns_ball_carr_dmg_resis" pascalStyleName="UnsBallCarrDmgResis" />
+          <Enum name="UNS. king dmg. res. in hill" CStyleName="uns_king_dmg_res_in_hill" pascalStyleName="UnsKingDmgResInHill" />
+          <Enum name="UNS. players ex. dmg" CStyleName="uns_players_ex_dmg" pascalStyleName="UnsPlayersExDmg" />
+          <Enum name="UNS. players dmg. resis." CStyleName="uns_players_dmg_resis" pascalStyleName="UnsPlayersDmgResis" />
+          <Enum name="UNS. ctf carr. dmg. resis." CStyleName="uns_ctf_carr_dmg_resis" pascalStyleName="UnsCtfCarrDmgResis" />
+          <Enum name="UNS. ctf carr. invis." CStyleName="uns_ctf_carr_invis" pascalStyleName="UnsCtfCarrInvis" />
+          <Enum name="UNS. juggy dmg. resis." CStyleName="uns_juggy_dmg_resis" pascalStyleName="UnsJuggyDmgResis" />
+          <Enum name="UNS. bomb carr. dmg. resis." CStyleName="uns_bomb_carr_dmg_resis" pascalStyleName="UnsBombCarrDmgResis" />
+          <Enum name="UNS. bomb carr. invis." CStyleName="uns_bomb_carr_invis" pascalStyleName="UnsBombCarrInvis" />
+          <Enum name="UNS. force even teams" CStyleName="uns_force_even_teams" pascalStyleName="UnsForceEvenTeams" />
+          <Enum name="skulls arbiter_envy" CStyleName="skulls_arbiter_envy" pascalStyleName="SkullsArbiterEnvy" />
+          <Enum name="skulls grunt_birthday_party" CStyleName="skulls_grunt_birthday_party" pascalStyleName="SkullsGruntBirthdayParty" />
+          <Enum name="skulls famine" CStyleName="skulls_famine" pascalStyleName="SkullsFamine" />
+          <Enum name="skulls blind" CStyleName="skulls_blind" pascalStyleName="SkullsBlind" />
+          <Enum name="skulls black_eye" CStyleName="skulls_black_eye" pascalStyleName="SkullsBlackEye" />
+          <Enum name="skulls sputnik" CStyleName="skulls_sputnik" pascalStyleName="SkullsSputnik" />
+          <Enum name="skulls boom" CStyleName="skulls_boom" pascalStyleName="SkullsBoom" />
+          <Enum name="skulls eye_patch" CStyleName="skulls_eye_patch" pascalStyleName="SkullsEyePatch" />
+          <Enum name="skulls foreign" CStyleName="skulls_foreign" pascalStyleName="SkullsForeign" />
+          <Enum name="skulls grunt_funeral" CStyleName="skulls_grunt_funeral" pascalStyleName="SkullsGruntFuneral" />
+          <Enum name="skulls recession" CStyleName="skulls_recession" pascalStyleName="SkullsRecession" />
+          <Enum name="skulls malfunction" CStyleName="skulls_malfunction" pascalStyleName="SkullsMalfunction" />
+          <Enum name="skulls streaking" CStyleName="skulls_streaking" pascalStyleName="SkullsStreaking" />
+          <Enum name="skulls scarab" CStyleName="skulls_scarab" pascalStyleName="SkullsScarab" />
+          <Enum name="skulls feather" CStyleName="skulls_feather" pascalStyleName="SkullsFeather" />
+          <Enum name="veh. indestructible" CStyleName="veh_indestructible" pascalStyleName="VehIndestructible" />
+          <Enum name="world gravity modifier" CStyleName="world_gravity_modifier" pascalStyleName="WorldGravityModifier" />
+          <Enum name="player traits movement gravity" CStyleName="player_traits_movement_gravity" pascalStyleName="PlayerTraitsMovementGravity" />
+          <Enum name="vehicle traits movement gravity" CStyleName="vehicle_traits_movement_gravity" pascalStyleName="VehicleTraitsMovementGravity" />
+          <Enum name="infinite ammo" CStyleName="infinite_ammo" pascalStyleName="InfiniteAmmo" />
+          <Enum name="recharging grenades" CStyleName="recharging_grenades" pascalStyleName="RechargingGrenades" />
+          <Enum name="bottomless clip" CStyleName="bottomless_clip" pascalStyleName="BottomlessClip" />
+          <Enum name="match medic score to win round" CStyleName="match_medic_score_to_win_round" pascalStyleName="MatchMedicScoreToWinRound" />
+          <Enum name="medic unused" CStyleName="medic_unused" pascalStyleName="MedicUnused" />
+          <Enum name="medic medic active camo" CStyleName="medic_medic_active_camo" pascalStyleName="MedicMedicActiveCamo" />
+          <Enum name="UNS. medic movement" CStyleName="uns_medic_movement" pascalStyleName="UnsMedicMovement" />
+          <Enum name="UNS. medic less damage" CStyleName="uns_medic_less_damage" pascalStyleName="UnsMedicLessDamage" />
+          <Enum name="UNS. medic shields" CStyleName="uns_medic_shields" pascalStyleName="UnsMedicShields" />
+          <Enum name="UNS. medic berserk" CStyleName="uns_medic_berserk" pascalStyleName="UnsMedicBerserk" />
+          <Enum name="UNS. medic all start as medic" CStyleName="uns_medic_all_start_as_medic" pascalStyleName="UnsMedicAllStartAsMedic" />
+          <Enum name="match vip score to win round" CStyleName="match_vip_score_to_win_round" pascalStyleName="MatchVipScoreToWinRound" />
+          <Enum name="vip extra damage" CStyleName="vip_extra_damage" pascalStyleName="VipExtraDamage" />
+          <Enum name="vip damage resist" CStyleName="vip_damage_resist" pascalStyleName="VipDamageResist" />
+          <Enum name="vip active camo" CStyleName="vip_active_camo" pascalStyleName="VipActiveCamo" />
+          <Enum name="vip has motion sensor" CStyleName="vip_has_motion_sensor" pascalStyleName="VipHasMotionSensor" />
+          <Enum name="infected extra damage" CStyleName="infected_extra_damage" pascalStyleName="InfectedExtraDamage" />
+          <Enum name="infected damage resist" CStyleName="infected_damage_resist" pascalStyleName="InfectedDamageResist" />
+          <Enum name="infected active camo" CStyleName="infected_active_camo" pascalStyleName="InfectedActiveCamo" />
+          <Enum name="infected have motion sensor" CStyleName="infected_have_motion_sensor" pascalStyleName="InfectedHaveMotionSensor" />
+          <Enum name="vip show enemy vip waypoint" CStyleName="vip_show_enemy_vip_waypoint" pascalStyleName="VipShowEnemyVipWaypoint" />
+          <Enum name="vip helps teammates" CStyleName="vip_helps_teammates" pascalStyleName="VipHelpsTeammates" />
+          <Enum name="headhunter own team pickup" CStyleName="headhunter_own_team_pickup" pascalStyleName="HeadhunterOwnTeamPickup" />
+          <Enum name="vip active camo teammates" CStyleName="vip_active_camo_teammates" pascalStyleName="VipActiveCamoTeammates" />
+          <Enum name="vip extra damage teammates" CStyleName="vip_extra_damage_teammates" pascalStyleName="VipExtraDamageTeammates" />
+          <Enum name="match infection score to win round" CStyleName="match_infection_score_to_win_round" pascalStyleName="MatchInfectionScoreToWinRound" />
+          <Enum name="ctf flag shows player emblem" CStyleName="ctf_flag_shows_player_emblem" pascalStyleName="CtfFlagShowsPlayerEmblem" />
+        </Options>
+      </LongEnum>
+      <Pad sizeOfSource="sizeof(long)" length="4" name="Pad" />
+      <TagReference CStyleName="string_list" pascalStyleName="StringList" name="string list">
+        <tag>unic</tag>
+      </TagReference>
+      <StringId CStyleName="title_text" pascalStyleName="TitleText" name="title text" />
+      <StringId CStyleName="header_text" pascalStyleName="HeaderText" name="header text" />
+      <StringId CStyleName="description_text" pascalStyleName="DescriptionText" name="description text" />
+      <Block CStyleName="text_value_pairs" pascalStyleName="TextValuePairs" name="text value pairs" maxElementCount="32" maxElementCountSource="k_maximum_text_value_pairs_new_per_block">
+        <Layout regolithID="block:text_value_pair_reference" internalName="text_value_pair_reference_block" name="text_value_pair_reference_block">
+          <FieldSet version="0" sizeofValue="12" sizeofSource="sizeof(s_text_value_pair_reference_new)" isLatest="true">
+            <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:text_value_flags" CStyleName="text_value_flags" pascalStyleName="TextValueFlags">
+                <Bit name="default setting" CStyleName="default_setting_bit" pascalStyleName="DefaultSettingBit" />
+              </Options>
+            </LongFlags>
+            <LongInteger CStyleName="value" pascalStyleName="Value" name="value" />
+            <StringId CStyleName="label_string_id" pascalStyleName="LabelStringId" name="label string id" />
+          </FieldSet>
+        </Layout>
+      </Block>
+    </FieldSet>
+  </Layout>
+</TagGroup>

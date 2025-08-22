@@ -1,0 +1,369 @@
+﻿<?xml version='1.0' encoding='utf-8-sig'?>
+<TagGroup group="skin" name="user_interface_list_skin_definition" version="1">
+  <Layout regolithID="block:user_interface_list_skin_definition" internalName="user_interface_list_skin_definition_block" name="user_interface_list_skin_definition">
+    <FieldSet version="0" sizeofValue="88" sizeofSource="sizeof(s_list_item_skin_definition)" isLatest="true">
+      <LongFlags CStyleName="list_flags" pascalStyleName="ListFlags" name="list flags">
+        <Options regolithID="enum:list_flags" CStyleName="list_flags" pascalStyleName="ListFlags">
+          <Bit name="unused" CStyleName="unused0_bit" pascalStyleName="Unused0Bit" />
+        </Options>
+      </LongFlags>
+      <UselessPad length="8" name="UselessPad" />
+      <TagReference CStyleName="arrows_bitmap" pascalStyleName="ArrowsBitmap" name="arrows bitmap">
+        <tag>bitm</tag>
+      </TagReference>
+      <Point2D CStyleName="up_arrows_offset" pascalStyleName="UpArrowsOffset" name="up-arrows offset" units="from bot-left of 1st item" />
+      <Point2D CStyleName="down_arrows_offset" pascalStyleName="DownArrowsOffset" name="down-arrows offset" units="from bot-left of 1st item" />
+      <UselessPad length="32" name="UselessPad_1" />
+      <Explanation name="Item Animations" description="Animations ordered as follows:&#10;0) list item focused&#10;1) list item unfocused&#10;2) list item ambient&#10;3) list item hovered&#10;4) list item unhovered&#10;5) list item clicked (hovered-&gt;focused)&#10;6) list item unfocused back to hovered state (focused-&gt;hovered)&#10;" />
+      <Block CStyleName="item_animations" pascalStyleName="ItemAnimations" name="item animations" maxElementCount="7" maxElementCountSource="k_maximum_number_of_single_animations">
+        <Layout regolithID="block:single_animation_reference" internalName="single_animation_reference_block" name="single_animation_reference_block">
+          <FieldSet version="0" sizeofValue="20" sizeofSource="sizeof(s_single_animation_reference)" isLatest="true">
+            <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:single_animation_reference_flags" CStyleName="single_animation_reference_flags" pascalStyleName="SingleAnimationReferenceFlags">
+                <Bit name="unused" CStyleName="unused0_bit" pascalStyleName="Unused0Bit" />
+              </Options>
+            </LongFlags>
+            <LongInteger CStyleName="animation_period" pascalStyleName="AnimationPeriod" name="animation period" units="milliseconds" />
+            <Block CStyleName="keyframes" pascalStyleName="Keyframes" name="keyframes" maxElementCount="64" maxElementCountSource="k_maximum_number_of_animation_keyframe_blocks">
+              <Layout regolithID="block:screen_animation_keyframe_reference" internalName="screen_animation_keyframe_reference_block" name="screen_animation_keyframe_reference_block">
+                <FieldSet version="0" sizeofValue="20" sizeofSource="sizeof(s_animation_keyframe_reference)" isLatest="true">
+                  <Pad sizeOfSource="sizeof(long)" length="4" name="Pad" />
+                  <Real CStyleName="alpha" pascalStyleName="Alpha" name="alpha" />
+                  <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" />
+                </FieldSet>
+              </Layout>
+            </Block>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="text_blocks" pascalStyleName="TextBlocks" name="text blocks" maxElementCount="64" maxElementCountSource="k_maximum_number_of_text_blocks">
+        <Layout regolithID="block:text_block_reference" internalName="text_block_reference_block" name="text_block_reference_block">
+          <FieldSet version="0" sizeofValue="44" sizeofSource="sizeof(s_text_block_reference)" isLatest="true">
+            <LongFlags CStyleName="text_flags" pascalStyleName="TextFlags" name="text flags">
+              <Options regolithID="enum:text_flags" CStyleName="text_flags" pascalStyleName="TextFlags">
+                <Bit name="left justify text" CStyleName="left_justify_text_bit" pascalStyleName="LeftJustifyTextBit" />
+                <Bit name="right justify text" CStyleName="right_justify_text_bit" pascalStyleName="RightJustifyTextBit" />
+                <Bit name="pulsating text" CStyleName="pulsating_text_bit" pascalStyleName="PulsatingTextBit" />
+                <Bit name="callout text" CStyleName="callout_text_bit" pascalStyleName="CalloutTextBit" />
+                <Bit name="small (31 char) buffer" CStyleName="small_31_char_buffer_bit" pascalStyleName="Small31CharBufferBit" />
+              </Options>
+            </LongFlags>
+            <ShortEnum CStyleName="animation_index" pascalStyleName="AnimationIndex" name="animation index">
+              <Options regolithID="enum:text_block_animation_index" CStyleName="text_block_animation_index" pascalStyleName="TextBlockAnimationIndex">
+                <Enum name="NONE" CStyleName="none" pascalStyleName="None" />
+                <Enum name="00" CStyleName="_00" pascalStyleName="00" />
+                <Enum name="01" CStyleName="_01" pascalStyleName="01" />
+                <Enum name="02" CStyleName="_02" pascalStyleName="02" />
+                <Enum name="03" CStyleName="_03" pascalStyleName="03" />
+                <Enum name="04" CStyleName="_04" pascalStyleName="04" />
+                <Enum name="05" CStyleName="_05" pascalStyleName="05" />
+                <Enum name="06" CStyleName="_06" pascalStyleName="06" />
+                <Enum name="07" CStyleName="_07" pascalStyleName="07" />
+                <Enum name="08" CStyleName="_08" pascalStyleName="08" />
+                <Enum name="09" CStyleName="_09" pascalStyleName="09" />
+                <Enum name="10" CStyleName="_10" pascalStyleName="10" />
+                <Enum name="11" CStyleName="_11" pascalStyleName="11" />
+                <Enum name="12" CStyleName="_12" pascalStyleName="12" />
+                <Enum name="13" CStyleName="_13" pascalStyleName="13" />
+                <Enum name="14" CStyleName="_14" pascalStyleName="14" />
+                <Enum name="15" CStyleName="_15" pascalStyleName="15" />
+                <Enum name="16" CStyleName="_16" pascalStyleName="16" />
+                <Enum name="17" CStyleName="_17" pascalStyleName="17" />
+                <Enum name="18" CStyleName="_18" pascalStyleName="18" />
+                <Enum name="19" CStyleName="_19" pascalStyleName="19" />
+                <Enum name="20" CStyleName="_20" pascalStyleName="20" />
+                <Enum name="21" CStyleName="_21" pascalStyleName="21" />
+                <Enum name="22" CStyleName="_22" pascalStyleName="22" />
+                <Enum name="23" CStyleName="_23" pascalStyleName="23" />
+                <Enum name="24" CStyleName="_24" pascalStyleName="24" />
+                <Enum name="25" CStyleName="_25" pascalStyleName="25" />
+                <Enum name="26" CStyleName="_26" pascalStyleName="26" />
+                <Enum name="27" CStyleName="_27" pascalStyleName="27" />
+                <Enum name="28" CStyleName="_28" pascalStyleName="28" />
+                <Enum name="29" CStyleName="_29" pascalStyleName="29" />
+                <Enum name="30" CStyleName="_30" pascalStyleName="30" />
+                <Enum name="31" CStyleName="_31" pascalStyleName="31" />
+                <Enum name="32" CStyleName="_32" pascalStyleName="32" />
+                <Enum name="33" CStyleName="_33" pascalStyleName="33" />
+                <Enum name="34" CStyleName="_34" pascalStyleName="34" />
+                <Enum name="35" CStyleName="_35" pascalStyleName="35" />
+                <Enum name="36" CStyleName="_36" pascalStyleName="36" />
+                <Enum name="37" CStyleName="_37" pascalStyleName="37" />
+                <Enum name="38" CStyleName="_38" pascalStyleName="38" />
+                <Enum name="39" CStyleName="_39" pascalStyleName="39" />
+                <Enum name="40" CStyleName="_40" pascalStyleName="40" />
+                <Enum name="41" CStyleName="_41" pascalStyleName="41" />
+                <Enum name="42" CStyleName="_42" pascalStyleName="42" />
+                <Enum name="43" CStyleName="_43" pascalStyleName="43" />
+                <Enum name="44" CStyleName="_44" pascalStyleName="44" />
+                <Enum name="45" CStyleName="_45" pascalStyleName="45" />
+                <Enum name="46" CStyleName="_46" pascalStyleName="46" />
+                <Enum name="47" CStyleName="_47" pascalStyleName="47" />
+                <Enum name="48" CStyleName="_48" pascalStyleName="48" />
+                <Enum name="49" CStyleName="_49" pascalStyleName="49" />
+                <Enum name="50" CStyleName="_50" pascalStyleName="50" />
+                <Enum name="51" CStyleName="_51" pascalStyleName="51" />
+                <Enum name="52" CStyleName="_52" pascalStyleName="52" />
+                <Enum name="53" CStyleName="_53" pascalStyleName="53" />
+                <Enum name="54" CStyleName="_54" pascalStyleName="54" />
+                <Enum name="55" CStyleName="_55" pascalStyleName="55" />
+                <Enum name="56" CStyleName="_56" pascalStyleName="56" />
+                <Enum name="57" CStyleName="_57" pascalStyleName="57" />
+                <Enum name="58" CStyleName="_58" pascalStyleName="58" />
+                <Enum name="59" CStyleName="_59" pascalStyleName="59" />
+                <Enum name="60" CStyleName="_60" pascalStyleName="60" />
+                <Enum name="61" CStyleName="_61" pascalStyleName="61" />
+                <Enum name="62" CStyleName="_62" pascalStyleName="62" />
+                <Enum name="63" CStyleName="_63" pascalStyleName="63" />
+              </Options>
+            </ShortEnum>
+            <ShortInteger CStyleName="intro_animation_delay_milliseconds" pascalStyleName="IntroAnimationDelayMilliseconds" name="intro animation delay milliseconds" />
+            <Pad sizeOfSource="sizeof(short)" length="2" name="Pad" />
+            <ShortEnum CStyleName="custom_font" pascalStyleName="CustomFont" name="custom font">
+              <Options regolithID="enum:ui_text_style" CStyleName="ui_text_style" pascalStyleName="UiTextStyle">
+                <Enum name="terminal" CStyleName="terminal" pascalStyleName="Terminal" />
+                <Enum name="body text" CStyleName="body_text" pascalStyleName="BodyText" />
+                <Enum name="title" CStyleName="title" pascalStyleName="Title" />
+                <Enum name="super large font" CStyleName="super_large_font" pascalStyleName="SuperLargeFont" />
+                <Enum name="large body text" CStyleName="large_body_text" pascalStyleName="LargeBodyText" />
+                <Enum name="split screen hud message" CStyleName="split_screen_hud_message" pascalStyleName="SplitScreenHudMessage" />
+                <Enum name="full screen hud message" CStyleName="full_screen_hud_message" pascalStyleName="FullScreenHudMessage" />
+                <Enum name="english body text" CStyleName="english_body_text" pascalStyleName="EnglishBodyText" />
+                <Enum name="HUD number text" CStyleName="hud_number_text" pascalStyleName="HudNumberText" />
+                <Enum name="subtitle font" CStyleName="subtitle_font" pascalStyleName="SubtitleFont" />
+                <Enum name="main menu font" CStyleName="main_menu_font" pascalStyleName="MainMenuFont" />
+                <Enum name="text chat font" CStyleName="text_chat_font" pascalStyleName="TextChatFont" />
+              </Options>
+            </ShortEnum>
+            <RealArgbColor CStyleName="text_color" pascalStyleName="TextColor" name="text color" />
+            <Rectangle2D CStyleName="text_bounds" pascalStyleName="TextBounds" name="text bounds" />
+            <StringId CStyleName="string_id" pascalStyleName="StringId" name="string id" />
+            <ShortInteger CStyleName="render_depth_bias" pascalStyleName="RenderDepthBias" name="render depth bias" />
+            <Pad sizeOfSource="sizeof(short)" length="2" name="Pad_1" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Explanation name="NOTE" description="the bitmap block top-left is actually bottom-left here in list skin land!" />
+      <Block CStyleName="bitmap_blocks" pascalStyleName="BitmapBlocks" name="bitmap blocks" maxElementCount="64" maxElementCountSource="k_maximum_number_of_bitmap_blocks">
+        <Layout regolithID="block:bitmap_block_reference" internalName="bitmap_block_reference_block" name="bitmap_block_reference_block">
+          <FieldSet version="0" sizeofValue="64" sizeofSource="sizeof(s_bitmap_block_reference)" isLatest="true">
+            <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:bitmap_block_reference_flags" CStyleName="bitmap_block_reference_flags" pascalStyleName="BitmapBlockReferenceFlags">
+                <Bit name="ignore for list skin size calculation" CStyleName="ignore_for_list_skin_size_calculation_bit" pascalStyleName="IgnoreForListSkinSizeCalculationBit" />
+                <Bit name="swap on relative list position" CStyleName="swap_on_relative_list_position_bit" pascalStyleName="SwapOnRelativeListPositionBit" />
+                <Bit name="render as progress bar" CStyleName="render_as_progress_bar_bit" pascalStyleName="RenderAsProgressBarBit" />
+              </Options>
+            </LongFlags>
+            <ShortEnum CStyleName="animation_index" pascalStyleName="AnimationIndex" name="animation index">
+              <Options regolithID="enum:text_block_animation_index" CStyleName="text_block_animation_index" pascalStyleName="TextBlockAnimationIndex">
+                <Enum name="NONE" CStyleName="none" pascalStyleName="None" />
+                <Enum name="00" CStyleName="_00" pascalStyleName="00" />
+                <Enum name="01" CStyleName="_01" pascalStyleName="01" />
+                <Enum name="02" CStyleName="_02" pascalStyleName="02" />
+                <Enum name="03" CStyleName="_03" pascalStyleName="03" />
+                <Enum name="04" CStyleName="_04" pascalStyleName="04" />
+                <Enum name="05" CStyleName="_05" pascalStyleName="05" />
+                <Enum name="06" CStyleName="_06" pascalStyleName="06" />
+                <Enum name="07" CStyleName="_07" pascalStyleName="07" />
+                <Enum name="08" CStyleName="_08" pascalStyleName="08" />
+                <Enum name="09" CStyleName="_09" pascalStyleName="09" />
+                <Enum name="10" CStyleName="_10" pascalStyleName="10" />
+                <Enum name="11" CStyleName="_11" pascalStyleName="11" />
+                <Enum name="12" CStyleName="_12" pascalStyleName="12" />
+                <Enum name="13" CStyleName="_13" pascalStyleName="13" />
+                <Enum name="14" CStyleName="_14" pascalStyleName="14" />
+                <Enum name="15" CStyleName="_15" pascalStyleName="15" />
+                <Enum name="16" CStyleName="_16" pascalStyleName="16" />
+                <Enum name="17" CStyleName="_17" pascalStyleName="17" />
+                <Enum name="18" CStyleName="_18" pascalStyleName="18" />
+                <Enum name="19" CStyleName="_19" pascalStyleName="19" />
+                <Enum name="20" CStyleName="_20" pascalStyleName="20" />
+                <Enum name="21" CStyleName="_21" pascalStyleName="21" />
+                <Enum name="22" CStyleName="_22" pascalStyleName="22" />
+                <Enum name="23" CStyleName="_23" pascalStyleName="23" />
+                <Enum name="24" CStyleName="_24" pascalStyleName="24" />
+                <Enum name="25" CStyleName="_25" pascalStyleName="25" />
+                <Enum name="26" CStyleName="_26" pascalStyleName="26" />
+                <Enum name="27" CStyleName="_27" pascalStyleName="27" />
+                <Enum name="28" CStyleName="_28" pascalStyleName="28" />
+                <Enum name="29" CStyleName="_29" pascalStyleName="29" />
+                <Enum name="30" CStyleName="_30" pascalStyleName="30" />
+                <Enum name="31" CStyleName="_31" pascalStyleName="31" />
+                <Enum name="32" CStyleName="_32" pascalStyleName="32" />
+                <Enum name="33" CStyleName="_33" pascalStyleName="33" />
+                <Enum name="34" CStyleName="_34" pascalStyleName="34" />
+                <Enum name="35" CStyleName="_35" pascalStyleName="35" />
+                <Enum name="36" CStyleName="_36" pascalStyleName="36" />
+                <Enum name="37" CStyleName="_37" pascalStyleName="37" />
+                <Enum name="38" CStyleName="_38" pascalStyleName="38" />
+                <Enum name="39" CStyleName="_39" pascalStyleName="39" />
+                <Enum name="40" CStyleName="_40" pascalStyleName="40" />
+                <Enum name="41" CStyleName="_41" pascalStyleName="41" />
+                <Enum name="42" CStyleName="_42" pascalStyleName="42" />
+                <Enum name="43" CStyleName="_43" pascalStyleName="43" />
+                <Enum name="44" CStyleName="_44" pascalStyleName="44" />
+                <Enum name="45" CStyleName="_45" pascalStyleName="45" />
+                <Enum name="46" CStyleName="_46" pascalStyleName="46" />
+                <Enum name="47" CStyleName="_47" pascalStyleName="47" />
+                <Enum name="48" CStyleName="_48" pascalStyleName="48" />
+                <Enum name="49" CStyleName="_49" pascalStyleName="49" />
+                <Enum name="50" CStyleName="_50" pascalStyleName="50" />
+                <Enum name="51" CStyleName="_51" pascalStyleName="51" />
+                <Enum name="52" CStyleName="_52" pascalStyleName="52" />
+                <Enum name="53" CStyleName="_53" pascalStyleName="53" />
+                <Enum name="54" CStyleName="_54" pascalStyleName="54" />
+                <Enum name="55" CStyleName="_55" pascalStyleName="55" />
+                <Enum name="56" CStyleName="_56" pascalStyleName="56" />
+                <Enum name="57" CStyleName="_57" pascalStyleName="57" />
+                <Enum name="58" CStyleName="_58" pascalStyleName="58" />
+                <Enum name="59" CStyleName="_59" pascalStyleName="59" />
+                <Enum name="60" CStyleName="_60" pascalStyleName="60" />
+                <Enum name="61" CStyleName="_61" pascalStyleName="61" />
+                <Enum name="62" CStyleName="_62" pascalStyleName="62" />
+                <Enum name="63" CStyleName="_63" pascalStyleName="63" />
+              </Options>
+            </ShortEnum>
+            <ShortInteger CStyleName="intro_animation_delay_milliseconds" pascalStyleName="IntroAnimationDelayMilliseconds" name="intro animation delay milliseconds" />
+            <ShortEnum CStyleName="bitmap_blend_method" pascalStyleName="BitmapBlendMethod" name="bitmap blend method">
+              <Options regolithID="enum:bitmap_blend_method" CStyleName="bitmap_blend_method" pascalStyleName="BitmapBlendMethod">
+                <Enum name="standard" CStyleName="standard" pascalStyleName="Standard" />
+                <Enum name="multiply" CStyleName="multiply" pascalStyleName="Multiply" />
+                <Enum name="UNUSED" expertOnly="true" CStyleName="unused2" pascalStyleName="Unused2" />
+              </Options>
+            </ShortEnum>
+            <ShortInteger CStyleName="initial_sprite_frame" pascalStyleName="InitialSpriteFrame" name="initial sprite frame" />
+            <Point2D CStyleName="top_left" pascalStyleName="TopLeft" name="top-left" />
+            <Real CStyleName="horiz_texture_wrapssecond" pascalStyleName="HorizTextureWrapssecond" name="horiz texture wraps/second" />
+            <Real CStyleName="vert_texture_wrapssecond" pascalStyleName="VertTextureWrapssecond" name="vert texture wraps/second" />
+            <TagReference CStyleName="bitmap_tag" pascalStyleName="BitmapTag" name="bitmap tag">
+              <tag>bitm</tag>
+            </TagReference>
+            <ShortInteger CStyleName="render_depth_bias" pascalStyleName="RenderDepthBias" name="render depth bias" />
+            <Pad sizeOfSource="sizeof(short)" length="2" name="Pad" />
+            <Real CStyleName="sprite_animation_speed_fps" pascalStyleName="SpriteAnimationSpeedFps" name="sprite animation speed fps" />
+            <Point2D CStyleName="progress_bottom_left" pascalStyleName="ProgressBottomLeft" name="progress bottom-left" />
+            <StringId CStyleName="string_identifier" pascalStyleName="StringIdentifier" name="string identifier" />
+            <UselessPad length="12" name="UselessPad" />
+            <UselessPad length="12" name="UselessPad_1" />
+            <RealVector2D CStyleName="render_scale" pascalStyleName="RenderScale" name="render scale" />
+            <UselessPad length="4" name="UselessPad_2" />
+            <UselessPad length="4" name="UselessPad_3" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="hud_blocks" pascalStyleName="HudBlocks" name="hud blocks" maxElementCount="64" maxElementCountSource="k_maximum_number_of_hud_blocks">
+        <Layout regolithID="block:hud_block_reference" internalName="hud_block_reference_block" name="hud_block_reference_block">
+          <FieldSet version="0" sizeofValue="52" sizeofSource="sizeof(s_hud_block_reference)" isLatest="true">
+            <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:hud_reference_flags" CStyleName="hud_reference_flags" pascalStyleName="HudReferenceFlags">
+                <Bit name="ignore for list skin size" CStyleName="ignore_for_list_skin_size_bit" pascalStyleName="IgnoreForListSkinSizeBit" />
+                <Bit name="needs valid rank" CStyleName="needs_valid_rank_bit" pascalStyleName="NeedsValidRankBit" />
+              </Options>
+            </LongFlags>
+            <ShortEnum CStyleName="animation_index" pascalStyleName="AnimationIndex" name="animation index">
+              <Options regolithID="enum:text_block_animation_index" CStyleName="text_block_animation_index" pascalStyleName="TextBlockAnimationIndex">
+                <Enum name="NONE" CStyleName="none" pascalStyleName="None" />
+                <Enum name="00" CStyleName="_00" pascalStyleName="00" />
+                <Enum name="01" CStyleName="_01" pascalStyleName="01" />
+                <Enum name="02" CStyleName="_02" pascalStyleName="02" />
+                <Enum name="03" CStyleName="_03" pascalStyleName="03" />
+                <Enum name="04" CStyleName="_04" pascalStyleName="04" />
+                <Enum name="05" CStyleName="_05" pascalStyleName="05" />
+                <Enum name="06" CStyleName="_06" pascalStyleName="06" />
+                <Enum name="07" CStyleName="_07" pascalStyleName="07" />
+                <Enum name="08" CStyleName="_08" pascalStyleName="08" />
+                <Enum name="09" CStyleName="_09" pascalStyleName="09" />
+                <Enum name="10" CStyleName="_10" pascalStyleName="10" />
+                <Enum name="11" CStyleName="_11" pascalStyleName="11" />
+                <Enum name="12" CStyleName="_12" pascalStyleName="12" />
+                <Enum name="13" CStyleName="_13" pascalStyleName="13" />
+                <Enum name="14" CStyleName="_14" pascalStyleName="14" />
+                <Enum name="15" CStyleName="_15" pascalStyleName="15" />
+                <Enum name="16" CStyleName="_16" pascalStyleName="16" />
+                <Enum name="17" CStyleName="_17" pascalStyleName="17" />
+                <Enum name="18" CStyleName="_18" pascalStyleName="18" />
+                <Enum name="19" CStyleName="_19" pascalStyleName="19" />
+                <Enum name="20" CStyleName="_20" pascalStyleName="20" />
+                <Enum name="21" CStyleName="_21" pascalStyleName="21" />
+                <Enum name="22" CStyleName="_22" pascalStyleName="22" />
+                <Enum name="23" CStyleName="_23" pascalStyleName="23" />
+                <Enum name="24" CStyleName="_24" pascalStyleName="24" />
+                <Enum name="25" CStyleName="_25" pascalStyleName="25" />
+                <Enum name="26" CStyleName="_26" pascalStyleName="26" />
+                <Enum name="27" CStyleName="_27" pascalStyleName="27" />
+                <Enum name="28" CStyleName="_28" pascalStyleName="28" />
+                <Enum name="29" CStyleName="_29" pascalStyleName="29" />
+                <Enum name="30" CStyleName="_30" pascalStyleName="30" />
+                <Enum name="31" CStyleName="_31" pascalStyleName="31" />
+                <Enum name="32" CStyleName="_32" pascalStyleName="32" />
+                <Enum name="33" CStyleName="_33" pascalStyleName="33" />
+                <Enum name="34" CStyleName="_34" pascalStyleName="34" />
+                <Enum name="35" CStyleName="_35" pascalStyleName="35" />
+                <Enum name="36" CStyleName="_36" pascalStyleName="36" />
+                <Enum name="37" CStyleName="_37" pascalStyleName="37" />
+                <Enum name="38" CStyleName="_38" pascalStyleName="38" />
+                <Enum name="39" CStyleName="_39" pascalStyleName="39" />
+                <Enum name="40" CStyleName="_40" pascalStyleName="40" />
+                <Enum name="41" CStyleName="_41" pascalStyleName="41" />
+                <Enum name="42" CStyleName="_42" pascalStyleName="42" />
+                <Enum name="43" CStyleName="_43" pascalStyleName="43" />
+                <Enum name="44" CStyleName="_44" pascalStyleName="44" />
+                <Enum name="45" CStyleName="_45" pascalStyleName="45" />
+                <Enum name="46" CStyleName="_46" pascalStyleName="46" />
+                <Enum name="47" CStyleName="_47" pascalStyleName="47" />
+                <Enum name="48" CStyleName="_48" pascalStyleName="48" />
+                <Enum name="49" CStyleName="_49" pascalStyleName="49" />
+                <Enum name="50" CStyleName="_50" pascalStyleName="50" />
+                <Enum name="51" CStyleName="_51" pascalStyleName="51" />
+                <Enum name="52" CStyleName="_52" pascalStyleName="52" />
+                <Enum name="53" CStyleName="_53" pascalStyleName="53" />
+                <Enum name="54" CStyleName="_54" pascalStyleName="54" />
+                <Enum name="55" CStyleName="_55" pascalStyleName="55" />
+                <Enum name="56" CStyleName="_56" pascalStyleName="56" />
+                <Enum name="57" CStyleName="_57" pascalStyleName="57" />
+                <Enum name="58" CStyleName="_58" pascalStyleName="58" />
+                <Enum name="59" CStyleName="_59" pascalStyleName="59" />
+                <Enum name="60" CStyleName="_60" pascalStyleName="60" />
+                <Enum name="61" CStyleName="_61" pascalStyleName="61" />
+                <Enum name="62" CStyleName="_62" pascalStyleName="62" />
+                <Enum name="63" CStyleName="_63" pascalStyleName="63" />
+              </Options>
+            </ShortEnum>
+            <ShortInteger CStyleName="intro_animation_delay_milliseconds" pascalStyleName="IntroAnimationDelayMilliseconds" name="intro animation delay milliseconds" />
+            <ShortInteger CStyleName="render_depth_bias" pascalStyleName="RenderDepthBias" name="render depth bias" />
+            <ShortInteger CStyleName="starting_bitmap_sequence_index" pascalStyleName="StartingBitmapSequenceIndex" name="starting bitmap sequence index" />
+            <TagReference CStyleName="bitmap" pascalStyleName="Bitmap" name="bitmap">
+              <tag>bitm</tag>
+            </TagReference>
+            <TagReference CStyleName="shader" pascalStyleName="Shader" name="shader">
+              <tag>shad</tag>
+            </TagReference>
+            <Rectangle2D CStyleName="bounds" pascalStyleName="Bounds" name="bounds" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="player_blocks" pascalStyleName="PlayerBlocks" name="player blocks" maxElementCount="64" maxElementCountSource="k_maximum_number_of_player_blocks">
+        <Layout regolithID="block:player_block_reference" internalName="player_block_reference_block" name="player_block_reference_block">
+          <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_player_block_reference)" isLatest="true">
+            <Pad sizeOfSource="sizeof(dword)" length="4" name="Pad" />
+            <TagReference CStyleName="skin" pascalStyleName="Skin" name="skin">
+              <tag>skin</tag>
+            </TagReference>
+            <Point2D CStyleName="bottom_left" pascalStyleName="BottomLeft" name="bottom-left" />
+            <CharEnum CStyleName="table_order" pascalStyleName="TableOrder" name="table order">
+              <Options regolithID="enum:table_order" CStyleName="table_order" pascalStyleName="TableOrder">
+                <Enum name="row major" CStyleName="row_major" pascalStyleName="RowMajor" />
+                <Enum name="column major" CStyleName="column_major" pascalStyleName="ColumnMajor" />
+              </Options>
+            </CharEnum>
+            <CharInteger CStyleName="maximum_player_count" pascalStyleName="MaximumPlayerCount" name="maximum player count" />
+            <CharInteger CStyleName="row_count" pascalStyleName="RowCount" name="row count" />
+            <CharInteger CStyleName="column_count" pascalStyleName="ColumnCount" name="column count" />
+            <ShortInteger CStyleName="row_height" pascalStyleName="RowHeight" name="row height" />
+            <ShortInteger CStyleName="column_width" pascalStyleName="ColumnWidth" name="column width" />
+          </FieldSet>
+        </Layout>
+      </Block>
+    </FieldSet>
+  </Layout>
+</TagGroup>

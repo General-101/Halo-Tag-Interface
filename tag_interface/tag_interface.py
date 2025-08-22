@@ -104,7 +104,7 @@ GENERATE_CHECKSUM = True
 CONVERT_RADIANS = True
 PRESERVE_STRINGS = False
 PRESERVE_PADDING = False
-PRESERVE_VERSION = False
+PRESERVE_VERSION = True
 
 def read_field_header(tag_stream, field_endian="<", is_legacy=False):
     pack_string = "4s3i"
@@ -1434,6 +1434,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
         else:
             has_header = False
             current_struct_field_set = None
+            struct_header = None
             if not return_size:
                 struct_header = tag_block_fields.get(field_node.get("name"))
             if not PRESERVE_VERSION:
@@ -1475,6 +1476,15 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
 
                     if current_struct_field_set is None:
                         raise ValueError(f"Latest field set not found.")
+
+                    field_set_size = 0
+                    for current_field_node in current_struct_field_set:
+                        field_size = get_fields(None, None, None, None, current_field_node, None, None, return_size=True)
+                        if field_size is not None:
+                            field_set_size += field_size
+
+                    if return_size:
+                        return field_set_size
 
                     struct_name = field_node[0].attrib.get('tag')
                     struct_version = int(current_struct_field_set.attrib.get('version'))
@@ -1944,8 +1954,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.render_model"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag3.render_model"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.scenario_structure_bsp"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag4.scenario_structure_bsp"
     tag_directory = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags"
 
     tag_dict = read_file(merged_defs, tag_directory, read_path)
@@ -1953,6 +1963,17 @@ def h2_single_tag():
         json.dump(tag_dict, json_file, ensure_ascii = True, indent=4)
 
     write_file(merged_defs, tag_dict, obfuscation_buffer_prepare(), output_path)
+
+def h2_single_json():
+    output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
+    merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
+
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.scenario_structure_bsp"
+
+    with open(r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\version_1.json", "r", encoding="utf8") as json_file:
+        tag_dict = json.load(json_file)
+
+        write_file(merged_defs, tag_dict, obfuscation_buffer_prepare(), output_path)
 
 def compute_file_hash(path):
     """Compute SHA256 hash of a file in 64K chunks."""
@@ -2104,4 +2125,4 @@ def h2_directory():
                     log_file.write(f"\nInvalid File:\n"
                                 f"  File: {read_path}\n")
                     traceback.print_exc(file=log_file)
-h2_single_tag()
+h2_single_json()

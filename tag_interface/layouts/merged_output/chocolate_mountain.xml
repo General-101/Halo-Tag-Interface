@@ -1,0 +1,258 @@
+﻿<?xml version='1.0' encoding='utf-8-sig'?>
+<TagGroup group="gldf" name="chocolate_mountain" version="1">
+  <Layout regolithID="block:chocolate_mountain" internalName="chocolate_mountain_block" name="chocolate_mountain">
+    <FieldSet version="0" sizeofValue="12" sizeofSource="sizeof(struct s_global_lighting_variables)" isLatest="true">
+      <Block CStyleName="lighting_variables" pascalStyleName="LightingVariables" name="lighting variables" maxElementCount="13" maxElementCountSource="k_object_types_count">
+        <Layout regolithID="block:lighting_variables" internalName="lighting_variables_block" name="lighting_variables_block">
+          <FieldSet version="0" sizeofValue="160" sizeofSource="sizeof(struct s_lighting_variables)" isLatest="true">
+            <LongFlags CStyleName="object_affected" pascalStyleName="ObjectAffected" name="object affected">
+              <Options regolithID="enum:lighting_variables_affected_object_type" CStyleName="lighting_variables_affected_object_type" pascalStyleName="LightingVariablesAffectedObjectType">
+                <Bit name="all" CStyleName="all_bit" pascalStyleName="AllBit" />
+                <Bit name="biped" CStyleName="biped_bit" pascalStyleName="BipedBit" />
+                <Bit name="vehicle" CStyleName="vehicle_bit" pascalStyleName="VehicleBit" />
+                <Bit name="weapon" CStyleName="weapon_bit" pascalStyleName="WeaponBit" />
+                <Bit name="equipment" CStyleName="equipment_bit" pascalStyleName="EquipmentBit" />
+                <Bit name="garbage" CStyleName="garbage_bit" pascalStyleName="GarbageBit" />
+                <Bit name="projectile" CStyleName="projectile_bit" pascalStyleName="ProjectileBit" />
+                <Bit name="scenery" CStyleName="scenery_bit" pascalStyleName="SceneryBit" />
+                <Bit name="machine" CStyleName="machine_bit" pascalStyleName="MachineBit" />
+                <Bit name="control" CStyleName="control_bit" pascalStyleName="ControlBit" />
+                <Bit name="light fixture" CStyleName="light_fixture_bit" pascalStyleName="LightFixtureBit" />
+                <Bit name="sound scenery" CStyleName="sound_scenery_bit" pascalStyleName="SoundSceneryBit" />
+                <Bit name="crate" CStyleName="crate_bit" pascalStyleName="CrateBit" />
+                <Bit name="creature" CStyleName="creature_bit" pascalStyleName="CreatureBit" />
+              </Options>
+            </LongFlags>
+            <Explanation name="Global lightmap sample" />
+            <Real CStyleName="lightmap_brightness_offset" pascalStyleName="LightmapBrightnessOffset" name="Lightmap brightness offset" />
+            <Struct CStyleName="primary_light" pascalStyleName="PrimaryLight" name="StructHeader_primary light">
+              <Layout regolithID="structure:primary_light" Name="Primary light" tag="prli" internalName="primary_light_struct" backingBlockInternalName="primary_light_struct_block">
+                <FieldSet version="0" sizeofValue="40" sizeofSource="sizeof(s_primary_light)" isLatest="true">
+                  <Explanation name="Primary light" />
+                  <RealRgbColor CStyleName="min_lightmap_color" pascalStyleName="MinLightmapColor" name="Min lightmap color" />
+                  <RealRgbColor CStyleName="max_lightmap_color" pascalStyleName="MaxLightmapColor" name="Max lightmap color" />
+                  <Real CStyleName="exclusion_angle_from_up" pascalStyleName="ExclusionAngleFromUp" name="exclusion angle from up" description="degrees from up the direct light cannot be" />
+                  <Explanation name="Primary light function" description="input: accuracy, output: primary light scale" />
+                  <Custom name="function" tag="fned" />
+                  <Struct CStyleName="function" pascalStyleName="Function" name="StructHeader_function">
+                    <Layout regolithID="structure:mapping_function" Name="Mapping" tag="MAPP" internalName="mapping_function" backingBlockInternalName="mapping_function_block">
+                      <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_function_definition_v1)">
+                        <Custom name="HIDE_GROUP_ID" tag="hide" />
+                        <CharInteger CStyleName="function_type" pascalStyleName="FunctionType" name="Function Type" />
+                        <ByteFlags CStyleName="flags" pascalStyleName="Flags" name="Flags">
+                          <Options regolithID="enum:mapping_function_flags" CStyleName="mapping_function_flags" pascalStyleName="MappingFunctionFlags">
+                            <Bit name="Range" CStyleName="range_bit" pascalStyleName="RangeBit" />
+                            <Bit name="Unused 0" CStyleName="unused_0_bit" pascalStyleName="Unused0Bit" />
+                            <Bit name="Unused 1" CStyleName="unused_1_bit" pascalStyleName="Unused1Bit" />
+                            <Bit name="Unused 2" CStyleName="unused_2_bit" pascalStyleName="Unused2Bit" />
+                            <Bit name="Color Bit 0" CStyleName="color_bit_0_bit" pascalStyleName="ColorBit0Bit" />
+                            <Bit name="Color Bit 1" CStyleName="color_bit_1_bit" pascalStyleName="ColorBit1Bit" />
+                            <Bit name="Color Bit 2" CStyleName="color_bit_2_bit" pascalStyleName="ColorBit2Bit" />
+                            <Bit name="Color Bit 3" CStyleName="color_bit_3_bit" pascalStyleName="ColorBit3Bit" />
+                          </Options>
+                        </ByteFlags>
+                        <CharInteger CStyleName="function_1" pascalStyleName="Function1" name="Function 1" />
+                        <CharInteger CStyleName="function_2" pascalStyleName="Function2" name="Function 2" />
+                        <RgbColor CStyleName="color_0" pascalStyleName="Color0" name="Color 0" />
+                        <RgbColor CStyleName="color_1" pascalStyleName="Color1" name="Color 1" />
+                        <RgbColor CStyleName="color_2" pascalStyleName="Color2" name="Color 2" />
+                        <RgbColor CStyleName="color_3" pascalStyleName="Color3" name="Color 3" />
+                        <Block CStyleName="values" pascalStyleName="Values" name="Values" maxElementCount="64">
+                          <Layout regolithID="block:real" internalName="real_block" name="real_block">
+                            <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(real)" isLatest="true">
+                              <Real CStyleName="value" pascalStyleName="Value" name="Value" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                      </FieldSet>
+                      <FieldSet version="1" sizeofValue="12" sizeofSource="sizeof(c_function_definition)" isLatest="true">
+                        <Custom name="HIDE_GROUP_ID" tag="hide" />
+                        <Block CStyleName="data" pascalStyleName="Data" name="data" maxElementCount="1024" maxElementCountSource="k_kilo">
+                          <Layout regolithID="block:byte" internalName="byte_block" name="byte_block">
+                            <FieldSet version="0" sizeofValue="1" sizeofSource="sizeof(byte)" isLatest="true">
+                              <CharInteger CStyleName="value" pascalStyleName="Value" name="Value" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <Struct CStyleName="secondary_light" pascalStyleName="SecondaryLight" name="StructHeader_secondary light">
+              <Layout regolithID="structure:secondary_light" Name="Secondary light" tag="scli" internalName="secondary_light_struct" backingBlockInternalName="secondary_light_struct_block">
+                <FieldSet version="0" sizeofValue="64" sizeofSource="sizeof(s_secondary_light)" isLatest="true">
+                  <Explanation name="Secondary light" />
+                  <RealRgbColor CStyleName="min_lightmap_color" pascalStyleName="MinLightmapColor" name="Min lightmap color_1" />
+                  <RealRgbColor CStyleName="max_lightmap_color" pascalStyleName="MaxLightmapColor" name="Max lightmap color_1" />
+                  <RealRgbColor CStyleName="min_diffuse_sample" pascalStyleName="MinDiffuseSample" name="Min diffuse sample" />
+                  <RealRgbColor CStyleName="max_diffuse_sample" pascalStyleName="MaxDiffuseSample" name="Max diffuse sample" />
+                  <Real CStyleName="z_axis_rotation" pascalStyleName="ZAxisRotation" name="z axis rotation" description="degrees" />
+                  <Explanation name="Secondary light function" description="input: accuracy, output: secondary light scale" />
+                  <Custom name="function" tag="fned" />
+                  <Struct CStyleName="function" pascalStyleName="Function" name="StructHeader_function_1">
+                    <Layout regolithID="structure:mapping_function" Name="Mapping" tag="MAPP" internalName="mapping_function" backingBlockInternalName="mapping_function_block">
+                      <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_function_definition_v1)">
+                        <Custom name="HIDE_GROUP_ID" tag="hide" />
+                        <CharInteger CStyleName="function_type" pascalStyleName="FunctionType" name="Function Type_1" />
+                        <ByteFlags CStyleName="flags" pascalStyleName="Flags" name="Flags_1">
+                          <Options regolithID="enum:mapping_function_flags" CStyleName="mapping_function_flags" pascalStyleName="MappingFunctionFlags">
+                            <Bit name="Range" CStyleName="range_bit" pascalStyleName="RangeBit" />
+                            <Bit name="Unused 0" CStyleName="unused_0_bit" pascalStyleName="Unused0Bit" />
+                            <Bit name="Unused 1" CStyleName="unused_1_bit" pascalStyleName="Unused1Bit" />
+                            <Bit name="Unused 2" CStyleName="unused_2_bit" pascalStyleName="Unused2Bit" />
+                            <Bit name="Color Bit 0" CStyleName="color_bit_0_bit" pascalStyleName="ColorBit0Bit" />
+                            <Bit name="Color Bit 1" CStyleName="color_bit_1_bit" pascalStyleName="ColorBit1Bit" />
+                            <Bit name="Color Bit 2" CStyleName="color_bit_2_bit" pascalStyleName="ColorBit2Bit" />
+                            <Bit name="Color Bit 3" CStyleName="color_bit_3_bit" pascalStyleName="ColorBit3Bit" />
+                          </Options>
+                        </ByteFlags>
+                        <CharInteger CStyleName="function_1" pascalStyleName="Function1" name="Function 1_1" />
+                        <CharInteger CStyleName="function_2" pascalStyleName="Function2" name="Function 2_1" />
+                        <RgbColor CStyleName="color_0" pascalStyleName="Color0" name="Color 0_1" />
+                        <RgbColor CStyleName="color_1" pascalStyleName="Color1" name="Color 1_1" />
+                        <RgbColor CStyleName="color_2" pascalStyleName="Color2" name="Color 2_1" />
+                        <RgbColor CStyleName="color_3" pascalStyleName="Color3" name="Color 3_1" />
+                        <Block CStyleName="values" pascalStyleName="Values" name="Values_1" maxElementCount="64">
+                          <Layout regolithID="block:real" internalName="real_block" name="real_block">
+                            <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(real)" isLatest="true">
+                              <Real CStyleName="value" pascalStyleName="Value" name="Value" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                      </FieldSet>
+                      <FieldSet version="1" sizeofValue="12" sizeofSource="sizeof(c_function_definition)" isLatest="true">
+                        <Custom name="HIDE_GROUP_ID" tag="hide" />
+                        <Block CStyleName="data" pascalStyleName="Data" name="data_1" maxElementCount="1024" maxElementCountSource="k_kilo">
+                          <Layout regolithID="block:byte" internalName="byte_block" name="byte_block">
+                            <FieldSet version="0" sizeofValue="1" sizeofSource="sizeof(byte)" isLatest="true">
+                              <CharInteger CStyleName="value" pascalStyleName="Value" name="Value" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <Struct CStyleName="ambient_light" pascalStyleName="AmbientLight" name="StructHeader_ambient light">
+              <Layout regolithID="structure:ambient_light" Name="ambient light" tag="amli" internalName="ambient_light_struct" backingBlockInternalName="ambient_light_struct_block">
+                <FieldSet version="0" sizeofValue="36" sizeofSource="sizeof(s_ambient_light)" isLatest="true">
+                  <Explanation name="Ambient light" />
+                  <RealRgbColor CStyleName="min_lightmap_sample" pascalStyleName="MinLightmapSample" name="Min lightmap sample" />
+                  <RealRgbColor CStyleName="max_lightmap_sample" pascalStyleName="MaxLightmapSample" name="Max lightmap sample" />
+                  <Explanation name="Ambient light function" description="Ambient light scale. (left side min brightness, right side max brightness). Before this scale it determines a global ambient scale, which added to either light will total ~1.0 scale. Then this scale modifies that." />
+                  <Custom name="function" tag="fned" />
+                  <Struct CStyleName="function" pascalStyleName="Function" name="StructHeader_function_2">
+                    <Layout regolithID="structure:mapping_function" Name="Mapping" tag="MAPP" internalName="mapping_function" backingBlockInternalName="mapping_function_block">
+                      <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_function_definition_v1)">
+                        <Custom name="HIDE_GROUP_ID" tag="hide" />
+                        <CharInteger CStyleName="function_type" pascalStyleName="FunctionType" name="Function Type_2" />
+                        <ByteFlags CStyleName="flags" pascalStyleName="Flags" name="Flags_2">
+                          <Options regolithID="enum:mapping_function_flags" CStyleName="mapping_function_flags" pascalStyleName="MappingFunctionFlags">
+                            <Bit name="Range" CStyleName="range_bit" pascalStyleName="RangeBit" />
+                            <Bit name="Unused 0" CStyleName="unused_0_bit" pascalStyleName="Unused0Bit" />
+                            <Bit name="Unused 1" CStyleName="unused_1_bit" pascalStyleName="Unused1Bit" />
+                            <Bit name="Unused 2" CStyleName="unused_2_bit" pascalStyleName="Unused2Bit" />
+                            <Bit name="Color Bit 0" CStyleName="color_bit_0_bit" pascalStyleName="ColorBit0Bit" />
+                            <Bit name="Color Bit 1" CStyleName="color_bit_1_bit" pascalStyleName="ColorBit1Bit" />
+                            <Bit name="Color Bit 2" CStyleName="color_bit_2_bit" pascalStyleName="ColorBit2Bit" />
+                            <Bit name="Color Bit 3" CStyleName="color_bit_3_bit" pascalStyleName="ColorBit3Bit" />
+                          </Options>
+                        </ByteFlags>
+                        <CharInteger CStyleName="function_1" pascalStyleName="Function1" name="Function 1_2" />
+                        <CharInteger CStyleName="function_2" pascalStyleName="Function2" name="Function 2_2" />
+                        <RgbColor CStyleName="color_0" pascalStyleName="Color0" name="Color 0_2" />
+                        <RgbColor CStyleName="color_1" pascalStyleName="Color1" name="Color 1_2" />
+                        <RgbColor CStyleName="color_2" pascalStyleName="Color2" name="Color 2_2" />
+                        <RgbColor CStyleName="color_3" pascalStyleName="Color3" name="Color 3_2" />
+                        <Block CStyleName="values" pascalStyleName="Values" name="Values_2" maxElementCount="64">
+                          <Layout regolithID="block:real" internalName="real_block" name="real_block">
+                            <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(real)" isLatest="true">
+                              <Real CStyleName="value" pascalStyleName="Value" name="Value" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                      </FieldSet>
+                      <FieldSet version="1" sizeofValue="12" sizeofSource="sizeof(c_function_definition)" isLatest="true">
+                        <Custom name="HIDE_GROUP_ID" tag="hide" />
+                        <Block CStyleName="data" pascalStyleName="Data" name="data_2" maxElementCount="1024" maxElementCountSource="k_kilo">
+                          <Layout regolithID="block:byte" internalName="byte_block" name="byte_block">
+                            <FieldSet version="0" sizeofValue="1" sizeofSource="sizeof(byte)" isLatest="true">
+                              <CharInteger CStyleName="value" pascalStyleName="Value" name="Value" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <Struct CStyleName="lightmap_shadows" pascalStyleName="LightmapShadows" name="StructHeader_lightmap shadows">
+              <Layout regolithID="structure:lightmap_shadows" Name="Lightmap shadows" tag="lmsh" internalName="lightmap_shadows_struct" backingBlockInternalName="lightmap_shadows_struct_block">
+                <FieldSet version="0" sizeofValue="12" sizeofSource="sizeof(s_lightmap_shadows)" isLatest="true">
+                  <Explanation name="Lightmap shadows" description="Shadows generated by the lightmaps get direction from lightmap primary incoming light direction and darken based on how accurate that light is fed into the function below" />
+                  <Custom name="accuracy function" tag="fned" />
+                  <Struct CStyleName="function_1" pascalStyleName="Function1" name="StructHeader_function 1">
+                    <Layout regolithID="structure:mapping_function" Name="Mapping" tag="MAPP" internalName="mapping_function" backingBlockInternalName="mapping_function_block">
+                      <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_function_definition_v1)">
+                        <Custom name="HIDE_GROUP_ID" tag="hide" />
+                        <CharInteger CStyleName="function_type" pascalStyleName="FunctionType" name="Function Type_3" />
+                        <ByteFlags CStyleName="flags" pascalStyleName="Flags" name="Flags_3">
+                          <Options regolithID="enum:mapping_function_flags" CStyleName="mapping_function_flags" pascalStyleName="MappingFunctionFlags">
+                            <Bit name="Range" CStyleName="range_bit" pascalStyleName="RangeBit" />
+                            <Bit name="Unused 0" CStyleName="unused_0_bit" pascalStyleName="Unused0Bit" />
+                            <Bit name="Unused 1" CStyleName="unused_1_bit" pascalStyleName="Unused1Bit" />
+                            <Bit name="Unused 2" CStyleName="unused_2_bit" pascalStyleName="Unused2Bit" />
+                            <Bit name="Color Bit 0" CStyleName="color_bit_0_bit" pascalStyleName="ColorBit0Bit" />
+                            <Bit name="Color Bit 1" CStyleName="color_bit_1_bit" pascalStyleName="ColorBit1Bit" />
+                            <Bit name="Color Bit 2" CStyleName="color_bit_2_bit" pascalStyleName="ColorBit2Bit" />
+                            <Bit name="Color Bit 3" CStyleName="color_bit_3_bit" pascalStyleName="ColorBit3Bit" />
+                          </Options>
+                        </ByteFlags>
+                        <CharInteger CStyleName="function_1" pascalStyleName="Function1" name="Function 1_3" />
+                        <CharInteger CStyleName="function_2" pascalStyleName="Function2" name="Function 2_3" />
+                        <RgbColor CStyleName="color_0" pascalStyleName="Color0" name="Color 0_3" />
+                        <RgbColor CStyleName="color_1" pascalStyleName="Color1" name="Color 1_3" />
+                        <RgbColor CStyleName="color_2" pascalStyleName="Color2" name="Color 2_3" />
+                        <RgbColor CStyleName="color_3" pascalStyleName="Color3" name="Color 3_3" />
+                        <Block CStyleName="values" pascalStyleName="Values" name="Values_3" maxElementCount="64">
+                          <Layout regolithID="block:real" internalName="real_block" name="real_block">
+                            <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(real)" isLatest="true">
+                              <Real CStyleName="value" pascalStyleName="Value" name="Value" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                      </FieldSet>
+                      <FieldSet version="1" sizeofValue="12" sizeofSource="sizeof(c_function_definition)" isLatest="true">
+                        <Custom name="HIDE_GROUP_ID" tag="hide" />
+                        <Block CStyleName="data" pascalStyleName="Data" name="data_3" maxElementCount="1024" maxElementCountSource="k_kilo">
+                          <Layout regolithID="block:byte" internalName="byte_block" name="byte_block">
+                            <FieldSet version="0" sizeofValue="1" sizeofSource="sizeof(byte)" isLatest="true">
+                              <CharInteger CStyleName="value" pascalStyleName="Value" name="Value" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                </FieldSet>
+              </Layout>
+            </Struct>
+          </FieldSet>
+        </Layout>
+      </Block>
+    </FieldSet>
+  </Layout>
+</TagGroup>

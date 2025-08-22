@@ -1,0 +1,167 @@
+﻿<?xml version='1.0' encoding='utf-8-sig'?>
+<TagGroup group="pmov" name="particle_physics" version="1">
+  <Layout regolithID="block:particle_physics" internalName="particle_physics_block" name="particle_physics">
+    <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(c_particle_movement_definition)" isLatest="true">
+      <TagReference CStyleName="_template" pascalStyleName="Template" name="template">
+        <tag>pmov</tag>
+      </TagReference>
+      <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+        <Options regolithID="enum:particle_physics_flags" CStyleName="particle_physics_flags" pascalStyleName="ParticlePhysicsFlags">
+          <Bit name="physics" CStyleName="physics_bit" pascalStyleName="PhysicsBit" />
+          <Bit name="collide with structure" CStyleName="collide_with_structure_bit" pascalStyleName="CollideWithStructureBit" />
+          <Bit name="collide with media" CStyleName="collide_with_media_bit" pascalStyleName="CollideWithMediaBit" />
+          <Bit name="collide with scenery" CStyleName="collide_with_scenery_bit" pascalStyleName="CollideWithSceneryBit" />
+          <Bit name="collide with vehicles" CStyleName="collide_with_vehicles_bit" pascalStyleName="CollideWithVehiclesBit" />
+          <Bit name="collide with bipeds" CStyleName="collide_with_bipeds_bit" pascalStyleName="CollideWithBipedsBit" />
+          <Bit name="swarm" CStyleName="swarm_bit" pascalStyleName="SwarmBit" />
+          <Bit name="wind" CStyleName="wind_bit" pascalStyleName="WindBit" />
+        </Options>
+      </LongFlags>
+      <Block CStyleName="movements" pascalStyleName="Movements" name="movements" maxElementCount="4" maxElementCountSource="c_particle_movement_definition::k_type_count">
+        <Layout regolithID="block:particle_controller" internalName="particle_controller" name="particle_controller">
+          <FieldSet version="0" sizeofValue="24" sizeofSource="sizeof(c_particle_controller)" isLatest="true">
+            <ShortEnum CStyleName="type" pascalStyleName="Type" name="type">
+              <Options regolithID="enum:particle_controller_type" CStyleName="particle_controller_type" pascalStyleName="ParticleControllerType">
+                <Enum name="physics" CStyleName="physics" pascalStyleName="Physics" />
+                <Enum name="collider" CStyleName="collider" pascalStyleName="Collider" />
+                <Enum name="swarm" CStyleName="swarm" pascalStyleName="Swarm" />
+                <Enum name="wind" CStyleName="wind" pascalStyleName="Wind" />
+              </Options>
+            </ShortEnum>
+            <Pad sizeOfSource="sizeof(word)" length="2" name="Pad" />
+            <Block CStyleName="parameters" pascalStyleName="Parameters" name="parameters" maxElementCount="9" maxElementCountSource="c_particle_movement_definition::k_flocking_parameter_count">
+              <Layout regolithID="block:particle_controller_parameters" internalName="particle_controller_parameters" name="particle_controller_parameters">
+                <FieldSet version="0" sizeofValue="24" sizeofSource="sizeof(c_particle_controller_parameter)" isLatest="true">
+                  <LongInteger CStyleName="parameter_id" pascalStyleName="ParameterId" name="parameter id" />
+                  <Struct CStyleName="property" pascalStyleName="Property" name="StructHeader_property">
+                    <Layout regolithID="structure:particle_property_scalar_struct_new" tag="PRPS" internalName="particle_property_scalar_struct_new" backingBlockInternalName="particle_property_scalar_struct_new_block" name="particle_property_scalar_struct_new">
+                      <FieldSet version="0" sizeofValue="20" sizeofSource="sizeof(c_particle_property)" isLatest="true">
+                        <ShortEnum CStyleName="input_variable" pascalStyleName="InputVariable" name="Input Variable" tag="fnin">
+                          <Options regolithID="enum:particle_property" CStyleName="particle_property" pascalStyleName="ParticleProperty">
+                            <Enum name="particle age" CStyleName="particle_age" pascalStyleName="ParticleAge" />
+                            <Enum name="particle emit time" CStyleName="particle_emit_time" pascalStyleName="ParticleEmitTime" />
+                            <Enum name="particle random 1" CStyleName="particle_random_1" pascalStyleName="ParticleRandom1" />
+                            <Enum name="particle random 2" CStyleName="particle_random_2" pascalStyleName="ParticleRandom2" />
+                            <Enum name="emitter age" CStyleName="emitter_age" pascalStyleName="EmitterAge" />
+                            <Enum name="emitter random 1" CStyleName="emitter_random_1" pascalStyleName="EmitterRandom1" />
+                            <Enum name="emitter random 2" CStyleName="emitter_random_2" pascalStyleName="EmitterRandom2" />
+                            <Enum name="system lod" CStyleName="system_lod" pascalStyleName="SystemLod" />
+                            <Enum name="game time" CStyleName="game_time" pascalStyleName="GameTime" />
+                            <Enum name="effect a scale" CStyleName="effect_a_scale" pascalStyleName="EffectAScale" />
+                            <Enum name="effect b scale" CStyleName="effect_b_scale" pascalStyleName="EffectBScale" />
+                            <Enum name="particle rotation" CStyleName="particle_rotation" pascalStyleName="ParticleRotation" />
+                            <Enum name="explosion animation" CStyleName="explosion_animation" pascalStyleName="ExplosionAnimation" />
+                            <Enum name="explosion rotation" CStyleName="explosion_rotation" pascalStyleName="ExplosionRotation" />
+                            <Enum name="particle random 3" CStyleName="particle_random_3" pascalStyleName="ParticleRandom3" />
+                            <Enum name="particle random 4" CStyleName="particle_random_4" pascalStyleName="ParticleRandom4" />
+                            <Enum name="location random" CStyleName="location_random" pascalStyleName="LocationRandom" />
+                          </Options>
+                        </ShortEnum>
+                        <ShortEnum CStyleName="range_variable" pascalStyleName="RangeVariable" name="Range Variable" tag="fnir">
+                          <Options regolithID="enum:particle_property" CStyleName="particle_property" pascalStyleName="ParticleProperty">
+                            <Enum name="particle age" CStyleName="particle_age" pascalStyleName="ParticleAge" />
+                            <Enum name="particle emit time" CStyleName="particle_emit_time" pascalStyleName="ParticleEmitTime" />
+                            <Enum name="particle random 1" CStyleName="particle_random_1" pascalStyleName="ParticleRandom1" />
+                            <Enum name="particle random 2" CStyleName="particle_random_2" pascalStyleName="ParticleRandom2" />
+                            <Enum name="emitter age" CStyleName="emitter_age" pascalStyleName="EmitterAge" />
+                            <Enum name="emitter random 1" CStyleName="emitter_random_1" pascalStyleName="EmitterRandom1" />
+                            <Enum name="emitter random 2" CStyleName="emitter_random_2" pascalStyleName="EmitterRandom2" />
+                            <Enum name="system lod" CStyleName="system_lod" pascalStyleName="SystemLod" />
+                            <Enum name="game time" CStyleName="game_time" pascalStyleName="GameTime" />
+                            <Enum name="effect a scale" CStyleName="effect_a_scale" pascalStyleName="EffectAScale" />
+                            <Enum name="effect b scale" CStyleName="effect_b_scale" pascalStyleName="EffectBScale" />
+                            <Enum name="particle rotation" CStyleName="particle_rotation" pascalStyleName="ParticleRotation" />
+                            <Enum name="explosion animation" CStyleName="explosion_animation" pascalStyleName="ExplosionAnimation" />
+                            <Enum name="explosion rotation" CStyleName="explosion_rotation" pascalStyleName="ExplosionRotation" />
+                            <Enum name="particle random 3" CStyleName="particle_random_3" pascalStyleName="ParticleRandom3" />
+                            <Enum name="particle random 4" CStyleName="particle_random_4" pascalStyleName="ParticleRandom4" />
+                            <Enum name="location random" CStyleName="location_random" pascalStyleName="LocationRandom" />
+                          </Options>
+                        </ShortEnum>
+                        <ShortEnum CStyleName="output_modifier" pascalStyleName="OutputModifier" name="Output Modifier" tag="fnop">
+                          <Options regolithID="enum:particle_property_scalar_output_modifier" CStyleName="particle_property_scalar_output_modifier" pascalStyleName="ParticlePropertyScalarOutputModifier">
+                            <Enum CStyleName="unnamed_0" pascalStyleName="Unnamed0" />
+                            <Enum name="Plus" CStyleName="plus" pascalStyleName="Plus" />
+                            <Enum name="Times" CStyleName="times" pascalStyleName="Times" />
+                          </Options>
+                        </ShortEnum>
+                        <ShortEnum CStyleName="output_modifier_input" pascalStyleName="OutputModifierInput" name="Output Modifier Input" tag="fnom">
+                          <Options regolithID="enum:particle_property" CStyleName="particle_property" pascalStyleName="ParticleProperty">
+                            <Enum name="particle age" CStyleName="particle_age" pascalStyleName="ParticleAge" />
+                            <Enum name="particle emit time" CStyleName="particle_emit_time" pascalStyleName="ParticleEmitTime" />
+                            <Enum name="particle random 1" CStyleName="particle_random_1" pascalStyleName="ParticleRandom1" />
+                            <Enum name="particle random 2" CStyleName="particle_random_2" pascalStyleName="ParticleRandom2" />
+                            <Enum name="emitter age" CStyleName="emitter_age" pascalStyleName="EmitterAge" />
+                            <Enum name="emitter random 1" CStyleName="emitter_random_1" pascalStyleName="EmitterRandom1" />
+                            <Enum name="emitter random 2" CStyleName="emitter_random_2" pascalStyleName="EmitterRandom2" />
+                            <Enum name="system lod" CStyleName="system_lod" pascalStyleName="SystemLod" />
+                            <Enum name="game time" CStyleName="game_time" pascalStyleName="GameTime" />
+                            <Enum name="effect a scale" CStyleName="effect_a_scale" pascalStyleName="EffectAScale" />
+                            <Enum name="effect b scale" CStyleName="effect_b_scale" pascalStyleName="EffectBScale" />
+                            <Enum name="particle rotation" CStyleName="particle_rotation" pascalStyleName="ParticleRotation" />
+                            <Enum name="explosion animation" CStyleName="explosion_animation" pascalStyleName="ExplosionAnimation" />
+                            <Enum name="explosion rotation" CStyleName="explosion_rotation" pascalStyleName="ExplosionRotation" />
+                            <Enum name="particle random 3" CStyleName="particle_random_3" pascalStyleName="ParticleRandom3" />
+                            <Enum name="particle random 4" CStyleName="particle_random_4" pascalStyleName="ParticleRandom4" />
+                            <Enum name="location random" CStyleName="location_random" pascalStyleName="LocationRandom" />
+                          </Options>
+                        </ShortEnum>
+                        <Custom name="Mapping" tag="fned" />
+                        <Struct CStyleName="mapping" pascalStyleName="Mapping" name="StructHeader_Mapping">
+                          <Layout regolithID="structure:mapping_function" Name="Mapping" tag="MAPP" internalName="mapping_function" backingBlockInternalName="mapping_function_block">
+                            <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(s_function_definition_v1)">
+                              <Custom name="HIDE_GROUP_ID" tag="hide" />
+                              <CharInteger CStyleName="function_type" pascalStyleName="FunctionType" name="Function Type" />
+                              <ByteFlags CStyleName="flags" pascalStyleName="Flags" name="Flags">
+                                <Options regolithID="enum:mapping_function_flags" CStyleName="mapping_function_flags" pascalStyleName="MappingFunctionFlags">
+                                  <Bit name="Range" CStyleName="range_bit" pascalStyleName="RangeBit" />
+                                  <Bit name="Unused 0" CStyleName="unused_0_bit" pascalStyleName="Unused0Bit" />
+                                  <Bit name="Unused 1" CStyleName="unused_1_bit" pascalStyleName="Unused1Bit" />
+                                  <Bit name="Unused 2" CStyleName="unused_2_bit" pascalStyleName="Unused2Bit" />
+                                  <Bit name="Color Bit 0" CStyleName="color_bit_0_bit" pascalStyleName="ColorBit0Bit" />
+                                  <Bit name="Color Bit 1" CStyleName="color_bit_1_bit" pascalStyleName="ColorBit1Bit" />
+                                  <Bit name="Color Bit 2" CStyleName="color_bit_2_bit" pascalStyleName="ColorBit2Bit" />
+                                  <Bit name="Color Bit 3" CStyleName="color_bit_3_bit" pascalStyleName="ColorBit3Bit" />
+                                </Options>
+                              </ByteFlags>
+                              <CharInteger CStyleName="function_1" pascalStyleName="Function1" name="Function 1" />
+                              <CharInteger CStyleName="function_2" pascalStyleName="Function2" name="Function 2" />
+                              <RgbColor CStyleName="color_0" pascalStyleName="Color0" name="Color 0" />
+                              <RgbColor CStyleName="color_1" pascalStyleName="Color1" name="Color 1" />
+                              <RgbColor CStyleName="color_2" pascalStyleName="Color2" name="Color 2" />
+                              <RgbColor CStyleName="color_3" pascalStyleName="Color3" name="Color 3" />
+                              <Block CStyleName="values" pascalStyleName="Values" name="Values" maxElementCount="64">
+                                <Layout regolithID="block:real" internalName="real_block" name="real_block">
+                                  <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(real)" isLatest="true">
+                                    <Real CStyleName="value" pascalStyleName="Value" name="Value" />
+                                  </FieldSet>
+                                </Layout>
+                              </Block>
+                              <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                            </FieldSet>
+                            <FieldSet version="1" sizeofValue="12" sizeofSource="sizeof(c_function_definition)" isLatest="true">
+                              <Custom name="HIDE_GROUP_ID" tag="hide" />
+                              <Block CStyleName="data" pascalStyleName="Data" name="data" maxElementCount="1024" maxElementCountSource="k_kilo">
+                                <Layout regolithID="block:byte" internalName="byte_block" name="byte_block">
+                                  <FieldSet version="0" sizeofValue="1" sizeofSource="sizeof(byte)" isLatest="true">
+                                    <CharInteger CStyleName="value" pascalStyleName="Value" name="Value" />
+                                  </FieldSet>
+                                </Layout>
+                              </Block>
+                              <Custom name="END_HIDE_GROUP_ID" tag="edih" />
+                            </FieldSet>
+                          </Layout>
+                        </Struct>
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Pad sizeOfSource="2*sizeof(dword)" length="8" name="Pad_1" />
+          </FieldSet>
+        </Layout>
+      </Block>
+    </FieldSet>
+  </Layout>
+</TagGroup>

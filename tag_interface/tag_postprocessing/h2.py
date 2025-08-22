@@ -317,6 +317,7 @@ def biped_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
         seat_header = root["TagBlockHeader_seats"] = {"name": "tbfd", "version": 3, "size": 192}
 
 def bitmap_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    bitmap_def = merged_defs["bitm"]
     root = tag_dict["Data"]
 
     bitmap_block = root.get("bitmaps")
@@ -554,9 +555,9 @@ def collision_model_postprocess(merged_defs, tag_dict, file_endian, tag_director
                                         skip_stream = io.BytesIO()
                                         skip_stream.write(struct.pack('%sh' % file_endian, bsp3d_node_element.pop("plane", 0)))
                                         skip_stream.write(pack24('%su' % file_endian, bsp3d_node_element.pop("back child", 0)))
-                                        skip_stream.write(pack24('%su' % file_endian, bsp3d_node_element.pop("back child", 0)))
+                                        skip_stream.write(pack24('%su' % file_endian, bsp3d_node_element.pop("front child", 0)))
 
-                                        bsp_element["Skip"] = base64.b64encode(skip_stream.getvalue()).decode('utf-8')
+                                        bsp3d_node_element["Skip"] = base64.b64encode(skip_stream.getvalue()).decode('utf-8')
 
                                 bsp_header = bsp_element["StructHeader_bsp"] = {"name": "cbsp", "version": 2, "size": 96}
                                 
@@ -833,6 +834,7 @@ def globals_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     sound_globals_block = root.get("sound globals")
     sound_globals_header = root.get("TagBlockHeader_sound globals")
     if sound_globals_block is not None and sound_globals_header is not None:
+        # Version 0 defines some fields that got moved to the sound_mix tag. The tools don't do this but perhaps I should make a new tag from those values? - Gen
         if sound_globals_header["version"] == 0:
             for sound_globals_element in sound_globals_block:
                 sound_globals_element["legacy sound classes"] = {"group name": "snmx"," unk1": 0," length": 15," unk2": -1," path": os.path.normpath(r"sound\sound_mix")}
@@ -1517,6 +1519,305 @@ def render_model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
                             subparts_data.append(subparts_element)
 
                     section_data_header = section_element["TagBlockHeader_section data"] = {"name": "tbfd", "version": 1, "size": 180}
+
+def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    scenario_structure_bsp_def = merged_defs["sbsp"]
+    root = tag_dict["Data"]
+
+    collision_bsp_block = root.get("collision bsp")
+    collision_bsp_header = root.get("TagBlockHeader_collision bsp")
+    if collision_bsp_block is not None and collision_bsp_header is not None:
+        for bsp_element in collision_bsp_block:
+            if not collision_bsp_header["version"] == 2:
+                bsp3d_nodes_block = bsp_element.get("bsp3d nodes")
+                if bsp3d_nodes_block is not None:
+                    for bsp3d_node_element in bsp3d_nodes_block:
+                        skip_stream = io.BytesIO()
+                        skip_stream.write(struct.pack('%sh' % file_endian, bsp3d_node_element.pop("plane", 0)))
+                        skip_stream.write(pack24('%su' % file_endian, bsp3d_node_element.pop("back child", 0)))
+                        skip_stream.write(pack24('%su' % file_endian, bsp3d_node_element.pop("front child", 0)))
+
+                        bsp3d_node_element["Skip"] = base64.b64encode(skip_stream.getvalue()).decode('utf-8')
+
+        collision_bsp_header = root["TagBlockHeader_collision bsp"] = {"name": "tbfd", "version": 2, "size": 96}
+
+    clusters_block = root.get("clusters")
+    clusters_header = root.get("TagBlockHeader_clusters")
+    if clusters_block is not None and clusters_header is not None:
+        for cluster_element in clusters_block:
+            if clusters_header["version"] == 0:
+                cluster_element["scenario sky index"] = cluster_element.pop("sky index", -1)
+                cluster_element["scenario visible sky index"] = cluster_element.pop("visible sky index", -1)
+
+                cluster_data_block = cluster_element.get("TagBlock_cluster data")
+                cluster_data_header = cluster_element.get("TagBlockHeader_cluster data")
+                cluster_data_data = cluster_element.get("cluster data")
+                if cluster_data_block is None:
+                    cluster_data_block = cluster_element["TagBlock_cluster data"] = {"unk1": 0, "unk2": 0}
+                if cluster_data_header is None:
+                    cluster_data_header = cluster_element["TagBlockHeader_cluster data"] = {"name": "tbfd", "version": 0, "size": 108}
+                if cluster_data_data is None:
+                    cluster_data_data = cluster_element["cluster data"] = []
+
+                # Previous versions don't seem to work? Either the tag is being written wrong or Guerilla is just broken. - Gen
+                print("If you have something that uses this you need to let General know.")
+                section_header = cluster_element.pop("StructHeader_section", None)
+                if section_header is not None:
+                    if clusters_header["version"] == 0:  
+                        parts_block = cluster_element.pop("TagBlock_parts", {"unk1": 0, "unk2": 0})
+                        parts_header = cluster_element.pop("TagBlockHeader_parts", {"name": "tbfd", "version": 0, "size": 72})
+                        parts_data = cluster_element.pop("parts", [])
+
+                        subparts_block = cluster_element.pop("TagBlock_subparts", {"unk1": 0, "unk2": 0})
+                        subparts_header = cluster_element.pop("TagBlockHeader_subparts",  {"name": "tbfd", "version": 0, "size": 8})
+                        subparts_data = cluster_element.pop("subparts", [])
+
+                        raw_vertices_block = cluster_element.pop("TagBlock_raw vertices", {"unk1": 0, "unk2": 0})
+                        raw_vertices_header = cluster_element.pop("TagBlockHeader_raw vertices",  {"name": "tbfd", "version": 0, "size": 196})
+                        raw_vertices_data = cluster_element.pop("raw vertices", [])
+
+                        strip_indices_block = cluster_element.pop("TagBlock_strip indices", {"unk1": 0, "unk2": 0})
+                        strip_indices_header = cluster_element.pop("TagBlockHeader_strip indices",  {"name": "tbfd", "version": 0, "size": 2})
+                        strip_indices_data = cluster_element.pop("strip indices", [])
+
+                        vertex_buffers_block = cluster_element.pop("TagBlock_vertex buffers", {"unk1": 0, "unk2": 0})
+                        vertex_buffers_header = cluster_element.pop("TagBlockHeader_vertex buffers",  {"name": "tbfd", "version": 0, "size": 32})
+                        vertex_buffers_data = cluster_element.pop("vertex buffers", [])
+
+                        for part_idx, part_element in enumerate(parts_data):
+                            part_element["first subpart index"] = part_idx
+                            part_element["subpart count"] = 1
+
+                            subparts_element = {
+                            "indices_start_index": part_element["strip start index"], 
+                            "indices_length": part_element["strip length"], 
+                            "visibility_bounds_index": 0,
+                            "part index": part_idx
+                            }
+
+                            subparts_data.append(subparts_element)
+
+                        cluster_data_element = {
+                        "StructHeader_section": {"name": "SECT", "version": 1, "size": 108},
+                        "TagBlock_parts": parts_block, 
+                        "TagBlockHeader_parts": parts_header, 
+                        "parts": parts_data, 
+                        "TagBlock_subparts": subparts_block, 
+                        "TagBlockHeader_subparts": subparts_header, 
+                        "subparts": subparts_data, 
+                        "TagBlock_raw vertices": raw_vertices_block, 
+                        "TagBlockHeader_raw vertices": raw_vertices_header, 
+                        "raw vertices": raw_vertices_data, 
+                        "TagBlock_strip indices": strip_indices_block, 
+                        "TagBlockHeader_strip indices": strip_indices_header, 
+                        "strip indices": strip_indices_data, 
+                        "TagBlock_vertex buffers": vertex_buffers_block, 
+                        "TagBlockHeader_vertex buffers": vertex_buffers_header, 
+                        "vertex buffers": vertex_buffers_data
+                        }
+
+                        cluster_data_data.append(cluster_data_element)
+                    
+                    else:
+                        parts_block = cluster_element.pop("TagBlock_parts", {"unk1": 0, "unk2": 0})
+                        parts_header = cluster_element.pop("TagBlockHeader_parts", {"name": "tbfd", "version": 0, "size": 72})
+                        parts_data = cluster_element.pop("parts", [])
+
+                        subparts_block = cluster_element.pop("TagBlock_subparts", {"unk1": 0, "unk2": 0})
+                        subparts_header = cluster_element.pop("TagBlockHeader_subparts",  {"name": "tbfd", "version": 0, "size": 8})
+                        subparts_data = cluster_element.pop("subparts", [])
+
+                        visibility_bounds_block = cluster_element.pop("TagBlock_visibility bounds", {"unk1": 0, "unk2": 0})
+                        visibility_bounds_header = cluster_element.pop("TagBlockHeader_visibility bounds",  {"name": "tbfd", "version": 0, "size": 20})
+                        visibility_bounds_data = cluster_element.pop("visibility bounds", [])
+
+                        raw_vertices_block = cluster_element.pop("TagBlock_raw vertices", {"unk1": 0, "unk2": 0})
+                        raw_vertices_header = cluster_element.pop("TagBlockHeader_raw vertices",  {"name": "tbfd", "version": 0, "size": 196})
+                        raw_vertices_data = cluster_element.pop("raw vertices", [])
+
+                        strip_indices_block = cluster_element.pop("TagBlock_strip indices", {"unk1": 0, "unk2": 0})
+                        strip_indices_header = cluster_element.pop("TagBlockHeader_strip indices",  {"name": "tbfd", "version": 0, "size": 2})
+                        strip_indices_data = cluster_element.pop("strip indices", [])
+
+                        visibility_mopp_code = cluster_element.pop("visibility mopp code", {"length":0, "unk1":0, "unk2":0, "unk3":0, "unk4":0, "encoded": ""})
+
+                        mopp_reorder_table_block = cluster_element.pop("TagBlock_mopp reorder table", {"unk1": 0, "unk2": 0})
+                        mopp_reorder_table_header = cluster_element.pop("TagBlockHeader_mopp reorder table",  {"name": "tbfd", "version": 0, "size": 20})
+                        mopp_reorder_table_data = cluster_element.pop("mopp reorder table", [])
+
+                        vertex_buffers_block = cluster_element.pop("TagBlock_vertex buffers", {"unk1": 0, "unk2": 0})
+                        vertex_buffers_header = cluster_element.pop("TagBlockHeader_vertex buffers",  {"name": "tbfd", "version": 0, "size": 32})
+                        vertex_buffers_data = cluster_element.pop("vertex buffers", [])
+
+                        index_buffer = cluster_element.pop("index_buffer", "")
+
+                        cluster_data_element = {
+                        "StructHeader_section": {"name": "SECT", "version": 1, "size": 108},
+                        "TagBlock_parts": parts_block, 
+                        "TagBlockHeader_parts": parts_header, 
+                        "parts": parts_data, 
+                        "TagBlock_subparts": subparts_block, 
+                        "TagBlockHeader_subparts": subparts_header, 
+                        "subparts": subparts_data, 
+                        "TagBlock_visibility bounds": visibility_bounds_block, 
+                        "TagBlockHeader_visibility bounds": visibility_bounds_header, 
+                        "visibility bounds": visibility_bounds_data, 
+                        "TagBlock_raw vertices": raw_vertices_block, 
+                        "TagBlockHeader_raw vertices": raw_vertices_header, 
+                        "raw vertices": raw_vertices_data, 
+                        "TagBlock_strip indices": strip_indices_block, 
+                        "TagBlockHeader_strip indices": strip_indices_header, 
+                        "strip indices": strip_indices_data, 
+                        "visibility mopp code": visibility_mopp_code, 
+                        "TagBlock_mopp reorder table": mopp_reorder_table_block, 
+                        "TagBlockHeader_mopp reorder table": mopp_reorder_table_header, 
+                        "mopp reorder table": mopp_reorder_table_data,
+                        "TagBlock_vertex buffers": vertex_buffers_block, 
+                        "TagBlockHeader_vertex buffers": vertex_buffers_header, 
+                        "vertex buffers": vertex_buffers_data,
+                        "index_buffer": index_buffer
+                        }
+
+                        cluster_data_data.append(cluster_data_element)
+            else:
+                cluster_data_block = cluster_element.get("TagBlock_cluster data")
+                cluster_data_header = cluster_element.get("TagBlockHeader_cluster data")
+                cluster_data_data = cluster_element.get("cluster data")
+                if cluster_data_block is None:
+                    cluster_data_block = cluster_element["TagBlock_cluster data"] = {"unk1": 0, "unk2": 0}
+                if cluster_data_header is None:
+                    cluster_data_header = cluster_element["TagBlockHeader_cluster data"] = {"name": "tbfd", "version": 0, "size": 108}
+                if cluster_data_data is None:
+                    cluster_data_data = cluster_element["cluster data"] = []
+
+                # Previous versions don't seem to work? Either the tag is being written wrong or Guerilla is just broken. - Gen
+                print("If you have something that uses this you need to let General know.")
+                for cluster_data_element in cluster_data_data:
+                    section_header = cluster_data_element.get("StructHeader_section")
+                    if section_header is not None:
+                        if clusters_header["version"] == 0:  
+                            subparts_block = cluster_data_element.get("TagBlock_subparts")
+                            subparts_header = cluster_data_element.get("TagBlockHeader_subparts")
+                            subparts_data = cluster_data_element.get("subparts")
+                            if subparts_block is None:
+                                subparts_block = cluster_data_element["TagBlock_subparts"] = {"unk1": 0, "unk2": 0}
+                            if subparts_header is None:
+                                subparts_header = cluster_data_element["TagBlockHeader_subparts"] = {"name": "tbfd", "version": 0, "size": 8}
+                            if subparts_data is None:
+                                subparts_data = cluster_data_element["subparts"] = []
+
+                            for part_idx, part_element in enumerate(parts_data):
+                                part_element["first subpart index"] = part_idx
+                                part_element["subpart count"] = 1
+
+                                subparts_element = {
+                                "indices_start_index": part_element["strip start index"], 
+                                "indices_length": part_element["strip length"], 
+                                "visibility_bounds_index": 0,
+                                "part index": part_idx
+                                }
+
+                                subparts_data.append(subparts_element)
+ 
+    pathfinding_data_block = root.get("pathfinding data")
+    if pathfinding_data_block is not None:
+        for pathfinding_data_element in pathfinding_data_block:
+            links_block = pathfinding_data_element.get("links")
+            links_header = pathfinding_data_element.get("TagBlockHeader_links")
+            if links_block is not None and links_header is not None and clusters_header["version"] == 0:
+                for link_element in links_block:
+                    link_element["vertex 1"] = link_element.pop("Index", 0)
+                    link_element["vertex 2"] = link_element.pop("Index2 (for vertex-indices)", 0)
+
+                links_header = pathfinding_data_element["TagBlockHeader_links"] = {"name": "tbfd", "version": 3, "size": 16}
+
+    instanced_geo_def_block = root.get("instanced geometries definitions")
+    if instanced_geo_def_block is not None:
+        for instanced_geo_def_element in instanced_geo_def_block:
+            render_data_block = instanced_geo_def_element.get("render data")
+            collision_info_header = instanced_geo_def_element.get("StructHeader_collision info")
+
+            if render_data_block is not None:
+                for render_data_element in render_data_block:
+                    section_header = render_data_element.get("StructHeader_section")
+                    if section_header is not None and section_header["version"] == 0:
+                        # Previous versions don't seem to work? Either the tag is being written wrong or Guerilla is just broken. - Gen
+                        print("If you have something that uses this you need to let General know.")
+                        section_header = render_data_element["StructHeader_section"] = {"name": "SECT", "version": 1, "size": 108}
+                        parts_header = render_data_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
+
+                        subparts_block = render_data_element.get("TagBlock_subparts")
+                        subparts_header = render_data_element.get("TagBlockHeader_subparts")
+                        subparts_data = render_data_element.get("subparts")
+                        if subparts_block is None:
+                            subparts_block = render_data_element["TagBlock_subparts"] = {"unk1": 0, "unk2": 0}
+                        if subparts_header is None:
+                            subparts_header = render_data_element["TagBlockHeader_subparts"] = {"name": "tbfd", "version": 0, "size": 8}
+                        if subparts_data is None:
+                            subparts_data = render_data_element["subparts"] = []
+
+                        for part_idx, part_element in enumerate(parts_data):
+                            part_element["first subpart index"] = part_idx
+                            part_element["subpart count"] = 1
+
+                            subparts_element = {
+                            "indices_start_index": part_element["strip start index"], 
+                            "indices_length": part_element["strip length"], 
+                            "visibility_bounds_index": 0,
+                            "part index": part_idx
+                            }
+
+                            subparts_data.append(subparts_element)
+
+
+            if not collision_info_header["version"] == 2:
+                bsp3d_nodes_block = instanced_geo_def_element.get("bsp3d nodes")
+                if bsp3d_nodes_block is not None:
+                    for bsp3d_node_element in bsp3d_nodes_block:
+                        skip_stream = io.BytesIO()
+                        skip_stream.write(struct.pack('%sh' % file_endian, bsp3d_node_element.pop("plane", 0)))
+                        skip_stream.write(pack24('%su' % file_endian, bsp3d_node_element.pop("back child", 0)))
+                        skip_stream.write(pack24('%su' % file_endian, bsp3d_node_element.pop("front child", 0)))
+
+                        bsp3d_node_element["Skip"] = base64.b64encode(skip_stream.getvalue()).decode('utf-8')
+
+                collision_info_header = instanced_geo_def_element["StructHeader_collision info"] = {"name": "cbsp", "version": 2, "size": 96}
+
+    water_definitions_block = root.get("water definitions")
+    if water_definitions_block is not None:
+        for water_definitions_element in water_definitions_block:
+            section_block = water_definitions_element.get("section")
+            if section_block is not None:
+                for section_element in section_block:
+                    section_header = section_element.get("StructHeader_section")
+                    if section_header is not None and section_header["version"] == 0:
+                        # Previous versions don't seem to work? Either the tag is being written wrong or Guerilla is just broken. - Gen
+                        print("If you have something that uses this you need to let General know.")
+                        section_header = section_element["StructHeader_section"] = {"name": "SECT", "version": 1, "size": 108}
+                        parts_header = section_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
+
+                        subparts_block = section_element.get("TagBlock_subparts")
+                        subparts_header = section_element.get("TagBlockHeader_subparts")
+                        subparts_data = section_element.get("subparts")
+                        if subparts_block is None:
+                            subparts_block = section_element["TagBlock_subparts"] = {"unk1": 0, "unk2": 0}
+                        if subparts_header is None:
+                            subparts_header = section_element["TagBlockHeader_subparts"] = {"name": "tbfd", "version": 0, "size": 8}
+                        if subparts_data is None:
+                            subparts_data = section_element["subparts"] = []
+
+                        for part_idx, part_element in enumerate(parts_data):
+                            part_element["first subpart index"] = part_idx
+                            part_element["subpart count"] = 1
+
+                            subparts_element = {
+                            "indices_start_index": part_element["strip start index"], 
+                            "indices_length": part_element["strip length"], 
+                            "visibility_bounds_index": 0,
+                            "part index": part_idx
+                            }
+
+                            subparts_data.append(subparts_element)
 
 def scenery_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     scenery_def = merged_defs["scen"]

@@ -1,0 +1,21 @@
+﻿<?xml version='1.0' encoding='utf-8-sig'?>
+<TagGroup group="/**/" name="scenario_comments_resource" version="1">
+  <Layout regolithID="block:scenario_comments_resource" internalName="scenario_comments_resource_block" name="scenario_comments_resource">
+    <FieldSet version="0" sizeofValue="12" sizeofSource="sizeof(s_scenario_comment_flags_resource)" isLatest="true">
+      <Block CStyleName="comments" pascalStyleName="Comments" name="comments" maxElementCount="65536" maxElementCountSource="MAXIMUM_EDITOR_COMMENTS">
+        <Layout regolithID="block:editor_comment" internalName="editor_comment_block" name="editor_comment_block">
+          <FieldSet version="0" sizeofValue="304" sizeofSource="sizeof(struct editor_comment_definition)" isLatest="true">
+            <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" />
+            <LongEnum CStyleName="type" pascalStyleName="Type" name="type" expertOnly="true">
+              <Options regolithID="enum:editor_comment_type" CStyleName="editor_comment_type" pascalStyleName="EditorCommentType">
+                <Enum name="generic" CStyleName="generic" pascalStyleName="Generic" />
+              </Options>
+            </LongEnum>
+            <String CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true" />
+            <LongString CStyleName="comment" pascalStyleName="Comment" name="comment" />
+          </FieldSet>
+        </Layout>
+      </Block>
+    </FieldSet>
+  </Layout>
+</TagGroup>

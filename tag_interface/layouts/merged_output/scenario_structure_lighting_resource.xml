@@ -1,0 +1,23 @@
+﻿<?xml version='1.0' encoding='utf-8-sig'?>
+<TagGroup group="sslt" name="scenario_structure_lighting_resource" version="1">
+  <Layout regolithID="block:scenario_structure_lighting_resource" internalName="scenario_structure_lighting_resource_block" name="scenario_structure_lighting_resource">
+    <FieldSet version="0" sizeofValue="12" sizeofSource="sizeof(s_scenario_structure_lighting_resource)" isLatest="true">
+      <Block CStyleName="structure_lighting" pascalStyleName="StructureLighting" name="structure lighting" maxElementCount="16" maxElementCountSource="MAXIMUM_STRUCTURE_BSPS_PER_SCENARIO">
+        <Layout regolithID="block:scenario_structure_bsp_spherical_harmonic_lighting" internalName="scenario_structure_bsp_spherical_harmonic_lighting_block" name="scenario_structure_bsp_spherical_harmonic_lighting_block">
+          <FieldSet version="0" sizeofValue="28" sizeofSource="sizeof(s_scenario_structure_bsp_spherical_harmonic_lighting)" isLatest="true">
+            <TagReference CStyleName="bsp" pascalStyleName="Bsp" name="bsp" blockNameSource="true" readOnly="true">
+              <tag>sbsp</tag>
+            </TagReference>
+            <Block CStyleName="lighting_points" pascalStyleName="LightingPoints" name="lighting points" maxElementCount="32768" maxElementCountSource="k_maximum_structure_bsp_spherical_harmonic_lighting_points">
+              <Layout regolithID="block:scenario_spherical_harmonic_lighting_point" internalName="scenario_spherical_harmonic_lighting_point" name="scenario_spherical_harmonic_lighting_point">
+                <FieldSet version="0" sizeofValue="12" sizeofSource="sizeof(real_point3d)" isLatest="true">
+                  <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" />
+                </FieldSet>
+              </Layout>
+            </Block>
+          </FieldSet>
+        </Layout>
+      </Block>
+    </FieldSet>
+  </Layout>
+</TagGroup>

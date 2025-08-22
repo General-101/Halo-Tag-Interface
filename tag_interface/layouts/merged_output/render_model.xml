@@ -1,0 +1,1373 @@
+﻿<?xml version='1.0' encoding='utf-8-sig'?>
+<TagGroup group="mode" name="render_model" version="5">
+  <Layout regolithID="block:render_model" internalName="render_model_block" name="render_model">
+    <FieldSet version="0" sizeofValue="184" sizeofSource="sizeof(struct render_model_definition)" isLatest="true">
+      <OldStringId CStyleName="name" pascalStyleName="Name" name="name" readOnly="true" />
+      <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags" readOnly="true">
+        <Options regolithID="enum:render_model_flags" CStyleName="render_model_flags" pascalStyleName="RenderModelFlags">
+          <Bit name="_render_model_force_third_person_bit" CStyleName="__render_model_force_third_person_bit_bit" pascalStyleName="RenderModelForceThirdPersonBitBit" />
+          <Bit name="force carmack-reverse" CStyleName="force_carmack_reverse_bit" pascalStyleName="ForceCarmackReverseBit" />
+          <Bit name="force node maps" CStyleName="force_node_maps_bit" pascalStyleName="ForceNodeMapsBit" />
+          <Bit name="geometry postprocessed" CStyleName="geometry_postprocessed_bit" pascalStyleName="GeometryPostprocessedBit" />
+        </Options>
+      </WordFlags>
+      <Pad sizeOfSource="sizeof(word)" length="2" name="Pad" />
+      <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_1" />
+      <Block CStyleName="import_info" pascalStyleName="ImportInfo" name="import info" readOnly="true" maxElementCount="1">
+        <Layout regolithID="block:global_tag_import_info" internalName="global_tag_import_info_block" name="import info">
+          <FieldSet version="0" sizeofValue="596" sizeofSource="sizeof(struct tag_import_info)" isLatest="true">
+            <LongInteger CStyleName="build" pascalStyleName="Build" name="build" readOnly="true" />
+            <LongString CStyleName="version" pascalStyleName="Version" name="version" readOnly="true" />
+            <String CStyleName="import_date" pascalStyleName="ImportDate" name="import date" blockNameSource="true" readOnly="true" />
+            <String CStyleName="culprit" pascalStyleName="Culprit" name="culprit" readOnly="true" />
+            <Pad sizeOfSource="24*sizeof(long)" length="96" name="Pad" />
+            <String CStyleName="import_time" pascalStyleName="ImportTime" name="import time" readOnly="true" />
+            <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_1" />
+            <Block CStyleName="files" pascalStyleName="Files" name="files" readOnly="true" maxElementCount="1024" maxElementCountSource="MAXIMUM_FILES_PER_TAG_IMPORT_INFO">
+              <Layout regolithID="block:tag_import_file" internalName="tag_import_file_block" name="import file">
+                <FieldSet version="0" sizeofValue="540" sizeofSource="sizeof(struct tag_import_file)" isLatest="true">
+                  <LongString CStyleName="path" pascalStyleName="Path" name="path" blockNameSource="true" readOnly="true" />
+                  <String CStyleName="modification_date" pascalStyleName="ModificationDate" name="modification date" readOnly="true" />
+                  <Skip sizeOfSource="sizeof(file_last_modification_date)" length="8" name="Skip" />
+                  <Pad sizeOfSource="22*sizeof(long)" length="88" name="Pad" />
+                  <LongInteger CStyleName="checksum" pascalStyleName="Checksum" name="checksum" units="crc32" readOnly="true" />
+                  <LongInteger CStyleName="size" pascalStyleName="Size" name="size" units="bytes" readOnly="true" />
+                  <Data CStyleName="zipped_data" pascalStyleName="ZippedData" name="zipped data" readOnly="true" />
+                  <Pad sizeOfSource="32*sizeof(long)" length="128" name="Pad_1" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Pad sizeOfSource="32*sizeof(long)" length="128" name="Pad_2" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="compression_info" pascalStyleName="CompressionInfo" name="compression info" readOnly="true" maxElementCount="1">
+        <Layout regolithID="block:global_geometry_compression_info" internalName="global_geometry_compression_info_block" name="compression info">
+          <FieldSet version="0" sizeofValue="56" sizeofSource="sizeof(struct geometry_compression_info)" isLatest="true">
+            <RealBounds CStyleName="position_bounds_x" pascalStyleName="PositionBoundsX" name="position bounds x" readOnly="true" />
+            <RealBounds CStyleName="position_bounds_y" pascalStyleName="PositionBoundsY" name="position bounds y" readOnly="true" />
+            <RealBounds CStyleName="position_bounds_z" pascalStyleName="PositionBoundsZ" name="position bounds z" readOnly="true" />
+            <RealBounds CStyleName="texcoord_bounds_x" pascalStyleName="TexcoordBoundsX" name="texcoord bounds x" readOnly="true" />
+            <RealBounds CStyleName="texcoord_bounds_y" pascalStyleName="TexcoordBoundsY" name="texcoord bounds y" readOnly="true" />
+            <RealBounds CStyleName="secondary_texcoord_bounds_x" pascalStyleName="SecondaryTexcoordBoundsX" name="secondary texcoord bounds x" readOnly="true" />
+            <RealBounds CStyleName="secondary_texcoord_bounds_y" pascalStyleName="SecondaryTexcoordBoundsY" name="secondary texcoord bounds y" readOnly="true" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="regions" pascalStyleName="Regions" name="regions" readOnly="true" maxElementCount="16" maxElementCountSource="MAXIMUM_REGIONS_PER_MODEL">
+        <Layout regolithID="block:render_model_region" internalName="render_model_region_block" name="region">
+          <FieldSet version="0" sizeofValue="20" sizeofSource="sizeof(struct render_model_region)" isLatest="true">
+            <OldStringId CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true" readOnly="true" />
+            <ShortInteger CStyleName="node_map_offset_old" pascalStyleName="NodeMapOffsetOld" name="node map offset (OLD)" readOnly="true" />
+            <ShortInteger CStyleName="node_map_size_old" pascalStyleName="NodeMapSizeOld" name="node map size (OLD)" readOnly="true" />
+            <Block CStyleName="permutations" pascalStyleName="Permutations" name="permutations" readOnly="true" maxElementCount="32" maxElementCountSource="MAXIMUM_PERMUTATIONS_PER_MODEL_REGION">
+              <Layout regolithID="block:render_model_permutation" internalName="render_model_permutation_block" name="permutation">
+                <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct render_model_permutation)" isLatest="true">
+                  <OldStringId CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true" readOnly="true" />
+                  <ShortInteger CStyleName="l1_section_index" pascalStyleName="L1SectionIndex" name="L1 section index" units="(super low)" readOnly="true" />
+                  <ShortInteger CStyleName="l2_section_index" pascalStyleName="L2SectionIndex" name="L2 section index" units="(low)" readOnly="true" />
+                  <ShortInteger CStyleName="l3_section_index" pascalStyleName="L3SectionIndex" name="L3 section index" units="(medium)" readOnly="true" />
+                  <ShortInteger CStyleName="l4_section_index" pascalStyleName="L4SectionIndex" name="L4 section index" units="(high)" readOnly="true" />
+                  <ShortInteger CStyleName="l5_section_index" pascalStyleName="L5SectionIndex" name="L5 section index" units="(super high)" readOnly="true" />
+                  <ShortInteger CStyleName="l6_section_index" pascalStyleName="L6SectionIndex" name="L6 section index" units="(hollywood)" readOnly="true" />
+                </FieldSet>
+              </Layout>
+            </Block>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="sections" pascalStyleName="Sections" name="sections" readOnly="true" maxElementCount="255" maxElementCountSource="MAXIMUM_SECTIONS_PER_RENDER_MODEL">
+        <Layout regolithID="block:render_model_section" internalName="render_model_section_block" name="render_model_section_block">
+          <FieldSet version="0" sizeofValue="104" sizeofSource="sizeof(struct render_model_section)" isLatest="true">
+            <ShortEnum CStyleName="global_geometry_classification_enum_definition" pascalStyleName="GlobalGeometryClassificationEnumDefinition" name="global_geometry_classification_enum_definition">
+              <Options regolithID="enum:render_model_geometry_classification" CStyleName="render_model_geometry_classification" pascalStyleName="RenderModelGeometryClassification">
+                <Enum name="worldspace" CStyleName="worldspace" pascalStyleName="Worldspace" />
+                <Enum name="rigid" CStyleName="rigid" pascalStyleName="Rigid" />
+                <Enum name="rigid boned" CStyleName="rigid_boned" pascalStyleName="RigidBoned" />
+                <Enum name="skinned" CStyleName="skinned" pascalStyleName="Skinned" />
+                <Enum name="unsupported (reimport)" CStyleName="unsupported_reimport" pascalStyleName="UnsupportedReimport" />
+              </Options>
+            </ShortEnum>
+            <Pad sizeOfSource="sizeof(word)" length="2" name="Pad" />
+            <Struct CStyleName="section_info" pascalStyleName="SectionInfo" name="StructHeader_section info" readOnly="true">
+              <Layout regolithID="structure:global_geometry_section_info" tag="SINF" internalName="global_geometry_section_info_struct" backingBlockInternalName="global_geometry_section_info_struct_block" name="global_geometry_section_info_struct">
+                <FieldSet version="0" sizeofValue="44" sizeofSource="sizeof(struct geometry_section_info)" isLatest="true">
+                  <Explanation name="SECTION INFO" />
+                  <ShortInteger CStyleName="total_vertex_count" pascalStyleName="TotalVertexCount" name="total vertex count" readOnly="true" />
+                  <ShortInteger CStyleName="total_triangle_count" pascalStyleName="TotalTriangleCount" name="total triangle count" readOnly="true" />
+                  <ShortInteger CStyleName="total_part_count" pascalStyleName="TotalPartCount" name="total part count" readOnly="true" />
+                  <ShortInteger CStyleName="shadow_casting_triangle_count" pascalStyleName="ShadowCastingTriangleCount" name="shadow-casting triangle count" readOnly="true" />
+                  <ShortInteger CStyleName="shadow_casting_part_count" pascalStyleName="ShadowCastingPartCount" name="shadow-casting part count" readOnly="true" />
+                  <ShortInteger CStyleName="opaque_point_count" pascalStyleName="OpaquePointCount" name="opaque point count" readOnly="true" />
+                  <ShortInteger CStyleName="opaque_vertex_count" pascalStyleName="OpaqueVertexCount" name="opaque vertex count" readOnly="true" />
+                  <ShortInteger CStyleName="opaque_part_count" pascalStyleName="OpaquePartCount" name="opaque part count" readOnly="true" />
+                  <CharInteger CStyleName="opaque_max_nodesvertex" pascalStyleName="OpaqueMaxNodesvertex" name="opaque max nodes/vertex" readOnly="true" />
+                  <CharInteger CStyleName="transparent_max_nodesvertex" pascalStyleName="TransparentMaxNodesvertex" name="transparent max nodes/vertex" readOnly="true" />
+                  <ShortInteger CStyleName="shadow_casting_rigid_triangle_count" pascalStyleName="ShadowCastingRigidTriangleCount" name="shadow-casting rigid triangle count" readOnly="true" />
+                  <ShortEnum CStyleName="geometry_classification" pascalStyleName="GeometryClassification" name="geometry classification" readOnly="true">
+                    <Options regolithID="enum:render_model_geometry_classification" CStyleName="render_model_geometry_classification" pascalStyleName="RenderModelGeometryClassification">
+                      <Enum name="worldspace" CStyleName="worldspace" pascalStyleName="Worldspace" />
+                      <Enum name="rigid" CStyleName="rigid" pascalStyleName="Rigid" />
+                      <Enum name="rigid boned" CStyleName="rigid_boned" pascalStyleName="RigidBoned" />
+                      <Enum name="skinned" CStyleName="skinned" pascalStyleName="Skinned" />
+                      <Enum name="unsupported (reimport)" CStyleName="unsupported_reimport" pascalStyleName="UnsupportedReimport" />
+                    </Options>
+                  </ShortEnum>
+                  <WordFlags CStyleName="geometry_compression_flags" pascalStyleName="GeometryCompressionFlags" name="geometry compression flags" readOnly="true">
+                    <Options regolithID="enum:global_geometry_compression_flags" CStyleName="global_geometry_compression_flags" pascalStyleName="GlobalGeometryCompressionFlags">
+                      <Bit name="compressed position" CStyleName="compressed_position_bit" pascalStyleName="CompressedPositionBit" />
+                      <Bit name="compressed texcoord" CStyleName="compressed_texcoord_bit" pascalStyleName="CompressedTexcoordBit" />
+                      <Bit name="compressed secondary texcoord" CStyleName="compressed_secondary_texcoord_bit" pascalStyleName="CompressedSecondaryTexcoordBit" />
+                    </Options>
+                  </WordFlags>
+                  <Block maxElementCount="1" name="Block">
+                    <Layout regolithID="block:global_geometry_compression_info" internalName="global_geometry_compression_info_block" name="compression info">
+                      <FieldSet version="0" sizeofValue="56" sizeofSource="sizeof(struct geometry_compression_info)" isLatest="true">
+                        <RealBounds CStyleName="position_bounds_x" pascalStyleName="PositionBoundsX" name="position bounds x" readOnly="true" />
+                        <RealBounds CStyleName="position_bounds_y" pascalStyleName="PositionBoundsY" name="position bounds y" readOnly="true" />
+                        <RealBounds CStyleName="position_bounds_z" pascalStyleName="PositionBoundsZ" name="position bounds z" readOnly="true" />
+                        <RealBounds CStyleName="texcoord_bounds_x" pascalStyleName="TexcoordBoundsX" name="texcoord bounds x" readOnly="true" />
+                        <RealBounds CStyleName="texcoord_bounds_y" pascalStyleName="TexcoordBoundsY" name="texcoord bounds y" readOnly="true" />
+                        <RealBounds CStyleName="secondary_texcoord_bounds_x" pascalStyleName="SecondaryTexcoordBoundsX" name="secondary texcoord bounds x" readOnly="true" />
+                        <RealBounds CStyleName="secondary_texcoord_bounds_y" pascalStyleName="SecondaryTexcoordBoundsY" name="secondary texcoord bounds y" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <CharInteger CStyleName="hardware_node_count" pascalStyleName="HardwareNodeCount" name="hardware node count" readOnly="true" />
+                  <CharInteger CStyleName="node_map_size" pascalStyleName="NodeMapSize" name="node map size" readOnly="true" />
+                  <ShortInteger CStyleName="software_plane_count" pascalStyleName="SoftwarePlaneCount" name="software plane count" readOnly="true" />
+                  <ShortInteger CStyleName="total_subpart_cont" pascalStyleName="TotalSubpartCont" name="total subpart_cont" readOnly="true" />
+                  <WordFlags CStyleName="section_lighting_flags" pascalStyleName="SectionLightingFlags" name="section lighting flags" readOnly="true">
+                    <Options regolithID="enum:geometry_section_lighting_flags" CStyleName="geometry_section_lighting_flags" pascalStyleName="GeometrySectionLightingFlags">
+                      <Bit name="has lm texcoords" CStyleName="has_lm_texcoords_bit" pascalStyleName="HasLmTexcoordsBit" />
+                      <Bit name="has lm inc. rad." CStyleName="has_lm_inc_rad_bit" pascalStyleName="HasLmIncRadBit" />
+                      <Bit name="has lm colors" CStyleName="has_lm_colors_bit" pascalStyleName="HasLmColorsBit" />
+                      <Bit name="has lm prt" CStyleName="has_lm_prt_bit" pascalStyleName="HasLmPrtBit" />
+                    </Options>
+                  </WordFlags>
+                </FieldSet>
+              </Layout>
+            </Struct>
+            <ShortBlockIndex CStyleName="rigid_node" pascalStyleName="RigidNode" name="rigid node" readOnly="true" blockReference="block:render_model_node" />
+            <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags">
+              <Options regolithID="enum:render_model_geometry_flags" CStyleName="render_model_geometry_flags" pascalStyleName="RenderModelGeometryFlags">
+                <Bit name="geometry postprocessed" CStyleName="geometry_postprocessed_bit" pascalStyleName="GeometryPostprocessedBit" />
+              </Options>
+            </WordFlags>
+            <Block CStyleName="section_data" pascalStyleName="SectionData" name="section data" readOnly="true" maxElementCount="1">
+              <Layout regolithID="block:render_model_section_data" internalName="render_model_section_data_block" name="render_model_section_data_block">
+                <FieldSet version="0" sizeofValue="360" sizeofSource="sizeof(struct render_model_section_data_old)">
+                  <Struct CStyleName="section" pascalStyleName="Section" name="StructHeader_section" readOnly="true">
+                    <Layout regolithID="structure:global_geometry_section" tag="SECT" internalName="global_geometry_section_struct" backingBlockInternalName="global_geometry_section_struct_block" name="global_geometry_section_struct">
+                      <FieldSet version="0" sizeofValue="272" sizeofSource="sizeof(struct geometry_section_old)" sizeofOverride="244">
+                        <Block CStyleName="raw_vertices" pascalStyleName="RawVertices" name="raw vertices_1" readOnly="true" maxElementCount="32767" maxElementCountSource="MAXIMUM_VERTICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_raw_vertex" internalName="global_geometry_section_raw_vertex_block" name="vertex">
+                            <FieldSet version="0" sizeofValue="196" sizeofSource="sizeof(struct geometry_vertex)" isLatest="true">
+                              <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_3" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_1" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_2" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_3" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_3" readOnly="true" />
+                              <LongInteger CStyleName="use_new_node_indices" pascalStyleName="UseNewNodeIndices" name="use new node indices" readOnly="true" />
+                              <LongInteger CStyleName="adjusted_compound_node_index" pascalStyleName="AdjustedCompoundNodeIndex" name="adjusted compound node index" readOnly="true" />
+                              <RealPoint2D CStyleName="texcoord" pascalStyleName="Texcoord" name="texcoord" readOnly="true" />
+                              <RealVector3D CStyleName="normal" pascalStyleName="Normal" name="normal" readOnly="true" />
+                              <RealVector3D CStyleName="binormal" pascalStyleName="Binormal" name="binormal" readOnly="true" />
+                              <RealVector3D CStyleName="tangent" pascalStyleName="Tangent" name="tangent" readOnly="true" />
+                              <RealVector3D CStyleName="anisotropic_binormal" pascalStyleName="AnisotropicBinormal" name="anisotropic binormal" readOnly="true" />
+                              <RealPoint2D CStyleName="secondary_texcoord" pascalStyleName="SecondaryTexcoord" name="secondary texcoord" readOnly="true" />
+                              <RealRgbColor CStyleName="primary_lightmap_color" pascalStyleName="PrimaryLightmapColor" name="primary lightmap color" />
+                              <RealPoint2D CStyleName="primary_lightmap_texcoord" pascalStyleName="PrimaryLightmapTexcoord" name="primary lightmap texcoord" />
+                              <RealVector3D CStyleName="primary_lightmap_incident_direction" pascalStyleName="PrimaryLightmapIncidentDirection" name="primary lightmap incident direction" />
+                              <Pad sizeOfSource="sizeof(real_rgb_color)" length="12" name="Pad" />
+                              <Pad sizeOfSource="sizeof(real_point2d)" length="8" name="Pad_1" />
+                              <Pad sizeOfSource="sizeof(real_vector3d)" length="12" name="Pad_2" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer" readOnly="true" />
+                        <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer_1" readOnly="true" />
+                        <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer_2" readOnly="true" />
+                        <VertexBuffer CStyleName="transparent_position" pascalStyleName="TransparentPosition" name="transparent position" readOnly="true" />
+                        <Block CStyleName="vertex_buffers" pascalStyleName="VertexBuffers" name="vertex buffers" readOnly="true" maxElementCount="512" maxElementCountSource="MAXIMUM_VERTEX_BUFFERS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_vertex_buffer" internalName="global_geometry_section_vertex_buffer_block" name="vertex buffer">
+                            <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(struct rasterizer_vertex_buffer)" isLatest="true">
+                              <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="strip_indices" pascalStyleName="StripIndices" name="strip indices_1" readOnly="true" maxElementCount="65535" maxElementCountSource="MAXIMUM_STRIP_INDICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_strip_index" internalName="global_geometry_section_strip_index_block" name="index">
+                            <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(word)" isLatest="true">
+                              <ShortInteger CStyleName="index" pascalStyleName="Index" name="index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="parts" pascalStyleName="Parts" name="parts" readOnly="true" maxElementCount="255" maxElementCountSource="MAXIMUM_PARTS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_part" internalName="global_geometry_part_block" name="part">
+                            <FieldSet version="0" sizeofValue="100" sizeofSource="sizeof(struct geometry_part_old)" isLatest="true">
+                              <ShortEnum CStyleName="type" pascalStyleName="Type" name="type" readOnly="true">
+                                <Options regolithID="enum:geometry_part_type" CStyleName="geometry_part_type" pascalStyleName="GeometryPartType">
+                                  <Enum name="not drawn" CStyleName="not_drawn" pascalStyleName="NotDrawn" />
+                                  <Enum name="opaque shadow-only" CStyleName="opaque_shadow_only" pascalStyleName="OpaqueShadowOnly" />
+                                  <Enum name="opaque shadow-casting" CStyleName="opaque_shadow_casting" pascalStyleName="OpaqueShadowCasting" />
+                                  <Enum name="opaque non-shadowing" CStyleName="opaque_non_shadowing" pascalStyleName="OpaqueNonShadowing" />
+                                  <Enum name="transparent" CStyleName="transparent" pascalStyleName="Transparent" />
+                                  <Enum name="lightmap only" CStyleName="lightmap_only" pascalStyleName="LightmapOnly" />
+                                </Options>
+                              </ShortEnum>
+                              <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags" readOnly="true">
+                                <Options regolithID="enum:geometry_part_flags" CStyleName="geometry_part_flags" pascalStyleName="GeometryPartFlags">
+                                  <Bit name="decalable" CStyleName="decalable_bit" pascalStyleName="DecalableBit" />
+                                  <Bit name="new part types" CStyleName="new_part_types_bit" pascalStyleName="NewPartTypesBit" />
+                                  <Bit name="dislikes photons" CStyleName="dislikes_photons_bit" pascalStyleName="DislikesPhotonsBit" />
+                                  <Bit name="override triangle list" CStyleName="override_triangle_list_bit" pascalStyleName="OverrideTriangleListBit" />
+                                  <Bit name="ignored by lightmapper" CStyleName="ignored_by_lightmapper_bit" pascalStyleName="IgnoredByLightmapperBit" />
+                                </Options>
+                              </WordFlags>
+                              <ShortBlockIndex CStyleName="material" pascalStyleName="Material" name="material" readOnly="true" />
+                              <ShortEnum CStyleName="geometry_subclassification" pascalStyleName="GeometrySubclassification" name="geometry subclassification" readOnly="true">
+                                <Options regolithID="enum:geometry_subclassification" CStyleName="geometry_subclassification" pascalStyleName="GeometrySubclassification">
+                                  <Enum name="default (opaque)" CStyleName="default_opaque" pascalStyleName="DefaultOpaque" />
+                                  <Enum name="faceted (opaque)" CStyleName="faceted_opaque" pascalStyleName="FacetedOpaque" />
+                                  <Enum name="simple (transparent)" CStyleName="simple_transparent" pascalStyleName="SimpleTransparent" />
+                                  <Enum name="normal (transparent)" CStyleName="normal_transparent" pascalStyleName="NormalTransparent" />
+                                  <Enum name="tangent-space (transparent)" CStyleName="tangent_space_transparent" pascalStyleName="TangentSpaceTransparent" />
+                                </Options>
+                              </ShortEnum>
+                              <ShortInteger CStyleName="strip_start_index" pascalStyleName="StripStartIndex" name="strip start index" readOnly="true" unsigned="true" />
+                              <ShortInteger CStyleName="strip_length" pascalStyleName="StripLength" name="strip length" readOnly="true" unsigned="true" />
+                              <ShortInteger CStyleName="first_strip_segment_index" pascalStyleName="FirstStripSegmentIndex" name="first strip segment index" readOnly="true" />
+                              <ShortInteger CStyleName="strip_segment_count" pascalStyleName="StripSegmentCount" name="strip segment count" readOnly="true" />
+                              <ShortInteger CStyleName="first_vertex_index" pascalStyleName="FirstVertexIndex" name="first vertex index" readOnly="true" />
+                              <ShortInteger CStyleName="vertex_count" pascalStyleName="VertexCount" name="vertex count" readOnly="true" />
+                              <ShortInteger CStyleName="first_triangle_index" pascalStyleName="FirstTriangleIndex" name="first triangle index" readOnly="true" />
+                              <ShortInteger CStyleName="triangle_count" pascalStyleName="TriangleCount" name="triangle count" readOnly="true" />
+                              <CharInteger CStyleName="max_nodesvertex" pascalStyleName="MaxNodesvertex" name="max nodes/vertex" readOnly="true" />
+                              <CharInteger CStyleName="contributing_compound_node_count" pascalStyleName="ContributingCompoundNodeCount" name="contributing compound node count" readOnly="true" />
+                              <WordFlags CStyleName="vertex_usage_flags" pascalStyleName="VertexUsageFlags" name="vertex usage flags" readOnly="true">
+                                <Options regolithID="enum:vertex_usage_flags" CStyleName="vertex_usage_flags" pascalStyleName="VertexUsageFlags">
+                                  <Bit name="position software transformed" CStyleName="position_software_transformed_bit" pascalStyleName="PositionSoftwareTransformedBit" />
+                                  <Bit name="texcoord" CStyleName="texcoord_bit" pascalStyleName="TexcoordBit" />
+                                  <Bit name="normal" CStyleName="normal_bit" pascalStyleName="NormalBit" />
+                                  <Bit name="binormal/tangent" CStyleName="binormaltangent_bit" pascalStyleName="BinormaltangentBit" />
+                                  <Bit name="anisotropic binormal" CStyleName="anisotropic_binormal_bit" pascalStyleName="AnisotropicBinormalBit" />
+                                  <Bit name="secondary texcoord" CStyleName="secondary_texcoord_bit" pascalStyleName="SecondaryTexcoordBit" />
+                                </Options>
+                              </WordFlags>
+                              <Pad sizeOfSource="MAXIMUM_VERTEX_BUFFERS_PER_GEOMETRY_PART*sizeof(word)" length="12" name="Pad" />
+                              <Pad sizeOfSource="sizeof(byte)" length="1" name="Pad_1" />
+                              <Pad sizeOfSource="3*sizeof(byte)" length="3" name="Pad_2" />
+                              <Explanation name="CENTROID" />
+                              <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                              <Real CStyleName="lod_mipmap_magic_number" pascalStyleName="LodMipmapMagicNumber" name="lod mipmap magic number" readOnly="true" />
+                              <Skip sizeOfSource="sizeof(real_rectangle3d)" length="24" name="Skip" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Pad sizeOfSource="sizeof(struct rasterizer_vertex_buffer)*3" length="96" name="Pad_3" />
+                      </FieldSet>
+                      <FieldSet version="1" sizeofValue="108" sizeofSource="sizeof(struct geometry_section)" isLatest="true">
+                        <Block CStyleName="parts" pascalStyleName="Parts" name="parts" readOnly="true" maxElementCount="255" maxElementCountSource="MAXIMUM_PARTS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_part_block_new" internalName="global_geometry_part_block_new" name="part">
+                            <FieldSet version="0" sizeofValue="72" sizeofSource="sizeof(struct geometry_part)" isLatest="true">
+                              <ShortEnum CStyleName="type" pascalStyleName="Type" name="type" readOnly="true">
+                                <Options regolithID="enum:geometry_part_type" CStyleName="geometry_part_type" pascalStyleName="GeometryPartType">
+                                  <Enum name="not drawn" CStyleName="not_drawn" pascalStyleName="NotDrawn" />
+                                  <Enum name="opaque shadow-only" CStyleName="opaque_shadow_only" pascalStyleName="OpaqueShadowOnly" />
+                                  <Enum name="opaque shadow-casting" CStyleName="opaque_shadow_casting" pascalStyleName="OpaqueShadowCasting" />
+                                  <Enum name="opaque non-shadowing" CStyleName="opaque_non_shadowing" pascalStyleName="OpaqueNonShadowing" />
+                                  <Enum name="transparent" CStyleName="transparent" pascalStyleName="Transparent" />
+                                  <Enum name="lightmap only" CStyleName="lightmap_only" pascalStyleName="LightmapOnly" />
+                                </Options>
+                              </ShortEnum>
+                              <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags" readOnly="true">
+                                <Options regolithID="enum:geometry_part_flags" CStyleName="geometry_part_flags" pascalStyleName="GeometryPartFlags">
+                                  <Bit name="decalable" CStyleName="decalable_bit" pascalStyleName="DecalableBit" />
+                                  <Bit name="new part types" CStyleName="new_part_types_bit" pascalStyleName="NewPartTypesBit" />
+                                  <Bit name="dislikes photons" CStyleName="dislikes_photons_bit" pascalStyleName="DislikesPhotonsBit" />
+                                  <Bit name="override triangle list" CStyleName="override_triangle_list_bit" pascalStyleName="OverrideTriangleListBit" />
+                                  <Bit name="ignored by lightmapper" CStyleName="ignored_by_lightmapper_bit" pascalStyleName="IgnoredByLightmapperBit" />
+                                </Options>
+                              </WordFlags>
+                              <ShortBlockIndex CStyleName="material" pascalStyleName="Material" name="material" readOnly="true" blockReference="block:global_geometry_material" />
+                              <ShortInteger CStyleName="strip_start_index" pascalStyleName="StripStartIndex" name="strip start index" readOnly="true" unsigned="true" />
+                              <ShortInteger CStyleName="strip_length" pascalStyleName="StripLength" name="strip length" readOnly="true" unsigned="true" />
+                              <ShortInteger CStyleName="first_subpart_index" pascalStyleName="FirstSubpartIndex" name="first subpart index" readOnly="true" />
+                              <ShortInteger CStyleName="subpart_count" pascalStyleName="SubpartCount" name="subpart count" readOnly="true" />
+                              <CharInteger CStyleName="max_nodesvertex" pascalStyleName="MaxNodesvertex" name="max nodes/vertex" readOnly="true" />
+                              <CharInteger CStyleName="contributing_compound_node_count" pascalStyleName="ContributingCompoundNodeCount" name="contributing compound node count" readOnly="true" />
+                              <Explanation name="CENTROID" />
+                              <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                              <Real CStyleName="lod_mipmap_magic_number" pascalStyleName="LodMipmapMagicNumber" name="lod mipmap magic number" readOnly="true" />
+                              <Skip sizeOfSource="sizeof(real_rectangle3d)" length="24" name="Skip" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="subparts" pascalStyleName="Subparts" name="subparts" readOnly="true" maxElementCount="32768" maxElementCountSource="MAXIMUM_SUBPARTS_PER_SECTION">
+                          <Layout regolithID="block:global_subparts" internalName="global_subparts_block" name="subparts">
+                            <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(geometry_subpart)" isLatest="true">
+                              <ShortInteger CStyleName="indices_start_index" pascalStyleName="IndicesStartIndex" name="indices_start_index" readOnly="true" />
+                              <ShortInteger CStyleName="indices_length" pascalStyleName="IndicesLength" name="indices_length" readOnly="true" />
+                              <ShortInteger CStyleName="visibility_bounds_index" pascalStyleName="VisibilityBoundsIndex" name="visibility_bounds_index" readOnly="true" />
+                              <ShortInteger CStyleName="part_index" pascalStyleName="PartIndex" name="part index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="visibility_bounds" pascalStyleName="VisibilityBounds" name="visibility bounds" readOnly="true" maxElementCount="32768" maxElementCountSource="MAXIMUM_SUBPARTS_PER_SECTION">
+                          <Layout regolithID="block:global_visibility_bounds" internalName="global_visibility_bounds_block" name="visibility bounds">
+                            <FieldSet version="0" sizeofValue="20" sizeofSource="sizeof(geometry_visibility)" isLatest="true">
+                              <Real CStyleName="position_x" pascalStyleName="PositionX" name="position x" readOnly="true" />
+                              <Real CStyleName="position_y" pascalStyleName="PositionY" name="position y" readOnly="true" />
+                              <Real CStyleName="position_z" pascalStyleName="PositionZ" name="position z" readOnly="true" />
+                              <Real CStyleName="radius" pascalStyleName="Radius" name="radius" readOnly="true" />
+                              <CharInteger CStyleName="node_0" pascalStyleName="Node0" name="node 0" readOnly="true" />
+                              <Pad sizeOfSource="3" length="3" name="Pad" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="raw_vertices" pascalStyleName="RawVertices" name="raw vertices_1" readOnly="true" maxElementCount="32767" maxElementCountSource="MAXIMUM_VERTICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_raw_vertex" internalName="global_geometry_section_raw_vertex_block" name="vertex">
+                            <FieldSet version="0" sizeofValue="196" sizeofSource="sizeof(struct geometry_vertex)" isLatest="true">
+                              <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_3" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_1" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_2" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_3" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_3" readOnly="true" />
+                              <LongInteger CStyleName="use_new_node_indices" pascalStyleName="UseNewNodeIndices" name="use new node indices" readOnly="true" />
+                              <LongInteger CStyleName="adjusted_compound_node_index" pascalStyleName="AdjustedCompoundNodeIndex" name="adjusted compound node index" readOnly="true" />
+                              <RealPoint2D CStyleName="texcoord" pascalStyleName="Texcoord" name="texcoord" readOnly="true" />
+                              <RealVector3D CStyleName="normal" pascalStyleName="Normal" name="normal" readOnly="true" />
+                              <RealVector3D CStyleName="binormal" pascalStyleName="Binormal" name="binormal" readOnly="true" />
+                              <RealVector3D CStyleName="tangent" pascalStyleName="Tangent" name="tangent" readOnly="true" />
+                              <RealVector3D CStyleName="anisotropic_binormal" pascalStyleName="AnisotropicBinormal" name="anisotropic binormal" readOnly="true" />
+                              <RealPoint2D CStyleName="secondary_texcoord" pascalStyleName="SecondaryTexcoord" name="secondary texcoord" readOnly="true" />
+                              <RealRgbColor CStyleName="primary_lightmap_color" pascalStyleName="PrimaryLightmapColor" name="primary lightmap color" />
+                              <RealPoint2D CStyleName="primary_lightmap_texcoord" pascalStyleName="PrimaryLightmapTexcoord" name="primary lightmap texcoord" />
+                              <RealVector3D CStyleName="primary_lightmap_incident_direction" pascalStyleName="PrimaryLightmapIncidentDirection" name="primary lightmap incident direction" />
+                              <Pad sizeOfSource="sizeof(real_rgb_color)" length="12" name="Pad" />
+                              <Pad sizeOfSource="sizeof(real_point2d)" length="8" name="Pad_1" />
+                              <Pad sizeOfSource="sizeof(real_vector3d)" length="12" name="Pad_2" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="strip_indices" pascalStyleName="StripIndices" name="strip indices_1" readOnly="true" maxElementCount="65535" maxElementCountSource="MAXIMUM_STRIP_INDICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_strip_index" internalName="global_geometry_section_strip_index_block" name="index">
+                            <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(word)" isLatest="true">
+                              <ShortInteger CStyleName="index" pascalStyleName="Index" name="index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Data CStyleName="visibility_mopp_code" pascalStyleName="VisibilityMoppCode" name="visibility mopp code" readOnly="true" />
+                        <Block CStyleName="mopp_reorder_table" pascalStyleName="MoppReorderTable" name="mopp reorder table" readOnly="true" maxElementCount="65535" maxElementCountSource="MAXIMUM_STRIP_INDICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_strip_index" internalName="global_geometry_section_strip_index_block" name="index">
+                            <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(word)" isLatest="true">
+                              <ShortInteger CStyleName="index" pascalStyleName="Index" name="index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="vertex_buffers" pascalStyleName="VertexBuffers" name="vertex buffers" readOnly="true" maxElementCount="512" maxElementCountSource="MAXIMUM_VERTEX_BUFFERS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_vertex_buffer" internalName="global_geometry_section_vertex_buffer_block" name="vertex buffer">
+                            <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(struct rasterizer_vertex_buffer)" isLatest="true">
+                              <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Ptr CStyleName="index_buffer" pascalStyleName="IndexBuffer" name="index_buffer" tag="nuke" length="4" />
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                  <Struct CStyleName="point_data" pascalStyleName="PointData" name="StructHeader_point data" readOnly="true">
+                    <Layout regolithID="structure:global_geometry_point_data" tag="PDAT" internalName="global_geometry_point_data_struct" backingBlockInternalName="global_geometry_point_data_struct_block" name="global_geometry_point_data_struct">
+                      <FieldSet version="0" sizeofValue="56" sizeofSource="sizeof(struct geometry_point_data)" isLatest="true">
+                        <Block CStyleName="raw_points" pascalStyleName="RawPoints" name="raw points" readOnly="true" maxElementCount="32767" maxElementCountSource="MAXIMUM_VERTICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_raw_point" internalName="global_geometry_raw_point_block" name="point">
+                            <FieldSet version="0" sizeofValue="68" sizeofSource="sizeof(struct geometry_point)" isLatest="true">
+                              <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_3" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_1" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_2" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_3" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_3" readOnly="true" />
+                              <LongInteger CStyleName="use_new_node_indices" pascalStyleName="UseNewNodeIndices" name="use new node indices" readOnly="true" />
+                              <LongInteger CStyleName="adjusted_compound_node_index" pascalStyleName="AdjustedCompoundNodeIndex" name="adjusted compound node index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Data CStyleName="runtime_point_data" pascalStyleName="RuntimePointData" name="runtime point data" readOnly="true" />
+                        <Block CStyleName="rigid_point_groups" pascalStyleName="RigidPointGroups" name="rigid point groups" readOnly="true" maxElementCount="32767" maxElementCountSource="MAXIMUM_RIGID_POINT_GROUPS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_rigid_point_group" internalName="global_geometry_rigid_point_group_block" name="rigid point group">
+                            <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(struct geometry_rigid_point_group)" isLatest="true">
+                              <CharInteger CStyleName="rigid_node_index" pascalStyleName="RigidNodeIndex" name="rigid node index" readOnly="true" />
+                              <CharInteger CStyleName="nodes_per_point" pascalStyleName="NodesPerPoint" name="nodes per point" readOnly="true" />
+                              <ShortInteger CStyleName="point_count" pascalStyleName="PointCount" name="point count" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="vertex_point_indices" pascalStyleName="VertexPointIndices" name="vertex-point indices" readOnly="true" maxElementCount="32767" maxElementCountSource="MAXIMUM_VERTICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_point_data_index" internalName="global_geometry_point_data_index_block" name="index">
+                            <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(word)" isLatest="true">
+                              <ShortInteger CStyleName="index" pascalStyleName="Index" name="index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                  <Block CStyleName="node_map" pascalStyleName="NodeMap" name="node map" readOnly="true" maxElementCount="40" maxElementCountSource="MAXIMUM_NODES_PER_RENDER_MODEL_SECTION">
+                    <Layout regolithID="block:render_model_node_map" internalName="render_model_node_map_block" name="index">
+                      <FieldSet version="0" sizeofValue="1" sizeofSource="sizeof(byte)" isLatest="true">
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Explanation name="ISQ INFO" />
+                  <Struct CStyleName="isq_info" pascalStyleName="IsqInfo" name="StructHeader_isq info" readOnly="true">
+                    <Layout regolithID="structure:global_geometry_isq_info" tag="ISQI" internalName="global_geometry_isq_info_struct" backingBlockInternalName="global_geometry_isq_info_struct_block" name="global_geometry_isq_info_struct">
+                      <FieldSet version="0" sizeofValue="92" sizeofSource="sizeof(struct geometry_isq_info)" isLatest="true">
+                        <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags" readOnly="true">
+                          <Options regolithID="enum:geometry_flags" CStyleName="geometry_flags" pascalStyleName="GeometryFlags">
+                            <Bit name="compressed planes" CStyleName="compressed_planes_bit" pascalStyleName="CompressedPlanesBit" />
+                            <Bit name="swizzled planes" CStyleName="swizzled_planes_bit" pascalStyleName="SwizzledPlanesBit" />
+                          </Options>
+                        </WordFlags>
+                        <Pad sizeOfSource="sizeof(word)" length="2" name="Pad_4" />
+                        <Block CStyleName="raw_planes" pascalStyleName="RawPlanes" name="raw planes" readOnly="true" maxElementCount="65535" maxElementCountSource="MAXIMUM_TRIANGLES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_plane" internalName="global_geometry_plane_block" name="plane">
+                            <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(real_plane3d)" isLatest="true">
+                              <RealPlane3D CStyleName="plane" pascalStyleName="Plane" name="plane" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Data CStyleName="runtime_plane_data" pascalStyleName="RuntimePlaneData" name="runtime plane data" readOnly="true" />
+                        <Block CStyleName="rigid_plane_groups" pascalStyleName="RigidPlaneGroups" name="rigid plane groups" readOnly="true" maxElementCount="65280" maxElementCountSource="MAXIMUM_RIGID_PLANE_GROUPS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_rigid_plane_group" internalName="global_geometry_rigid_plane_group_block" name="rigid plane group">
+                            <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(struct geometry_rigid_plane_group)" isLatest="true">
+                              <CharInteger CStyleName="rigid_node_index" pascalStyleName="RigidNodeIndex" name="rigid node index" readOnly="true" />
+                              <CharInteger CStyleName="part_index" pascalStyleName="PartIndex" name="part index" readOnly="true" />
+                              <ShortInteger CStyleName="triangle_count" pascalStyleName="TriangleCount" name="triangle count" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Pad sizeOfSource="8*sizeof(long)" length="32" name="Pad_5" />
+                        <Block CStyleName="explicit_edges" pascalStyleName="ExplicitEdges" name="explicit edges" readOnly="true" maxElementCount="65535" maxElementCountSource="MAXIMUM_EXPLICIT_EDGES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_explicit_edge" internalName="global_geometry_explicit_edge_block" name="explicit edge">
+                            <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(struct geometry_explicit_edge)" isLatest="true">
+                              <ShortInteger CStyleName="vertex_index" pascalStyleName="VertexIndex" name="vertex index" readOnly="true" />
+                              <ShortInteger CStyleName="vertex_index" pascalStyleName="VertexIndex" name="vertex index_1" readOnly="true" />
+                              <ShortInteger CStyleName="triangle_index" pascalStyleName="TriangleIndex" name="triangle index" readOnly="true" />
+                              <ShortInteger CStyleName="triangle_index" pascalStyleName="TriangleIndex" name="triangle index_1" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                  <Block CStyleName="forward_shared_edges" pascalStyleName="ForwardSharedEdges" name="forward shared edges" readOnly="true" maxElementCount="16384" maxElementCountSource="MAXIMUM_SHARED_EDGES_PER_GEOMETRY_SECTION">
+                    <Layout regolithID="block:render_model_forward_shared_edge" internalName="render_model_forward_shared_edge_block" name="forward shared edge">
+                      <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(struct render_model_forward_shared_edge)" isLatest="true">
+                        <ShortInteger CStyleName="triangle_index" pascalStyleName="TriangleIndex" name="triangle index" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="forward_shared_edge_groups" pascalStyleName="ForwardSharedEdgeGroups" name="forward shared edge groups" readOnly="true" maxElementCount="512" maxElementCountSource="MAXIMUM_SHARED_EDGE_GROUPS_PER_GEOMETRY_SECTION">
+                    <Layout regolithID="block:render_model_shared_edge_group" internalName="render_model_shared_edge_group_block" name="shared edge group">
+                      <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(struct render_model_shared_edge_group)" isLatest="true">
+                        <ShortInteger CStyleName="first_shared_edge_index" pascalStyleName="FirstSharedEdgeIndex" name="first shared edge index" readOnly="true" />
+                        <ShortInteger CStyleName="shared_edge_count" pascalStyleName="SharedEdgeCount" name="shared edge count" readOnly="true" />
+                        <Pad sizeOfSource="sizeof(byte)" length="1" name="Pad" />
+                        <CharInteger CStyleName="adjacent_region_index" pascalStyleName="AdjacentRegionIndex" name="adjacent region index" readOnly="true" />
+                        <Pad sizeOfSource="sizeof(byte)" length="1" name="Pad_1" />
+                        <CharInteger CStyleName="section_set_index" pascalStyleName="SectionSetIndex" name="section set index" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="backward_shared_edges" pascalStyleName="BackwardSharedEdges" name="backward shared edges" readOnly="true" maxElementCount="16384" maxElementCountSource="MAXIMUM_SHARED_EDGES_PER_GEOMETRY_SECTION">
+                    <Layout regolithID="block:render_model_backward_shared_edge" internalName="render_model_backward_shared_edge_block" name="backward shared edge">
+                      <FieldSet version="0" sizeofValue="6" sizeofSource="sizeof(struct render_model_backward_shared_edge)" isLatest="true">
+                        <ShortInteger CStyleName="vertex_index" pascalStyleName="VertexIndex" name="vertex index" readOnly="true" />
+                        <ShortInteger CStyleName="vertex_index" pascalStyleName="VertexIndex" name="vertex index_1" readOnly="true" />
+                        <ShortInteger CStyleName="triangle_index" pascalStyleName="TriangleIndex" name="triangle index" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="backward_shared_edge_groups" pascalStyleName="BackwardSharedEdgeGroups" name="backward shared edge groups" readOnly="true" maxElementCount="512" maxElementCountSource="MAXIMUM_SHARED_EDGE_GROUPS_PER_GEOMETRY_SECTION">
+                    <Layout regolithID="block:render_model_shared_edge_group" internalName="render_model_shared_edge_group_block" name="shared edge group">
+                      <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(struct render_model_shared_edge_group)" isLatest="true">
+                        <ShortInteger CStyleName="first_shared_edge_index" pascalStyleName="FirstSharedEdgeIndex" name="first shared edge index" readOnly="true" />
+                        <ShortInteger CStyleName="shared_edge_count" pascalStyleName="SharedEdgeCount" name="shared edge count" readOnly="true" />
+                        <Pad sizeOfSource="sizeof(byte)" length="1" name="Pad" />
+                        <CharInteger CStyleName="adjacent_region_index" pascalStyleName="AdjacentRegionIndex" name="adjacent region index" readOnly="true" />
+                        <Pad sizeOfSource="sizeof(byte)" length="1" name="Pad_1" />
+                        <CharInteger CStyleName="section_set_index" pascalStyleName="SectionSetIndex" name="section set index" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Explanation name="DSQ INFO" />
+                  <Block CStyleName="raw_vertices" pascalStyleName="RawVertices" name="raw vertices" readOnly="true" maxElementCount="65536" maxElementCountSource="MAXIMUM_DSQ_VERTICES_PER_RENDER_MODEL_SECTION">
+                    <Layout regolithID="block:render_model_dsq_raw_vertex" internalName="render_model_dsq_raw_vertex_block" name="vertex">
+                      <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(struct render_model_dsq_vertex)" isLatest="true">
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                        <RealPlane3D CStyleName="plane" pascalStyleName="Plane" name="plane" readOnly="true" />
+                        <LongInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="strip_indices" pascalStyleName="StripIndices" name="strip indices" readOnly="true" maxElementCount="262144" maxElementCountSource="MAXIMUM_DSQ_STRIP_INDICES_PER_RENDER_MODEL_SECTION">
+                    <Layout regolithID="block:render_model_dsq_strip_index" internalName="render_model_dsq_strip_index_block" name="index">
+                      <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(word)" isLatest="true">
+                        <ShortInteger CStyleName="vertex_index" pascalStyleName="VertexIndex" name="vertex index" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="silhouette_quads" pascalStyleName="SilhouetteQuads" name="silhouette quads" readOnly="true" maxElementCount="65536" maxElementCountSource="MAXIMUM_DSQ_SILHOUETTE_QUADS_PER_RENDER_MODEL_SECTION">
+                    <Layout regolithID="block:render_model_dsq_silhouette_quad" internalName="render_model_dsq_silhouette_quad_block" name="quad">
+                      <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(struct render_model_dsq_silhouette_quad)" isLatest="true">
+                        <ShortInteger CStyleName="vertex_index" pascalStyleName="VertexIndex" name="vertex index" readOnly="true" />
+                        <ShortInteger CStyleName="vertex_index" pascalStyleName="VertexIndex" name="vertex index_1" readOnly="true" />
+                        <ShortInteger CStyleName="vertex_index" pascalStyleName="VertexIndex" name="vertex index_2" readOnly="true" />
+                        <ShortInteger CStyleName="vertex_index" pascalStyleName="VertexIndex" name="vertex index_3" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <ShortInteger CStyleName="carmack_silhouette_quad_count" pascalStyleName="CarmackSilhouetteQuadCount" name="Carmack-silhouette quad count" readOnly="true" />
+                  <Pad sizeOfSource="sizeof(word)" length="2" name="Pad" />
+                  <Pad sizeOfSource="sizeof(render_model_section_data_old::pad)" length="4" name="Pad_1" />
+                  <Pad tag="pd64" length="4" name="Pad_2" />
+                </FieldSet>
+                <FieldSet version="1" sizeofValue="180" sizeofSource="sizeof(struct render_model_section_data)" isLatest="true">
+                  <Struct CStyleName="section" pascalStyleName="Section" name="StructHeader_section" readOnly="true">
+                    <Layout regolithID="structure:global_geometry_section" tag="SECT" internalName="global_geometry_section_struct" backingBlockInternalName="global_geometry_section_struct_block" name="global_geometry_section_struct">
+                      <FieldSet version="0" sizeofValue="272" sizeofSource="sizeof(struct geometry_section_old)" sizeofOverride="244">
+                        <Block CStyleName="raw_vertices" pascalStyleName="RawVertices" name="raw vertices" readOnly="true" maxElementCount="32767" maxElementCountSource="MAXIMUM_VERTICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_raw_vertex" internalName="global_geometry_section_raw_vertex_block" name="vertex">
+                            <FieldSet version="0" sizeofValue="196" sizeofSource="sizeof(struct geometry_vertex)" isLatest="true">
+                              <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_3" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_1" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_2" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_3" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_3" readOnly="true" />
+                              <LongInteger CStyleName="use_new_node_indices" pascalStyleName="UseNewNodeIndices" name="use new node indices" readOnly="true" />
+                              <LongInteger CStyleName="adjusted_compound_node_index" pascalStyleName="AdjustedCompoundNodeIndex" name="adjusted compound node index" readOnly="true" />
+                              <RealPoint2D CStyleName="texcoord" pascalStyleName="Texcoord" name="texcoord" readOnly="true" />
+                              <RealVector3D CStyleName="normal" pascalStyleName="Normal" name="normal" readOnly="true" />
+                              <RealVector3D CStyleName="binormal" pascalStyleName="Binormal" name="binormal" readOnly="true" />
+                              <RealVector3D CStyleName="tangent" pascalStyleName="Tangent" name="tangent" readOnly="true" />
+                              <RealVector3D CStyleName="anisotropic_binormal" pascalStyleName="AnisotropicBinormal" name="anisotropic binormal" readOnly="true" />
+                              <RealPoint2D CStyleName="secondary_texcoord" pascalStyleName="SecondaryTexcoord" name="secondary texcoord" readOnly="true" />
+                              <RealRgbColor CStyleName="primary_lightmap_color" pascalStyleName="PrimaryLightmapColor" name="primary lightmap color" />
+                              <RealPoint2D CStyleName="primary_lightmap_texcoord" pascalStyleName="PrimaryLightmapTexcoord" name="primary lightmap texcoord" />
+                              <RealVector3D CStyleName="primary_lightmap_incident_direction" pascalStyleName="PrimaryLightmapIncidentDirection" name="primary lightmap incident direction" />
+                              <Pad sizeOfSource="sizeof(real_rgb_color)" length="12" name="Pad" />
+                              <Pad sizeOfSource="sizeof(real_point2d)" length="8" name="Pad_1" />
+                              <Pad sizeOfSource="sizeof(real_vector3d)" length="12" name="Pad_2" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer" readOnly="true" />
+                        <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer_1" readOnly="true" />
+                        <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer_2" readOnly="true" />
+                        <VertexBuffer CStyleName="transparent_position" pascalStyleName="TransparentPosition" name="transparent position" readOnly="true" />
+                        <Block CStyleName="vertex_buffers" pascalStyleName="VertexBuffers" name="vertex buffers" readOnly="true" maxElementCount="512" maxElementCountSource="MAXIMUM_VERTEX_BUFFERS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_vertex_buffer" internalName="global_geometry_section_vertex_buffer_block" name="vertex buffer">
+                            <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(struct rasterizer_vertex_buffer)" isLatest="true">
+                              <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="strip_indices" pascalStyleName="StripIndices" name="strip indices" readOnly="true" maxElementCount="65535" maxElementCountSource="MAXIMUM_STRIP_INDICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_strip_index" internalName="global_geometry_section_strip_index_block" name="index">
+                            <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(word)" isLatest="true">
+                              <ShortInteger CStyleName="index" pascalStyleName="Index" name="index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="parts" pascalStyleName="Parts" name="parts" readOnly="true" maxElementCount="255" maxElementCountSource="MAXIMUM_PARTS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_part" internalName="global_geometry_part_block" name="part">
+                            <FieldSet version="0" sizeofValue="100" sizeofSource="sizeof(struct geometry_part_old)" isLatest="true">
+                              <ShortEnum CStyleName="type" pascalStyleName="Type" name="type" readOnly="true">
+                                <Options regolithID="enum:geometry_part_type" CStyleName="geometry_part_type" pascalStyleName="GeometryPartType">
+                                  <Enum name="not drawn" CStyleName="not_drawn" pascalStyleName="NotDrawn" />
+                                  <Enum name="opaque shadow-only" CStyleName="opaque_shadow_only" pascalStyleName="OpaqueShadowOnly" />
+                                  <Enum name="opaque shadow-casting" CStyleName="opaque_shadow_casting" pascalStyleName="OpaqueShadowCasting" />
+                                  <Enum name="opaque non-shadowing" CStyleName="opaque_non_shadowing" pascalStyleName="OpaqueNonShadowing" />
+                                  <Enum name="transparent" CStyleName="transparent" pascalStyleName="Transparent" />
+                                  <Enum name="lightmap only" CStyleName="lightmap_only" pascalStyleName="LightmapOnly" />
+                                </Options>
+                              </ShortEnum>
+                              <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags" readOnly="true">
+                                <Options regolithID="enum:geometry_part_flags" CStyleName="geometry_part_flags" pascalStyleName="GeometryPartFlags">
+                                  <Bit name="decalable" CStyleName="decalable_bit" pascalStyleName="DecalableBit" />
+                                  <Bit name="new part types" CStyleName="new_part_types_bit" pascalStyleName="NewPartTypesBit" />
+                                  <Bit name="dislikes photons" CStyleName="dislikes_photons_bit" pascalStyleName="DislikesPhotonsBit" />
+                                  <Bit name="override triangle list" CStyleName="override_triangle_list_bit" pascalStyleName="OverrideTriangleListBit" />
+                                  <Bit name="ignored by lightmapper" CStyleName="ignored_by_lightmapper_bit" pascalStyleName="IgnoredByLightmapperBit" />
+                                </Options>
+                              </WordFlags>
+                              <ShortBlockIndex CStyleName="material" pascalStyleName="Material" name="material" readOnly="true" />
+                              <ShortEnum CStyleName="geometry_subclassification" pascalStyleName="GeometrySubclassification" name="geometry subclassification" readOnly="true">
+                                <Options regolithID="enum:geometry_subclassification" CStyleName="geometry_subclassification" pascalStyleName="GeometrySubclassification">
+                                  <Enum name="default (opaque)" CStyleName="default_opaque" pascalStyleName="DefaultOpaque" />
+                                  <Enum name="faceted (opaque)" CStyleName="faceted_opaque" pascalStyleName="FacetedOpaque" />
+                                  <Enum name="simple (transparent)" CStyleName="simple_transparent" pascalStyleName="SimpleTransparent" />
+                                  <Enum name="normal (transparent)" CStyleName="normal_transparent" pascalStyleName="NormalTransparent" />
+                                  <Enum name="tangent-space (transparent)" CStyleName="tangent_space_transparent" pascalStyleName="TangentSpaceTransparent" />
+                                </Options>
+                              </ShortEnum>
+                              <ShortInteger CStyleName="strip_start_index" pascalStyleName="StripStartIndex" name="strip start index" readOnly="true" unsigned="true" />
+                              <ShortInteger CStyleName="strip_length" pascalStyleName="StripLength" name="strip length" readOnly="true" unsigned="true" />
+                              <ShortInteger CStyleName="first_strip_segment_index" pascalStyleName="FirstStripSegmentIndex" name="first strip segment index" readOnly="true" />
+                              <ShortInteger CStyleName="strip_segment_count" pascalStyleName="StripSegmentCount" name="strip segment count" readOnly="true" />
+                              <ShortInteger CStyleName="first_vertex_index" pascalStyleName="FirstVertexIndex" name="first vertex index" readOnly="true" />
+                              <ShortInteger CStyleName="vertex_count" pascalStyleName="VertexCount" name="vertex count" readOnly="true" />
+                              <ShortInteger CStyleName="first_triangle_index" pascalStyleName="FirstTriangleIndex" name="first triangle index" readOnly="true" />
+                              <ShortInteger CStyleName="triangle_count" pascalStyleName="TriangleCount" name="triangle count" readOnly="true" />
+                              <CharInteger CStyleName="max_nodesvertex" pascalStyleName="MaxNodesvertex" name="max nodes/vertex" readOnly="true" />
+                              <CharInteger CStyleName="contributing_compound_node_count" pascalStyleName="ContributingCompoundNodeCount" name="contributing compound node count" readOnly="true" />
+                              <WordFlags CStyleName="vertex_usage_flags" pascalStyleName="VertexUsageFlags" name="vertex usage flags" readOnly="true">
+                                <Options regolithID="enum:vertex_usage_flags" CStyleName="vertex_usage_flags" pascalStyleName="VertexUsageFlags">
+                                  <Bit name="position software transformed" CStyleName="position_software_transformed_bit" pascalStyleName="PositionSoftwareTransformedBit" />
+                                  <Bit name="texcoord" CStyleName="texcoord_bit" pascalStyleName="TexcoordBit" />
+                                  <Bit name="normal" CStyleName="normal_bit" pascalStyleName="NormalBit" />
+                                  <Bit name="binormal/tangent" CStyleName="binormaltangent_bit" pascalStyleName="BinormaltangentBit" />
+                                  <Bit name="anisotropic binormal" CStyleName="anisotropic_binormal_bit" pascalStyleName="AnisotropicBinormalBit" />
+                                  <Bit name="secondary texcoord" CStyleName="secondary_texcoord_bit" pascalStyleName="SecondaryTexcoordBit" />
+                                </Options>
+                              </WordFlags>
+                              <Pad sizeOfSource="MAXIMUM_VERTEX_BUFFERS_PER_GEOMETRY_PART*sizeof(word)" length="12" name="Pad" />
+                              <Pad sizeOfSource="sizeof(byte)" length="1" name="Pad_1" />
+                              <Pad sizeOfSource="3*sizeof(byte)" length="3" name="Pad_2" />
+                              <Explanation name="CENTROID" />
+                              <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                              <Real CStyleName="lod_mipmap_magic_number" pascalStyleName="LodMipmapMagicNumber" name="lod mipmap magic number" readOnly="true" />
+                              <Skip sizeOfSource="sizeof(real_rectangle3d)" length="24" name="Skip" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Pad sizeOfSource="sizeof(struct rasterizer_vertex_buffer)*3" length="96" name="Pad_2" />
+                      </FieldSet>
+                      <FieldSet version="1" sizeofValue="108" sizeofSource="sizeof(struct geometry_section)" isLatest="true">
+                        <Block CStyleName="parts" pascalStyleName="Parts" name="parts" readOnly="true" maxElementCount="255" maxElementCountSource="MAXIMUM_PARTS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_part_block_new" internalName="global_geometry_part_block_new" name="part">
+                            <FieldSet version="0" sizeofValue="72" sizeofSource="sizeof(struct geometry_part)" isLatest="true">
+                              <ShortEnum CStyleName="type" pascalStyleName="Type" name="type" readOnly="true">
+                                <Options regolithID="enum:geometry_part_type" CStyleName="geometry_part_type" pascalStyleName="GeometryPartType">
+                                  <Enum name="not drawn" CStyleName="not_drawn" pascalStyleName="NotDrawn" />
+                                  <Enum name="opaque shadow-only" CStyleName="opaque_shadow_only" pascalStyleName="OpaqueShadowOnly" />
+                                  <Enum name="opaque shadow-casting" CStyleName="opaque_shadow_casting" pascalStyleName="OpaqueShadowCasting" />
+                                  <Enum name="opaque non-shadowing" CStyleName="opaque_non_shadowing" pascalStyleName="OpaqueNonShadowing" />
+                                  <Enum name="transparent" CStyleName="transparent" pascalStyleName="Transparent" />
+                                  <Enum name="lightmap only" CStyleName="lightmap_only" pascalStyleName="LightmapOnly" />
+                                </Options>
+                              </ShortEnum>
+                              <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags" readOnly="true">
+                                <Options regolithID="enum:geometry_part_flags" CStyleName="geometry_part_flags" pascalStyleName="GeometryPartFlags">
+                                  <Bit name="decalable" CStyleName="decalable_bit" pascalStyleName="DecalableBit" />
+                                  <Bit name="new part types" CStyleName="new_part_types_bit" pascalStyleName="NewPartTypesBit" />
+                                  <Bit name="dislikes photons" CStyleName="dislikes_photons_bit" pascalStyleName="DislikesPhotonsBit" />
+                                  <Bit name="override triangle list" CStyleName="override_triangle_list_bit" pascalStyleName="OverrideTriangleListBit" />
+                                  <Bit name="ignored by lightmapper" CStyleName="ignored_by_lightmapper_bit" pascalStyleName="IgnoredByLightmapperBit" />
+                                </Options>
+                              </WordFlags>
+                              <ShortBlockIndex CStyleName="material" pascalStyleName="Material" name="material" readOnly="true" blockReference="block:global_geometry_material" />
+                              <ShortInteger CStyleName="strip_start_index" pascalStyleName="StripStartIndex" name="strip start index" readOnly="true" unsigned="true" />
+                              <ShortInteger CStyleName="strip_length" pascalStyleName="StripLength" name="strip length" readOnly="true" unsigned="true" />
+                              <ShortInteger CStyleName="first_subpart_index" pascalStyleName="FirstSubpartIndex" name="first subpart index" readOnly="true" />
+                              <ShortInteger CStyleName="subpart_count" pascalStyleName="SubpartCount" name="subpart count" readOnly="true" />
+                              <CharInteger CStyleName="max_nodesvertex" pascalStyleName="MaxNodesvertex" name="max nodes/vertex" readOnly="true" />
+                              <CharInteger CStyleName="contributing_compound_node_count" pascalStyleName="ContributingCompoundNodeCount" name="contributing compound node count" readOnly="true" />
+                              <Explanation name="CENTROID" />
+                              <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                              <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                              <Real CStyleName="lod_mipmap_magic_number" pascalStyleName="LodMipmapMagicNumber" name="lod mipmap magic number" readOnly="true" />
+                              <Skip sizeOfSource="sizeof(real_rectangle3d)" length="24" name="Skip" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="subparts" pascalStyleName="Subparts" name="subparts" readOnly="true" maxElementCount="32768" maxElementCountSource="MAXIMUM_SUBPARTS_PER_SECTION">
+                          <Layout regolithID="block:global_subparts" internalName="global_subparts_block" name="subparts">
+                            <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(geometry_subpart)" isLatest="true">
+                              <ShortInteger CStyleName="indices_start_index" pascalStyleName="IndicesStartIndex" name="indices_start_index" readOnly="true" />
+                              <ShortInteger CStyleName="indices_length" pascalStyleName="IndicesLength" name="indices_length" readOnly="true" />
+                              <ShortInteger CStyleName="visibility_bounds_index" pascalStyleName="VisibilityBoundsIndex" name="visibility_bounds_index" readOnly="true" />
+                              <ShortInteger CStyleName="part_index" pascalStyleName="PartIndex" name="part index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="visibility_bounds" pascalStyleName="VisibilityBounds" name="visibility bounds" readOnly="true" maxElementCount="32768" maxElementCountSource="MAXIMUM_SUBPARTS_PER_SECTION">
+                          <Layout regolithID="block:global_visibility_bounds" internalName="global_visibility_bounds_block" name="visibility bounds">
+                            <FieldSet version="0" sizeofValue="20" sizeofSource="sizeof(geometry_visibility)" isLatest="true">
+                              <Real CStyleName="position_x" pascalStyleName="PositionX" name="position x" readOnly="true" />
+                              <Real CStyleName="position_y" pascalStyleName="PositionY" name="position y" readOnly="true" />
+                              <Real CStyleName="position_z" pascalStyleName="PositionZ" name="position z" readOnly="true" />
+                              <Real CStyleName="radius" pascalStyleName="Radius" name="radius" readOnly="true" />
+                              <CharInteger CStyleName="node_0" pascalStyleName="Node0" name="node 0" readOnly="true" />
+                              <Pad sizeOfSource="3" length="3" name="Pad" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="raw_vertices" pascalStyleName="RawVertices" name="raw vertices" readOnly="true" maxElementCount="32767" maxElementCountSource="MAXIMUM_VERTICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_raw_vertex" internalName="global_geometry_section_raw_vertex_block" name="vertex">
+                            <FieldSet version="0" sizeofValue="196" sizeofSource="sizeof(struct geometry_vertex)" isLatest="true">
+                              <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_3" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_1" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_2" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_3" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_3" readOnly="true" />
+                              <LongInteger CStyleName="use_new_node_indices" pascalStyleName="UseNewNodeIndices" name="use new node indices" readOnly="true" />
+                              <LongInteger CStyleName="adjusted_compound_node_index" pascalStyleName="AdjustedCompoundNodeIndex" name="adjusted compound node index" readOnly="true" />
+                              <RealPoint2D CStyleName="texcoord" pascalStyleName="Texcoord" name="texcoord" readOnly="true" />
+                              <RealVector3D CStyleName="normal" pascalStyleName="Normal" name="normal" readOnly="true" />
+                              <RealVector3D CStyleName="binormal" pascalStyleName="Binormal" name="binormal" readOnly="true" />
+                              <RealVector3D CStyleName="tangent" pascalStyleName="Tangent" name="tangent" readOnly="true" />
+                              <RealVector3D CStyleName="anisotropic_binormal" pascalStyleName="AnisotropicBinormal" name="anisotropic binormal" readOnly="true" />
+                              <RealPoint2D CStyleName="secondary_texcoord" pascalStyleName="SecondaryTexcoord" name="secondary texcoord" readOnly="true" />
+                              <RealRgbColor CStyleName="primary_lightmap_color" pascalStyleName="PrimaryLightmapColor" name="primary lightmap color" />
+                              <RealPoint2D CStyleName="primary_lightmap_texcoord" pascalStyleName="PrimaryLightmapTexcoord" name="primary lightmap texcoord" />
+                              <RealVector3D CStyleName="primary_lightmap_incident_direction" pascalStyleName="PrimaryLightmapIncidentDirection" name="primary lightmap incident direction" />
+                              <Pad sizeOfSource="sizeof(real_rgb_color)" length="12" name="Pad" />
+                              <Pad sizeOfSource="sizeof(real_point2d)" length="8" name="Pad_1" />
+                              <Pad sizeOfSource="sizeof(real_vector3d)" length="12" name="Pad_2" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="strip_indices" pascalStyleName="StripIndices" name="strip indices" readOnly="true" maxElementCount="65535" maxElementCountSource="MAXIMUM_STRIP_INDICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_strip_index" internalName="global_geometry_section_strip_index_block" name="index">
+                            <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(word)" isLatest="true">
+                              <ShortInteger CStyleName="index" pascalStyleName="Index" name="index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Data CStyleName="visibility_mopp_code" pascalStyleName="VisibilityMoppCode" name="visibility mopp code" readOnly="true" />
+                        <Block CStyleName="mopp_reorder_table" pascalStyleName="MoppReorderTable" name="mopp reorder table" readOnly="true" maxElementCount="65535" maxElementCountSource="MAXIMUM_STRIP_INDICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_strip_index" internalName="global_geometry_section_strip_index_block" name="index">
+                            <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(word)" isLatest="true">
+                              <ShortInteger CStyleName="index" pascalStyleName="Index" name="index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="vertex_buffers" pascalStyleName="VertexBuffers" name="vertex buffers" readOnly="true" maxElementCount="512" maxElementCountSource="MAXIMUM_VERTEX_BUFFERS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_section_vertex_buffer" internalName="global_geometry_section_vertex_buffer_block" name="vertex buffer">
+                            <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(struct rasterizer_vertex_buffer)" isLatest="true">
+                              <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Ptr CStyleName="index_buffer" pascalStyleName="IndexBuffer" name="index_buffer" tag="nuke" length="4" />
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                  <Struct CStyleName="point_data" pascalStyleName="PointData" name="StructHeader_point data" readOnly="true">
+                    <Layout regolithID="structure:global_geometry_point_data" tag="PDAT" internalName="global_geometry_point_data_struct" backingBlockInternalName="global_geometry_point_data_struct_block" name="global_geometry_point_data_struct">
+                      <FieldSet version="0" sizeofValue="56" sizeofSource="sizeof(struct geometry_point_data)" isLatest="true">
+                        <Block CStyleName="raw_points" pascalStyleName="RawPoints" name="raw points" readOnly="true" maxElementCount="32767" maxElementCountSource="MAXIMUM_VERTICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_raw_point" internalName="global_geometry_raw_point_block" name="point">
+                            <FieldSet version="0" sizeofValue="68" sizeofSource="sizeof(struct geometry_point)" isLatest="true">
+                              <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_old" pascalStyleName="NodeIndexOld" name="node index (OLD)_3" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_1" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_2" readOnly="true" />
+                              <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node_weight_3" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_1" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_2" readOnly="true" />
+                              <LongInteger CStyleName="node_index_new" pascalStyleName="NodeIndexNew" name="node index (NEW)_3" readOnly="true" />
+                              <LongInteger CStyleName="use_new_node_indices" pascalStyleName="UseNewNodeIndices" name="use new node indices" readOnly="true" />
+                              <LongInteger CStyleName="adjusted_compound_node_index" pascalStyleName="AdjustedCompoundNodeIndex" name="adjusted compound node index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Data CStyleName="runtime_point_data" pascalStyleName="RuntimePointData" name="runtime point data" readOnly="true" />
+                        <Block CStyleName="rigid_point_groups" pascalStyleName="RigidPointGroups" name="rigid point groups" readOnly="true" maxElementCount="32767" maxElementCountSource="MAXIMUM_RIGID_POINT_GROUPS_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_rigid_point_group" internalName="global_geometry_rigid_point_group_block" name="rigid point group">
+                            <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(struct geometry_rigid_point_group)" isLatest="true">
+                              <CharInteger CStyleName="rigid_node_index" pascalStyleName="RigidNodeIndex" name="rigid node index" readOnly="true" />
+                              <CharInteger CStyleName="nodes_per_point" pascalStyleName="NodesPerPoint" name="nodes per point" readOnly="true" />
+                              <ShortInteger CStyleName="point_count" pascalStyleName="PointCount" name="point count" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                        <Block CStyleName="vertex_point_indices" pascalStyleName="VertexPointIndices" name="vertex-point indices" readOnly="true" maxElementCount="32767" maxElementCountSource="MAXIMUM_VERTICES_PER_GEOMETRY_SECTION">
+                          <Layout regolithID="block:global_geometry_point_data_index" internalName="global_geometry_point_data_index_block" name="index">
+                            <FieldSet version="0" sizeofValue="2" sizeofSource="sizeof(word)" isLatest="true">
+                              <ShortInteger CStyleName="index" pascalStyleName="Index" name="index" readOnly="true" />
+                            </FieldSet>
+                          </Layout>
+                        </Block>
+                      </FieldSet>
+                    </Layout>
+                  </Struct>
+                  <Block CStyleName="node_map" pascalStyleName="NodeMap" name="node map" readOnly="true" maxElementCount="40" maxElementCountSource="MAXIMUM_NODES_PER_RENDER_MODEL_SECTION">
+                    <Layout regolithID="block:render_model_node_map" internalName="render_model_node_map_block" name="index">
+                      <FieldSet version="0" sizeofValue="1" sizeofSource="sizeof(byte)" isLatest="true">
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Pad sizeOfSource="sizeof(render_model_section_data::pad)" length="4" name="Pad" />
+                  <Pad tag="pd64" length="4" name="Pad_1" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Struct CStyleName="geometry_block_info" pascalStyleName="GeometryBlockInfo" name="StructHeader_geometry block info" readOnly="true">
+              <Layout regolithID="structure:global_geometry_block_info" tag="BLOK" internalName="global_geometry_block_info_struct" backingBlockInternalName="global_geometry_block_info_struct_block" name="global_geometry_block_info_struct">
+                <FieldSet version="0" sizeofValue="40" sizeofSource="sizeof(struct geometry_block_info)" isLatest="true">
+                  <Explanation name="BLOCK INFO" />
+                  <LongInteger CStyleName="block_offset" pascalStyleName="BlockOffset" name="block offset" readOnly="true" />
+                  <LongInteger CStyleName="block_size" pascalStyleName="BlockSize" name="block size" readOnly="true" />
+                  <LongInteger CStyleName="section_data_size" pascalStyleName="SectionDataSize" name="section data size" readOnly="true" />
+                  <LongInteger CStyleName="resource_data_size" pascalStyleName="ResourceDataSize" name="resource data size" readOnly="true" />
+                  <Block CStyleName="resources" pascalStyleName="Resources" name="resources" readOnly="true" maxElementCount="1024" maxElementCountSource="MAXIMUM_RESOURCES_PER_GEOMETRY_BLOCK">
+                    <Layout regolithID="block:global_geometry_block_resource" internalName="global_geometry_block_resource_block" name="block resources">
+                      <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct geometry_block_resource)" isLatest="true">
+                        <CharEnum CStyleName="type" pascalStyleName="Type" name="type" readOnly="true">
+                          <Options regolithID="enum:geometry_block_type" CStyleName="geometry_block_type" pascalStyleName="GeometryBlockType">
+                            <Enum name="tag block" CStyleName="tag_block" pascalStyleName="TagBlock" />
+                            <Enum name="tag data" CStyleName="tag_data" pascalStyleName="TagData" />
+                            <Enum name="vertex buffer" CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" />
+                          </Options>
+                        </CharEnum>
+                        <Pad sizeOfSource="3*sizeof(byte)" length="3" name="Pad" />
+                        <ShortInteger CStyleName="primary_locator" pascalStyleName="PrimaryLocator" name="primary locator" readOnly="true" />
+                        <ShortInteger CStyleName="secondary_locator" pascalStyleName="SecondaryLocator" name="secondary locator" readOnly="true" />
+                        <LongInteger CStyleName="resource_data_size" pascalStyleName="ResourceDataSize" name="resource data size" readOnly="true" />
+                        <LongInteger CStyleName="resource_data_offset" pascalStyleName="ResourceDataOffset" name="resource data offset" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_1" />
+                  <ShortInteger CStyleName="owner_tag_section_offset" pascalStyleName="OwnerTagSectionOffset" name="owner tag section offset" readOnly="true" />
+                  <Pad sizeOfSource="sizeof(short)" length="2" name="Pad_2" />
+                  <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_3" />
+                </FieldSet>
+              </Layout>
+            </Struct>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="invalid_section_pair_bits" pascalStyleName="InvalidSectionPairBits" name="invalid section pair bits" readOnly="true" maxElementCount="1013" maxElementCountSource="((((MAXIMUM_SECTIONS_PER_RENDER_MODEL*(MAXIMUM_SECTIONS_PER_RENDER_MODEL - 1)/2)+(LONG_BITS-1))&gt;&gt;LONG_BITS_BITS))">
+        <Layout regolithID="block:render_model_invalid_section_pairs" internalName="render_model_invalid_section_pairs_block" name="bitvector">
+          <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(dword)" isLatest="true">
+            <LongInteger CStyleName="bits" pascalStyleName="Bits" name="bits" readOnly="true" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="section_groups" pascalStyleName="SectionGroups" name="section groups" readOnly="true" maxElementCount="6" maxElementCountSource="NUMBER_OF_GEOMETRY_DETAIL_LEVELS">
+        <Layout regolithID="block:render_model_section_group" internalName="render_model_section_group_block" name="section group">
+          <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct render_model_section_group)" isLatest="true">
+            <WordFlags CStyleName="detail_levels" pascalStyleName="DetailLevels" name="detail levels" readOnly="true">
+              <Options regolithID="enum:render_model_detail_level" CStyleName="render_model_detail_level" pascalStyleName="RenderModelDetailLevel">
+                <Bit name="L1 (super low)" CStyleName="l1_super_low_bit" pascalStyleName="L1SuperLowBit" />
+                <Bit name="L2 (low)" CStyleName="l2_low_bit" pascalStyleName="L2LowBit" />
+                <Bit name="L3 (medium)" CStyleName="l3_medium_bit" pascalStyleName="L3MediumBit" />
+                <Bit name="L4 (high)" CStyleName="l4_high_bit" pascalStyleName="L4HighBit" />
+                <Bit name="L5 (super high)" CStyleName="l5_super_high_bit" pascalStyleName="L5SuperHighBit" />
+                <Bit name="L6 (hollywood)" CStyleName="l6_hollywood_bit" pascalStyleName="L6HollywoodBit" />
+              </Options>
+            </WordFlags>
+            <Pad sizeOfSource="sizeof(word)" length="2" name="Pad" />
+            <Block CStyleName="compound_nodes" pascalStyleName="CompoundNodes" name="compound nodes" readOnly="true" maxElementCount="255" maxElementCountSource="MAXIMUM_NODES_PER_MODEL">
+              <Layout regolithID="block:render_model_compound_node" internalName="render_model_compound_node_block" name="compound node">
+                <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct render_model_compound_node)" isLatest="true">
+                  <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                  <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                  <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                  <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                  <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                  <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                  <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                </FieldSet>
+              </Layout>
+            </Block>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <CharInteger CStyleName="l1_section_group_index" pascalStyleName="L1SectionGroupIndex" name="L1 section group index" units="(super low)" readOnly="true" />
+      <CharInteger CStyleName="l2_section_group_index" pascalStyleName="L2SectionGroupIndex" name="L2 section group index" units="(low)" readOnly="true" />
+      <CharInteger CStyleName="l3_section_group_index" pascalStyleName="L3SectionGroupIndex" name="L3 section group index" units="(medium)" readOnly="true" />
+      <CharInteger CStyleName="l4_section_group_index" pascalStyleName="L4SectionGroupIndex" name="L4 section group index" units="(high)" readOnly="true" />
+      <CharInteger CStyleName="l5_section_group_index" pascalStyleName="L5SectionGroupIndex" name="L5 section group index" units="(super high)" readOnly="true" />
+      <CharInteger CStyleName="l6_section_group_index" pascalStyleName="L6SectionGroupIndex" name="L6 section group index" units="(hollywood)" readOnly="true" />
+      <Pad sizeOfSource="sizeof(word)" length="2" name="Pad_2" />
+      <LongInteger CStyleName="node_list_checksum" pascalStyleName="NodeListChecksum" name="node list checksum" readOnly="true" />
+      <Block CStyleName="nodes" pascalStyleName="Nodes" name="nodes" readOnly="true" maxElementCount="255" maxElementCountSource="MAXIMUM_NODES_PER_MODEL">
+        <Layout regolithID="block:render_model_node" internalName="render_model_node_block" name="node">
+          <FieldSet version="0" sizeofValue="96" sizeofSource="sizeof(struct render_model_node)" isLatest="true">
+            <OldStringId CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true" readOnly="true" />
+            <ShortBlockIndex CStyleName="parent_node" pascalStyleName="ParentNode" name="parent node" readOnly="true" blockReference="block:render_model_node" />
+            <ShortBlockIndex CStyleName="first_child_node" pascalStyleName="FirstChildNode" name="first child node" readOnly="true" blockReference="block:render_model_node" />
+            <ShortBlockIndex CStyleName="next_sibling_node" pascalStyleName="NextSiblingNode" name="next sibling node" readOnly="true" blockReference="block:render_model_node" />
+            <ShortInteger CStyleName="import_node_index" pascalStyleName="ImportNodeIndex" name="import node index" readOnly="true" />
+            <RealPoint3D CStyleName="default_translation" pascalStyleName="DefaultTranslation" name="default translation" readOnly="true" />
+            <RealQuaternion CStyleName="default_rotation" pascalStyleName="DefaultRotation" name="default rotation" readOnly="true" />
+            <Explanation name="Old Mistakes Die Hard" description="Be aware that the displayed inverse matrix below is correct but Guerilla will display it incorrectly, including in later games!.&#10;The inverse scale value *should* come before the inverse matrix." />
+            <Real CStyleName="inverse_scale" pascalStyleName="InverseScale" name="inverse scale" readOnly="true" />
+            <RealVector3D CStyleName="inverse_forward" pascalStyleName="InverseForward" name="inverse forward" readOnly="true" />
+            <RealVector3D CStyleName="inverse_left" pascalStyleName="InverseLeft" name="inverse left" readOnly="true" />
+            <RealVector3D CStyleName="inverse_up" pascalStyleName="InverseUp" name="inverse up" readOnly="true" />
+            <RealPoint3D CStyleName="inverse_position" pascalStyleName="InversePosition" name="inverse position" readOnly="true" />
+            <Real CStyleName="distance_from_parent" pascalStyleName="DistanceFromParent" name="distance from parent" readOnly="true" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="node_map_old" pascalStyleName="NodeMapOld" name="node map (OLD)" readOnly="true" expertOnly="true" maxElementCount="640" maxElementCountSource="MAXIMUM_NODES_PER_RENDER_MODEL_SECTION*MAXIMUM_REGIONS_PER_MODEL">
+        <Layout regolithID="block:render_model_node_map_block_OLD" internalName="render_model_node_map_block_OLD" name="index">
+          <FieldSet version="0" sizeofValue="1" sizeofSource="sizeof(byte)" isLatest="true">
+            <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="marker_groups" pascalStyleName="MarkerGroups" name="marker groups" readOnly="true" maxElementCount="4096" maxElementCountSource="MAXIMUM_MARKER_GROUPS_PER_RENDER_MODEL">
+        <Layout regolithID="block:render_model_marker_group" internalName="render_model_marker_group_block" name="marker group">
+          <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct render_model_marker_group)" isLatest="true">
+            <OldStringId CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true" readOnly="true" />
+            <Block CStyleName="markers" pascalStyleName="Markers" name="markers" readOnly="true" maxElementCount="256" maxElementCountSource="MAXIMUM_MARKERS_PER_RENDER_MODEL_MARKER_GROUP">
+              <Layout regolithID="block:render_model_marker" internalName="render_model_marker_block" name="marker">
+                <FieldSet version="0" sizeofValue="36" sizeofSource="sizeof(struct render_model_marker)" isLatest="true">
+                  <CharInteger CStyleName="region_index" pascalStyleName="RegionIndex" name="region index" readOnly="true" />
+                  <CharInteger CStyleName="permutation_index" pascalStyleName="PermutationIndex" name="permutation index" readOnly="true" />
+                  <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                  <Pad sizeOfSource="sizeof(byte)" length="1" name="Pad" />
+                  <RealPoint3D CStyleName="translation" pascalStyleName="Translation" name="translation" readOnly="true" />
+                  <RealQuaternion CStyleName="rotation" pascalStyleName="Rotation" name="rotation" readOnly="true" />
+                  <Real CStyleName="scale" pascalStyleName="Scale" name="scale" />
+                </FieldSet>
+              </Layout>
+            </Block>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="materials" pascalStyleName="Materials" name="materials" readOnly="true" maxElementCount="1024" maxElementCountSource="MAXIMUM_MATERIALS_PER_GEOMETRY">
+        <Layout regolithID="block:global_geometry_material" internalName="global_geometry_material_block" name="material">
+          <FieldSet version="0" sizeofValue="52" sizeofSource="sizeof(struct geometry_material)" isLatest="true">
+            <TagReference CStyleName="old_shader" pascalStyleName="OldShader" name="old shader" readOnly="true">
+              <tag>shad</tag>
+            </TagReference>
+            <TagReference CStyleName="shader" pascalStyleName="Shader" name="shader" blockNameSource="true" readOnly="true">
+              <tag>shad</tag>
+            </TagReference>
+            <Block CStyleName="properties" pascalStyleName="Properties" name="properties" readOnly="true" maxElementCount="16" maxElementCountSource="MAXIMUM_PROPERTIES_PER_MATERIAL">
+              <Layout regolithID="block:global_geometry_material_property" internalName="global_geometry_material_property_block" name="material property">
+                <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(struct geometry_material_property)" isLatest="true">
+                  <ShortEnum CStyleName="type" pascalStyleName="Type" name="type" readOnly="true">
+                    <Options regolithID="enum:geometry_material_property_type" CStyleName="geometry_material_property_type" pascalStyleName="GeometryMaterialPropertyType">
+                      <Enum name="lightmap resolution" CStyleName="lightmap_resolution" pascalStyleName="LightmapResolution" />
+                      <Enum name="lightmap power" CStyleName="lightmap_power" pascalStyleName="LightmapPower" />
+                      <Enum name="lightmap half life" CStyleName="lightmap_half_life" pascalStyleName="LightmapHalfLife" />
+                      <Enum name="lightmap diffuse scale" CStyleName="lightmap_diffuse_scale" pascalStyleName="LightmapDiffuseScale" />
+                    </Options>
+                  </ShortEnum>
+                  <ShortInteger CStyleName="int_value" pascalStyleName="IntValue" name="int-value" readOnly="true" />
+                  <Real CStyleName="real_value" pascalStyleName="RealValue" name="real-value" readOnly="true" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Pad sizeOfSource="4" length="4" name="Pad" />
+            <CharInteger CStyleName="breakable_surface_index" pascalStyleName="BreakableSurfaceIndex" name="breakable surface index" readOnly="true" />
+            <Pad sizeOfSource="3" length="3" name="Pad_1" />
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="errors" pascalStyleName="Errors" name="errors" readOnly="true" maxElementCount="64" maxElementCountSource="MAXIMUM_ERROR_REPORT_CATEGORIES">
+        <Layout regolithID="block:global_error_report_categories" internalName="global_error_report_categories_block" name="error report category">
+          <FieldSet version="0" sizeofValue="680" sizeofSource="sizeof(struct error_report_category)" isLatest="true">
+            <LongString CStyleName="name" pascalStyleName="Name" name="name" blockNameSource="true" readOnly="true" />
+            <ShortEnum CStyleName="report_type" pascalStyleName="ReportType" name="report type" readOnly="true">
+              <Options regolithID="enum:global_error_report_type" CStyleName="global_error_report_type" pascalStyleName="GlobalErrorReportType">
+                <Enum name="silent" CStyleName="silent" pascalStyleName="Silent" />
+                <Enum name="comment" CStyleName="comment" pascalStyleName="Comment" />
+                <Enum name="warning" CStyleName="warning" pascalStyleName="Warning" />
+                <Enum name="error" CStyleName="error" pascalStyleName="Error" />
+              </Options>
+            </ShortEnum>
+            <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags" readOnly="true">
+              <Options regolithID="enum:global_error_report_flags" CStyleName="global_error_report_flags" pascalStyleName="GlobalErrorReportFlags">
+                <Bit name="rendered" CStyleName="rendered_bit" pascalStyleName="RenderedBit" />
+                <Bit name="tangent-space" CStyleName="tangent_space_bit" pascalStyleName="TangentSpaceBit" />
+                <Bit name="non-critical" CStyleName="non_critical_bit" pascalStyleName="NonCriticalBit" />
+                <Bit name="lightmap light" CStyleName="lightmap_light_bit" pascalStyleName="LightmapLightBit" />
+                <Bit name="report key is valid" CStyleName="report_key_is_valid_bit" pascalStyleName="ReportKeyIsValidBit" />
+              </Options>
+            </WordFlags>
+            <Pad sizeOfSource="sizeof(word)" length="2" name="Pad" />
+            <Pad sizeOfSource="sizeof(word)" length="2" name="Pad_1" />
+            <Pad sizeOfSource="101*sizeof(long)" length="404" name="Pad_2" />
+            <Block CStyleName="reports" pascalStyleName="Reports" name="reports" readOnly="true" maxElementCount="1048576" maxElementCountSource="MAXIMUM_REPORTS_PER_ERROR_REPORT_CATEGORY">
+              <Layout regolithID="block:error_reports" internalName="error_reports_block" name="error report">
+                <FieldSet version="0" sizeofValue="644" sizeofSource="sizeof(struct error_report)" isLatest="true">
+                  <ShortEnum CStyleName="type" pascalStyleName="Type" name="type" readOnly="true">
+                    <Options regolithID="enum:global_error_report_type" CStyleName="global_error_report_type" pascalStyleName="GlobalErrorReportType">
+                      <Enum name="silent" CStyleName="silent" pascalStyleName="Silent" />
+                      <Enum name="comment" CStyleName="comment" pascalStyleName="Comment" />
+                      <Enum name="warning" CStyleName="warning" pascalStyleName="Warning" />
+                      <Enum name="error" CStyleName="error" pascalStyleName="Error" />
+                    </Options>
+                  </ShortEnum>
+                  <WordFlags CStyleName="flags" pascalStyleName="Flags" name="flags" readOnly="true">
+                    <Options regolithID="enum:global_error_report_flags" CStyleName="global_error_report_flags" pascalStyleName="GlobalErrorReportFlags">
+                      <Bit name="rendered" CStyleName="rendered_bit" pascalStyleName="RenderedBit" />
+                      <Bit name="tangent-space" CStyleName="tangent_space_bit" pascalStyleName="TangentSpaceBit" />
+                      <Bit name="non-critical" CStyleName="non_critical_bit" pascalStyleName="NonCriticalBit" />
+                      <Bit name="lightmap light" CStyleName="lightmap_light_bit" pascalStyleName="LightmapLightBit" />
+                      <Bit name="report key is valid" CStyleName="report_key_is_valid_bit" pascalStyleName="ReportKeyIsValidBit" />
+                    </Options>
+                  </WordFlags>
+                  <Data CStyleName="text" pascalStyleName="Text" name="text" readOnly="true" />
+                  <String CStyleName="source_filename" pascalStyleName="SourceFilename" name="source filename" readOnly="true" />
+                  <LongInteger CStyleName="source_line_number" pascalStyleName="SourceLineNumber" name="source line number" readOnly="true" />
+                  <Block CStyleName="vertices" pascalStyleName="Vertices" name="vertices" readOnly="true" maxElementCount="1048576" maxElementCountSource="MAXIMUM_VERTICES_PER_ERROR_REPORT">
+                    <Layout regolithID="block:error_report_vertices" internalName="error_report_vertices_block" name="error report vertex">
+                      <FieldSet version="0" sizeofValue="52" sizeofSource="sizeof(struct error_report_vertex)" isLatest="true">
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_3" readOnly="true" />
+                        <RealArgbColor CStyleName="color" pascalStyleName="Color" name="color" readOnly="true" />
+                        <Real CStyleName="screen_size" pascalStyleName="ScreenSize" name="screen size" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="vectors" pascalStyleName="Vectors" name="vectors" readOnly="true" maxElementCount="1048576" maxElementCountSource="MAXIMUM_VECTORS_PER_ERROR_REPORT">
+                    <Layout regolithID="block:error_report_vectors" internalName="error_report_vectors_block" name="error report vector">
+                      <FieldSet version="0" sizeofValue="64" sizeofSource="sizeof(struct error_report_vector)" isLatest="true">
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_3" readOnly="true" />
+                        <RealArgbColor CStyleName="color" pascalStyleName="Color" name="color" readOnly="true" />
+                        <RealVector3D CStyleName="normal" pascalStyleName="Normal" name="normal" readOnly="true" />
+                        <Real CStyleName="screen_length" pascalStyleName="ScreenLength" name="screen length" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="lines" pascalStyleName="Lines" name="lines" readOnly="true" maxElementCount="1048576" maxElementCountSource="MAXIMUM_LINES_PER_ERROR_REPORT">
+                    <Layout regolithID="block:error_report_lines" internalName="error_report_lines_block" name="error report line">
+                      <FieldSet version="0" sizeofValue="80" sizeofSource="sizeof(struct error_report_line)" isLatest="true">
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_3" readOnly="true" />
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position_1" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_4" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_5" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_6" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_7" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_4" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_5" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_6" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_7" readOnly="true" />
+                        <RealArgbColor CStyleName="color" pascalStyleName="Color" name="color" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="triangles" pascalStyleName="Triangles" name="triangles" readOnly="true" maxElementCount="1048576" maxElementCountSource="MAXIMUM_TRIANGLES_PER_ERROR_REPORT">
+                    <Layout regolithID="block:error_report_triangles" internalName="error_report_triangles_block" name="error report triangle">
+                      <FieldSet version="0" sizeofValue="112" sizeofSource="sizeof(struct error_report_triangle)" isLatest="true">
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_3" readOnly="true" />
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position_1" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_4" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_5" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_6" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_7" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_4" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_5" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_6" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_7" readOnly="true" />
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position_2" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_8" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_9" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_10" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_11" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_8" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_9" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_10" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_11" readOnly="true" />
+                        <RealArgbColor CStyleName="color" pascalStyleName="Color" name="color" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="quads" pascalStyleName="Quads" name="quads" readOnly="true" maxElementCount="1048576" maxElementCountSource="MAXIMUM_QUADS_PER_ERROR_REPORT">
+                    <Layout regolithID="block:error_report_quads" internalName="error_report_quads_block" name="error report quad">
+                      <FieldSet version="0" sizeofValue="144" sizeofSource="sizeof(struct error_report_quad)" isLatest="true">
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_3" readOnly="true" />
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position_1" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_4" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_5" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_6" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_7" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_4" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_5" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_6" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_7" readOnly="true" />
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position_2" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_8" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_9" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_10" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_11" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_8" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_9" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_10" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_11" readOnly="true" />
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position_3" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_12" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_13" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_14" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_15" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_12" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_13" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_14" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_15" readOnly="true" />
+                        <RealArgbColor CStyleName="color" pascalStyleName="Color" name="color" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="comments" pascalStyleName="Comments" name="comments" readOnly="true" maxElementCount="1048576" maxElementCountSource="MAXIMUM_COMMENTS_PER_ERROR_REPORT">
+                    <Layout regolithID="block:error_report_comments" internalName="error_report_comments_block" name="error report comment">
+                      <FieldSet version="0" sizeofValue="68" sizeofSource="sizeof(struct error_report_comment)" isLatest="true">
+                        <Data CStyleName="text" pascalStyleName="Text" name="text" readOnly="true" />
+                        <RealPoint3D CStyleName="position" pascalStyleName="Position" name="position" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_1" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_2" readOnly="true" />
+                        <CharInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index_3" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_1" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_2" readOnly="true" />
+                        <Real CStyleName="node_weight" pascalStyleName="NodeWeight" name="node weight_3" readOnly="true" />
+                        <RealArgbColor CStyleName="color" pascalStyleName="Color" name="color" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Pad sizeOfSource="95*sizeof(long)" length="380" name="Pad" />
+                  <LongInteger CStyleName="report_key" pascalStyleName="ReportKey" name="report key" readOnly="true" />
+                  <LongInteger CStyleName="node_index" pascalStyleName="NodeIndex" name="node index" readOnly="true" />
+                  <RealBounds CStyleName="bounds_x" pascalStyleName="BoundsX" name="bounds x" readOnly="true" />
+                  <RealBounds CStyleName="bounds_y" pascalStyleName="BoundsY" name="bounds y" readOnly="true" />
+                  <RealBounds CStyleName="bounds_z" pascalStyleName="BoundsZ" name="bounds z" readOnly="true" />
+                  <RealArgbColor CStyleName="color" pascalStyleName="Color" name="color" readOnly="true" />
+                  <Pad sizeOfSource="21*sizeof(long)" length="84" name="Pad_1" />
+                </FieldSet>
+              </Layout>
+            </Block>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Real CStyleName="dont_draw_over_camera_cosine_angle" pascalStyleName="DontDrawOverCameraCosineAngle" name="don't draw over camera cosine angle" description="dont draw fp model when camera &gt; this angle cosine (-1,1) Sugg. -0.2. 0 disables." />
+      <Block CStyleName="prt_info" pascalStyleName="PrtInfo" name="PRT info" maxElementCount="1">
+        <Layout regolithID="block:prt_info" internalName="prt_info_block" name="prt_info_block">
+          <FieldSet version="0" sizeofValue="108" sizeofSource="sizeof(struct prt_info)" isLatest="true">
+            <ShortInteger CStyleName="sh_order" pascalStyleName="ShOrder" name="SH Order" readOnly="true" />
+            <ShortInteger CStyleName="num_of_clusters" pascalStyleName="NumOfClusters" name="num of clusters" readOnly="true" />
+            <ShortInteger CStyleName="pca_vectors_per_cluster" pascalStyleName="PcaVectorsPerCluster" name="pca vectors per cluster" readOnly="true" />
+            <ShortInteger CStyleName="number_of_rays" pascalStyleName="NumberOfRays" name="number of rays" readOnly="true" />
+            <ShortInteger CStyleName="number_of_bounces" pascalStyleName="NumberOfBounces" name="number of bounces" readOnly="true" />
+            <ShortInteger CStyleName="mat_index_for_sbsfc_scattering" pascalStyleName="MatIndexForSbsfcScattering" name="mat index for sbsfc scattering" readOnly="true" />
+            <Real CStyleName="length_scale" pascalStyleName="LengthScale" name="length scale" readOnly="true" />
+            <ShortInteger CStyleName="number_of_lods_in_model" pascalStyleName="NumberOfLodsInModel" name="number of lods in model" readOnly="true" />
+            <Pad sizeOfSource="sizeof(word)" length="2" name="Pad" />
+            <Block CStyleName="lod_info" pascalStyleName="LodInfo" name="lod info" readOnly="true" maxElementCount="6" maxElementCountSource="NUMBER_OF_GEOMETRY_DETAIL_LEVELS">
+              <Layout regolithID="block:prt_lod_info" internalName="prt_lod_info_block" name="prt lod info">
+                <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct prt_lod_info)" isLatest="true">
+                  <LongInteger CStyleName="cluster_offset" pascalStyleName="ClusterOffset" name="cluster offset" readOnly="true" />
+                  <Block CStyleName="section_info" pascalStyleName="SectionInfo" name="section info" readOnly="true" maxElementCount="255" maxElementCountSource="MAXIMUM_SECTIONS_PER_RENDER_MODEL">
+                    <Layout regolithID="block:prt_section_info" internalName="prt_section_info_block" name="prt section info">
+                      <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(struct prt_section_info)" isLatest="true">
+                        <LongInteger CStyleName="section_index" pascalStyleName="SectionIndex" name="section index" readOnly="true" />
+                        <LongInteger CStyleName="pca_data_offset" pascalStyleName="PcaDataOffset" name="pca data offset" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Block CStyleName="cluster_basis" pascalStyleName="ClusterBasis" name="cluster basis" readOnly="true" maxElementCount="34560" maxElementCountSource="k_max_cluster_data_size">
+              <Layout regolithID="block:prt_cluster_basis" internalName="prt_cluster_basis_block" name="cluster basis">
+                <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(real)" isLatest="true">
+                  <Real CStyleName="basis_data" pascalStyleName="BasisData" name="basis data" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Block CStyleName="raw_pca_data" pascalStyleName="RawPcaData" name="raw_pca_data" readOnly="true" maxElementCount="150405120" maxElementCountSource="k_max_pca_per_vertex_data_size">
+              <Layout regolithID="block:prt_raw_pca_data" internalName="prt_raw_pca_data_block" name="raw pca data">
+                <FieldSet version="0" sizeofValue="4" sizeofSource="sizeof(real)" isLatest="true">
+                  <Real CStyleName="raw_pca_data" pascalStyleName="RawPcaData" name="raw pca data" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Block CStyleName="vertex_buffers" pascalStyleName="VertexBuffers" name="vertex buffers" readOnly="true" maxElementCount="255" maxElementCountSource="MAXIMUM_SECTIONS_PER_RENDER_MODEL">
+              <Layout regolithID="block:prt_vertex_buffers" internalName="prt_vertex_buffers_block" name="vertex buffers">
+                <FieldSet version="0" sizeofValue="32" sizeofSource="sizeof(rasterizer_vertex_buffer)" isLatest="true">
+                  <VertexBuffer CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" name="vertex buffer" readOnly="true" />
+                </FieldSet>
+              </Layout>
+            </Block>
+            <Struct CStyleName="geometry_block_info" pascalStyleName="GeometryBlockInfo" name="StructHeader_geometry block info" readOnly="true">
+              <Layout regolithID="structure:global_geometry_block_info" tag="BLOK" internalName="global_geometry_block_info_struct" backingBlockInternalName="global_geometry_block_info_struct_block" name="global_geometry_block_info_struct">
+                <FieldSet version="0" sizeofValue="40" sizeofSource="sizeof(struct geometry_block_info)" isLatest="true">
+                  <Explanation name="BLOCK INFO" />
+                  <LongInteger CStyleName="block_offset" pascalStyleName="BlockOffset" name="block offset" readOnly="true" />
+                  <LongInteger CStyleName="block_size" pascalStyleName="BlockSize" name="block size" readOnly="true" />
+                  <LongInteger CStyleName="section_data_size" pascalStyleName="SectionDataSize" name="section data size" readOnly="true" />
+                  <LongInteger CStyleName="resource_data_size" pascalStyleName="ResourceDataSize" name="resource data size" readOnly="true" />
+                  <Block CStyleName="resources" pascalStyleName="Resources" name="resources" readOnly="true" maxElementCount="1024" maxElementCountSource="MAXIMUM_RESOURCES_PER_GEOMETRY_BLOCK">
+                    <Layout regolithID="block:global_geometry_block_resource" internalName="global_geometry_block_resource_block" name="block resources">
+                      <FieldSet version="0" sizeofValue="16" sizeofSource="sizeof(struct geometry_block_resource)" isLatest="true">
+                        <CharEnum CStyleName="type" pascalStyleName="Type" name="type" readOnly="true">
+                          <Options regolithID="enum:geometry_block_type" CStyleName="geometry_block_type" pascalStyleName="GeometryBlockType">
+                            <Enum name="tag block" CStyleName="tag_block" pascalStyleName="TagBlock" />
+                            <Enum name="tag data" CStyleName="tag_data" pascalStyleName="TagData" />
+                            <Enum name="vertex buffer" CStyleName="vertex_buffer" pascalStyleName="VertexBuffer" />
+                          </Options>
+                        </CharEnum>
+                        <Pad sizeOfSource="3*sizeof(byte)" length="3" name="Pad" />
+                        <ShortInteger CStyleName="primary_locator" pascalStyleName="PrimaryLocator" name="primary locator" readOnly="true" />
+                        <ShortInteger CStyleName="secondary_locator" pascalStyleName="SecondaryLocator" name="secondary locator" readOnly="true" />
+                        <LongInteger CStyleName="resource_data_size" pascalStyleName="ResourceDataSize" name="resource data size" readOnly="true" />
+                        <LongInteger CStyleName="resource_data_offset" pascalStyleName="ResourceDataOffset" name="resource data offset" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_1" />
+                  <ShortInteger CStyleName="owner_tag_section_offset" pascalStyleName="OwnerTagSectionOffset" name="owner tag section offset" readOnly="true" />
+                  <Pad sizeOfSource="sizeof(short)" length="2" name="Pad_2" />
+                  <Pad sizeOfSource="sizeof(long)" length="4" name="Pad_3" />
+                </FieldSet>
+              </Layout>
+            </Struct>
+          </FieldSet>
+        </Layout>
+      </Block>
+      <Block CStyleName="section_render_leaves" pascalStyleName="SectionRenderLeaves" name="section render leaves" maxElementCount="255" maxElementCountSource="MAXIMUM_SECTIONS_PER_RENDER_MODEL">
+        <Layout regolithID="block:section_render_leaves" internalName="section_render_leaves_block" name="section_render_leaves_block">
+          <FieldSet version="0" sizeofValue="12" sizeofSource="sizeof(struct section_render_leaves)" isLatest="true">
+            <Block CStyleName="node_render_leaves" pascalStyleName="NodeRenderLeaves" name="node render leaves" readOnly="true" maxElementCount="64" maxElementCountSource="MAXIMUM_BSPS_PER_COLLISION_REGION">
+              <Layout regolithID="block:node_render_leaves" internalName="node_render_leaves_block" name="node_render_leaves_block">
+                <FieldSet version="0" sizeofValue="24" sizeofSource="sizeof(struct node_render_leaves)" isLatest="true">
+                  <Block CStyleName="collision_leaves" pascalStyleName="CollisionLeaves" name="collision leaves" readOnly="true" maxElementCount="65536" maxElementCountSource="MAXIMUM_LEAVES_PER_BSP3D">
+                    <Layout regolithID="block:bsp_leaf" internalName="bsp_leaf_block" name="bsp_leaf_block">
+                      <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(struct structure_leaf)" isLatest="true">
+                        <ShortInteger CStyleName="cluster" pascalStyleName="Cluster" name="cluster" readOnly="true" />
+                        <ShortInteger CStyleName="surface_reference_count" pascalStyleName="SurfaceReferenceCount" name="surface reference count" readOnly="true" />
+                        <LongInteger CStyleName="first_surface_reference_index" pascalStyleName="FirstSurfaceReferenceIndex" name="first surface reference index" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                  <Block CStyleName="surface_references" pascalStyleName="SurfaceReferences" name="surface references" readOnly="true" maxElementCount="262144" maxElementCountSource="MAXIMUM_SURFACE_REFERENCES_PER_STRUCTURE">
+                    <Layout regolithID="block:bsp_surface_reference" internalName="bsp_surface_reference_block" name="bsp_surface_reference_block">
+                      <FieldSet version="0" sizeofValue="8" sizeofSource="sizeof(struct structure_surface_reference)" isLatest="true">
+                        <ShortInteger CStyleName="strip_index" pascalStyleName="StripIndex" name="strip index" readOnly="true" />
+                        <ShortInteger CStyleName="lightmap_triangle_index" pascalStyleName="LightmapTriangleIndex" name="lightmap triangle index" readOnly="true" />
+                        <LongInteger CStyleName="bsp_node_index" pascalStyleName="BspNodeIndex" name="bsp node index" readOnly="true" />
+                      </FieldSet>
+                    </Layout>
+                  </Block>
+                </FieldSet>
+              </Layout>
+            </Block>
+          </FieldSet>
+        </Layout>
+      </Block>
+    </FieldSet>
+  </Layout>
+</TagGroup>

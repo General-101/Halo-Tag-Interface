@@ -162,27 +162,29 @@ def merge_parent_tag(tag_name, tag_defs, merged_cache, tag_groups, tag_extension
 
     return merged_elem
 
-def parse_struct_field_set(struct_queue, name_dict, block_key, block_version, regolith_map, block_queue):
-    relevant_names = []
+def parse_struct_field_set(struct_queue, name_dict, block_key, block_version, regolith_map, block_queue, seed_override=None, write_back=True):
     block_dict = name_dict[block_key]
-    version_name_list = block_dict[block_version]
-    for field_name in version_name_list:
-        if field_name not in relevant_names:
-            relevant_names.append(field_name)
+    base_version_list = block_dict[block_version]
+    base_seed = list(seed_override) if seed_override is not None else list(base_version_list)
 
-    next_struct_queue = []
-    full_struct_names = []
+    layer_names = list(dict.fromkeys(base_seed))
+    level_struct_names = []
+
     for struct_node, struct_key in struct_queue:
+        child_structs_by_version = {}
+        child_seed_by_version = {}
+        this_struct_names = []
+
         for layout in struct_node.findall("Layout"):
             unravel_arrays(layout)
             resolve_xrefs(layout, regolith_map)
 
             fieldsets = sorted(layout.findall('FieldSet'), key=lambda fs: int(fs.attrib.get('version', '-1')))
 
-            struct_name_list = {}
             for idx, fieldset in enumerate(fieldsets):
-                struct_name_list[idx] = []
-                name_list = relevant_names.copy()
+                name_list = list(layer_names)
+                child_seed_by_version.setdefault(idx, list(name_list))
+
                 for field_node in fieldset:
                     if field_node.tag not in WHITELIST_TAGS:
                         continue
@@ -200,25 +202,34 @@ def parse_struct_field_set(struct_queue, name_dict, block_key, block_version, re
 
                     field_node.set("name", field_key)
                     name_list.append(field_key)
-                    struct_name_list[idx].append(field_key)
+                    if field_key not in this_struct_names:
+                        this_struct_names.append(field_key)
 
                     if field_node.tag == "Block":
                         block_queue.append((field_node, field_key))
                     elif field_node.tag == "Struct":
-                        next_struct_queue.append((field_node, field_key))
+                        child_structs_by_version.setdefault(idx, []).append((field_node, field_key))
 
-            for version in struct_name_list:
-                struct_version_name_list = struct_name_list[version]
-                for struct_name in struct_version_name_list:
-                    if struct_name not in full_struct_names:
-                        full_struct_names.append(struct_name)
+        for idx, child_structs in child_structs_by_version.items():
+            child_seed = child_seed_by_version.get(idx, layer_names)
+            child_names = parse_struct_field_set(child_structs, name_dict, block_key, block_version, regolith_map, block_queue, seed_override=child_seed, write_back=False)
+            for n in child_names:
+                if n not in this_struct_names:
+                    this_struct_names.append(n)
 
-            relevant_names.extend(full_struct_names)
+        for n in this_struct_names:
+            if n not in layer_names:
+                layer_names.append(n)
+            if n not in level_struct_names:
+                level_struct_names.append(n)
 
-    version_name_list.extend(full_struct_names)
+    if write_back:
+        for n in level_struct_names:
+            if n not in base_version_list:
+                base_version_list.append(n)
 
-    if len(next_struct_queue) > 0:
-        parse_struct_field_set(next_struct_queue, name_dict, block_key, block_version, regolith_map, block_queue)
+    return level_struct_names
+
 
 def parse_field_set(node, name_dict, block_key, regolith_map):
     unravel_arrays(node)
@@ -263,7 +274,7 @@ def parse_field_set(node, name_dict, block_key, regolith_map):
 
 def initialize_definitions(root, regolith_map):
     name_dict = {}
-    node_key = root.get("name") or layout.tag
+    node_key = root.get("name") or root.tag
     if node_key not in name_dict:
         name_dict[node_key] = {}
     for layout in root.findall("Layout"):
