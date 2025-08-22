@@ -104,7 +104,8 @@ GENERATE_CHECKSUM = True
 CONVERT_RADIANS = True
 PRESERVE_STRINGS = False
 PRESERVE_PADDING = False
-PRESERVE_VERSION = True
+PRESERVE_VERSION = False
+PRESERVE_SIZE = False
 
 def read_field_header(tag_stream, field_endian="<", is_legacy=False):
     pack_string = "4s3i"
@@ -479,6 +480,16 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                                 block_field_set = field_set
                     if block_field_set is None:
                         raise ValueError(f"Latest field set not found.")
+
+                    if not PRESERVE_SIZE and block_field_set is not None:
+                        field_set_size = 0
+                        for field_node in block_field_set:
+                            field_size = get_fields(None, None, None, None, field_node, None, None, return_size=True)
+                            if field_size is not None:
+                                field_set_size += field_size
+
+                        current_version = int(block_field_set.attrib.get('version'))
+                        current_field_header_data = {"name": "tbfd", "version": current_version, "size": field_set_size}
 
                 if current_block is not None:
                     tag_block_header_size = 16
@@ -1489,6 +1500,8 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                     struct_name = field_node[0].attrib.get('tag')
                     struct_version = int(current_struct_field_set.attrib.get('version'))
                     struct_size = int(current_struct_field_set.attrib.get('sizeofValue'))
+                    if not PRESERVE_SIZE:
+                        struct_size = field_set_size
                     struct_header = {"name": struct_name, "version": struct_version, "size": struct_size}
 
             if not tag_header["engine tag"] == EngineTag.H1Latest.value and (has_header or not PRESERVE_VERSION):
@@ -1856,6 +1869,16 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
                     if int(field_set.attrib.get('version')) == tag_block_header["version"]:
                         block_field_set = field_set
 
+        if not PRESERVE_SIZE and block_field_set is not None:
+            field_set_size = 0
+            for field_node in block_field_set:
+                field_size = get_fields(None, None, None, None, field_node, None, None, return_size=True)
+                if field_size is not None:
+                    field_set_size += field_size
+
+            version = int(block_field_set.attrib.get('version'))
+            tag_block_header = tag_dict["TagBlockHeader_%s" % tag_extension] = {"name": "tbfd", "version": version, "size": field_set_size}
+
     if block_field_set is None:
         for layout in tag_def:
             for field_set in layout:
@@ -1954,8 +1977,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.scenario_structure_bsp"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag4.scenario_structure_bsp"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\back_shell.render_model"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag4.render_model"
     tag_directory = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags"
 
     tag_dict = read_file(merged_defs, tag_directory, read_path)
@@ -2125,4 +2148,4 @@ def h2_directory():
                     log_file.write(f"\nInvalid File:\n"
                                 f"  File: {read_path}\n")
                     traceback.print_exc(file=log_file)
-h2_single_json()
+h2_single_tag()

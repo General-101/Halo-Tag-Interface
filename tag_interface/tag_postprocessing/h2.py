@@ -1484,9 +1484,14 @@ def render_model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
             if section_data_block is not None and section_data_header is not None:
                 for section_data_element in section_data_block:
                     if section_data_header["version"] == 0:
+                        section_data_header = section_element["TagBlockHeader_section data"] = {"name": "tbfd", "version": 1, "size": 180}
                         section_data_element["raw vertices"] = section_data_element.pop("raw vertices_1", [])
                         section_data_element["strip indices"] = section_data_element.pop("strip indices_1", [])
                         
+                    section_header = section_data_element.get("StructHeader_section")
+                    if section_header["version"] == 0:
+                        section_header = section_data_element["StructHeader_section"] = {"name": "SECT", "version": 1, "size": 108}
+
                         subparts_block = section_data_element.get("TagBlock_subparts")
                         subparts_header = section_data_element.get("TagBlockHeader_subparts")
                         subparts_data = section_data_element.get("subparts")
@@ -1517,8 +1522,6 @@ def render_model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
                             }
 
                             subparts_data.append(subparts_element)
-
-                    section_data_header = section_element["TagBlockHeader_section data"] = {"name": "tbfd", "version": 1, "size": 180}
 
 def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     scenario_structure_bsp_def = merged_defs["sbsp"]
