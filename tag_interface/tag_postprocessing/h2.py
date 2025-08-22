@@ -1709,6 +1709,14 @@ def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_d
                             if subparts_data is None:
                                 subparts_data = cluster_data_element["subparts"] = []
 
+                            parts_block = cluster_data_element.get("TagBlock_parts")
+                            parts_header = cluster_data_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
+                            parts_data = cluster_data_element.get("parts")
+                            if parts_block is None:
+                                cluster_data_element["TagBlock_parts"] = {"unk1": 0, "unk2": 0}
+                            if parts_data is None:
+                                parts_data = cluster_data_element["parts"] = []
+
                             for part_idx, part_element in enumerate(parts_data):
                                 part_element["first subpart index"] = part_idx
                                 part_element["subpart count"] = 1
@@ -1747,7 +1755,6 @@ def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_d
                         # Previous versions don't seem to work? Either the tag is being written wrong or Guerilla is just broken. - Gen
                         print("If you have something that uses this you need to let General know.")
                         section_header = render_data_element["StructHeader_section"] = {"name": "SECT", "version": 1, "size": 108}
-                        parts_header = render_data_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
 
                         subparts_block = render_data_element.get("TagBlock_subparts")
                         subparts_header = render_data_element.get("TagBlockHeader_subparts")
@@ -1758,6 +1765,14 @@ def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_d
                             subparts_header = render_data_element["TagBlockHeader_subparts"] = {"name": "tbfd", "version": 0, "size": 8}
                         if subparts_data is None:
                             subparts_data = render_data_element["subparts"] = []
+
+                        parts_block = render_data_element.get("TagBlock_parts")
+                        parts_header = render_data_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
+                        parts_data = render_data_element.get("parts")
+                        if parts_block is None:
+                            render_data_element["TagBlock_parts"] = {"unk1": 0, "unk2": 0}
+                        if parts_data is None:
+                            parts_data = render_data_element["parts"] = []
 
                         for part_idx, part_element in enumerate(parts_data):
                             part_element["first subpart index"] = part_idx
@@ -1771,7 +1786,6 @@ def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_d
                             }
 
                             subparts_data.append(subparts_element)
-
 
             if not collision_info_header["version"] == 2:
                 bsp3d_nodes_block = instanced_geo_def_element.get("bsp3d nodes")
@@ -1797,7 +1811,6 @@ def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_d
                         # Previous versions don't seem to work? Either the tag is being written wrong or Guerilla is just broken. - Gen
                         print("If you have something that uses this you need to let General know.")
                         section_header = section_element["StructHeader_section"] = {"name": "SECT", "version": 1, "size": 108}
-                        parts_header = section_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
 
                         subparts_block = section_element.get("TagBlock_subparts")
                         subparts_header = section_element.get("TagBlockHeader_subparts")
@@ -1808,6 +1821,14 @@ def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_d
                             subparts_header = section_element["TagBlockHeader_subparts"] = {"name": "tbfd", "version": 0, "size": 8}
                         if subparts_data is None:
                             subparts_data = section_element["subparts"] = []
+
+                        parts_block = section_element.get("TagBlock_parts")
+                        parts_header = section_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
+                        parts_data = section_element.get("parts")
+                        if parts_block is None:
+                            section_element["TagBlock_parts"] = {"unk1": 0, "unk2": 0}
+                        if parts_data is None:
+                            parts_data = section_element["parts"] = []
 
                         for part_idx, part_element in enumerate(parts_data):
                             part_element["first subpart index"] = part_idx
@@ -1821,6 +1842,101 @@ def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_d
                             }
 
                             subparts_data.append(subparts_element)
+
+def scenario_structure_lightmap_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    scenario_structure_lightmap_def = merged_defs["ltmp"]
+    root = tag_dict["Data"]
+    print("test")
+    lightmap_groups_block = root.get("lightmap groups")
+    if lightmap_groups_block is not None:
+        for lightmap_groups_element in lightmap_groups_block:
+            clusters_block = lightmap_groups_element.get("clusters")
+            if clusters_block is not None:
+                for cluster_element in clusters_block:
+                    cache_data_block = cluster_element.get("cache data")
+                    if cache_data_block is not None:
+                        for cache_data_element in cache_data_block:
+                            section_header = cache_data_element.pop("StructHeader_geometry", None)
+                            if section_header is not None and section_header["version"] == 0:
+                                # Previous versions don't seem to work? Either the tag is being written wrong or Guerilla is just broken. - Gen
+                                print("If you have something that uses this you need to let General know.")
+                                section_header = cache_data_element["StructHeader_section"] = {"name": "SECT", "version": 1, "size": 108}
+                                parts_header = cache_data_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
+
+                                subparts_block = cache_data_element.get("TagBlock_subparts")
+                                subparts_header = cache_data_element.get("TagBlockHeader_subparts")
+                                subparts_data = cache_data_element.get("subparts")
+                                if subparts_block is None:
+                                    subparts_block = cache_data_element["TagBlock_subparts"] = {"unk1": 0, "unk2": 0}
+                                if subparts_header is None:
+                                    subparts_header = cache_data_element["TagBlockHeader_subparts"] = {"name": "tbfd", "version": 0, "size": 8}
+                                if subparts_data is None:
+                                    subparts_data = cache_data_element["subparts"] = []
+
+                                parts_block = cache_data_element.get("TagBlock_parts")
+                                parts_header = cache_data_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
+                                parts_data = cache_data_element.get("parts")
+                                if parts_block is None:
+                                    cache_data_element["TagBlock_parts"] = {"unk1": 0, "unk2": 0}
+                                if parts_data is None:
+                                    parts_data = cache_data_element["parts"] = []
+
+                                for part_idx, part_element in enumerate(parts_data):
+                                    part_element["first subpart index"] = part_idx
+                                    part_element["subpart count"] = 1
+
+                                    subparts_element = {
+                                    "indices_start_index": part_element["strip start index"], 
+                                    "indices_length": part_element["strip length"], 
+                                    "visibility_bounds_index": 0,
+                                    "part index": part_idx
+                                    }
+
+                                    subparts_data.append(subparts_element)
+        
+            poop_definitions_block = lightmap_groups_element.get("poop definitions")
+            if poop_definitions_block is not None:
+                for poop_definition_element in poop_definitions_block:
+                    cache_data_block = poop_definition_element.get("cache data")
+                    if cache_data_block is not None:
+                        for cache_data_element in cache_data_block:
+                            section_header = cache_data_element.pop("StructHeader_geometry", None)
+                            if section_header is not None and section_header["version"] == 0:
+                                # Previous versions don't seem to work? Either the tag is being written wrong or Guerilla is just broken. - Gen
+                                print("If you have something that uses this you need to let General know.")
+                                section_header = cache_data_element["StructHeader_section"] = {"name": "SECT", "version": 1, "size": 108}
+                                parts_header = cache_data_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
+
+                                subparts_block = cache_data_element.get("TagBlock_subparts")
+                                subparts_header = cache_data_element.get("TagBlockHeader_subparts")
+                                subparts_data = cache_data_element.get("subparts")
+                                if subparts_block is None:
+                                    subparts_block = cache_data_element["TagBlock_subparts"] = {"unk1": 0, "unk2": 0}
+                                if subparts_header is None:
+                                    subparts_header = cache_data_element["TagBlockHeader_subparts"] = {"name": "tbfd", "version": 0, "size": 8}
+                                if subparts_data is None:
+                                    subparts_data = cache_data_element["subparts"] = []
+
+                                parts_block = cache_data_element.get("TagBlock_parts")
+                                parts_header = cache_data_element["TagBlockHeader_parts"] = {"name": "tbfd", "version": 0, "size": 72}
+                                parts_data = cache_data_element.get("parts")
+                                if parts_block is None:
+                                    cache_data_element["TagBlock_parts"] = {"unk1": 0, "unk2": 0}
+                                if parts_data is None:
+                                    parts_data = cache_data_element["parts"] = []
+
+                                for part_idx, part_element in enumerate(parts_data):
+                                    part_element["first subpart index"] = part_idx
+                                    part_element["subpart count"] = 1
+
+                                    subparts_element = {
+                                    "indices_start_index": part_element["strip start index"], 
+                                    "indices_length": part_element["strip length"], 
+                                    "visibility_bounds_index": 0,
+                                    "part index": part_idx
+                                    }
+
+                                    subparts_data.append(subparts_element)
 
 def scenery_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     scenery_def = merged_defs["scen"]
@@ -2450,7 +2566,7 @@ postprocess_functions = {
     "ctrl": device_control_postprocess,
     "lifi": device_light_fixture_postprocess,
     "pphy": None,
-    "ltmp": None,
+    "ltmp": scenario_structure_lightmap_postprocess,
     "sbsp": scenario_structure_bsp_postprocess,
     "scnr": None,
     "shad": shader_postprocess,

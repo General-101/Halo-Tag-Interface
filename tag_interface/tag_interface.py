@@ -104,7 +104,7 @@ GENERATE_CHECKSUM = True
 CONVERT_RADIANS = True
 PRESERVE_STRINGS = False
 PRESERVE_PADDING = False
-PRESERVE_VERSION = False
+PRESERVE_VERSION = True
 PRESERVE_SIZE = False
 
 def read_field_header(tag_stream, field_endian="<", is_legacy=False):
@@ -481,7 +481,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                     if block_field_set is None:
                         raise ValueError(f"Latest field set not found.")
 
-                    if not PRESERVE_SIZE and block_field_set is not None:
+                    if not PRESERVE_SIZE:
                         field_set_size = 0
                         for field_node in block_field_set:
                             field_size = get_fields(None, None, None, None, field_node, None, None, return_size=True)
@@ -1458,7 +1458,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                     raise ValueError(f"Latest field set not found.")
 
                 field_set_size = 0
-                for current_field_node in struct_field_set:
+                for current_field_node in current_struct_field_set:
                     field_size = get_fields(None, None, None, None, current_field_node, None, None, return_size=True)
                     if field_size is not None:
                         field_set_size += field_size
@@ -1479,6 +1479,16 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
 
                     if current_struct_field_set is None:
                         raise ValueError(f"field set not found.")
+                    
+                    if not PRESERVE_SIZE:
+                        field_set_size = 0
+                        for current_field_node in current_struct_field_set:
+                            field_size = get_fields(None, None, None, None, current_field_node, None, None, return_size=True)
+                            if field_size is not None:
+                                field_set_size += field_size
+
+                        struct_header["size"] = field_set_size
+
                 else:
                     for layout in field_node:
                         for struct_field_set in layout:
@@ -1869,16 +1879,6 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
                     if int(field_set.attrib.get('version')) == tag_block_header["version"]:
                         block_field_set = field_set
 
-        if not PRESERVE_SIZE and block_field_set is not None:
-            field_set_size = 0
-            for field_node in block_field_set:
-                field_size = get_fields(None, None, None, None, field_node, None, None, return_size=True)
-                if field_size is not None:
-                    field_set_size += field_size
-
-            version = int(block_field_set.attrib.get('version'))
-            tag_block_header = tag_dict["TagBlockHeader_%s" % tag_extension] = {"name": "tbfd", "version": version, "size": field_set_size}
-
     if block_field_set is None:
         for layout in tag_def:
             for field_set in layout:
@@ -1896,6 +1896,16 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
 
         version = int(block_field_set.attrib.get('version'))
         tag_block_header = tag_dict["TagBlockHeader_%s" % tag_extension] = {"name": "tbfd", "version": version, "size": field_set_size}
+    else:
+        if not PRESERVE_SIZE:
+            field_set_size = 0
+            for field_node in block_field_set:
+                field_size = get_fields(None, None, None, None, field_node, None, None, return_size=True)
+                if field_size is not None:
+                    field_set_size += field_size
+
+            version = int(block_field_set.attrib.get('version'))
+            tag_block_header = tag_dict["TagBlockHeader_%s" % tag_extension] = {"name": "tbfd", "version": version, "size": field_set_size}
 
     tag_block_header_size = 16
     if HAS_LEGACY_HEADER:
@@ -1977,8 +1987,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\back_shell.render_model"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag4.render_model"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.scenario_structure_lightmap"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag3.scenario_structure_lightmap"
     tag_directory = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags"
 
     tag_dict = read_file(merged_defs, tag_directory, read_path)
@@ -1991,9 +2001,9 @@ def h2_single_json():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.scenario_structure_bsp"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.scenario_structure_lightmap"
 
-    with open(r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\version_1.json", "r", encoding="utf8") as json_file:
+    with open(r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag3.json", "r", encoding="utf8") as json_file:
         tag_dict = json.load(json_file)
 
         write_file(merged_defs, tag_dict, obfuscation_buffer_prepare(), output_path)
@@ -2148,4 +2158,4 @@ def h2_directory():
                     log_file.write(f"\nInvalid File:\n"
                                 f"  File: {read_path}\n")
                     traceback.print_exc(file=log_file)
-h2_single_tag()
+h2_single_json()
