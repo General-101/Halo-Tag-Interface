@@ -28,6 +28,7 @@ import os
 import io
 import base64
 import struct
+import random
 import xml.etree.ElementTree as ET
 
 from math import copysign, radians
@@ -151,6 +152,19 @@ def write_real(function_stream, struct_string, result):
         function_stream.write(struct.pack(struct_string, result))
     else:
         function_stream.write(struct.pack(struct_string, 0.0))
+
+def upgrade_lightmap_policy(old_val):
+    new_val = 0
+    if old_val == 0:
+        new_val = 1
+    elif old_val == 1:
+        new_val = 1
+    elif old_val == 2:
+        new_val = 2
+    elif old_val == 3:
+        new_val = 2
+
+    return new_val
 
 def upgrade_function(merged_defs, field_element, tag_block_fields, endian_override):
     field_set_0 = None
@@ -837,7 +851,7 @@ def globals_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
         # Version 0 defines some fields that got moved to the sound_mix tag. The tools don't do this but perhaps I should make a new tag from those values? - Gen
         if sound_globals_header["version"] == 0:
             for sound_globals_element in sound_globals_block:
-                sound_globals_element["legacy sound classes"] = {"group name": "snmx"," unk1": 0," length": 15," unk2": -1," path": os.path.normpath(r"sound\sound_mix")}
+                sound_globals_element["legacy sound classes"] = {"group name": "snmx", "unk1": 0, "length": 15, "unk2": -1, "path": os.path.normpath(r"sound\sound_mix")}
 
         else:
             for sound_globals_element in sound_globals_block:
@@ -1061,7 +1075,7 @@ def model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     if model_header is not None and model_header["version"] == 0:
         model_header = tag_dict["TagBlockHeader_model"] = {"name": "tbfd", "version": 1, "size": 348}
 
-        root["physics_model"] = root.pop("physics model", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+        root["physics_model"] = root.pop("physics model", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
         max_draw_distance = root.pop("max draw distance", 0.0)
         root["disappear distance"] = max_draw_distance
         root["begin fade distance"] = max_draw_distance
@@ -1458,7 +1472,7 @@ def projectile_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     if projectile_header is not None and projectile_header["version"] == 0:
         projectile_header = tag_dict["TagBlockHeader_projectile"] = {"name": "tbfd","version": 1,"size": 604}
 
-        effect_tag = root.pop("effect", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+        effect_tag = root.pop("effect", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
         root["detonation effect (airborne)"] = effect_tag
         root["detonation effect (ground)"] = effect_tag
 
@@ -1522,6 +1536,130 @@ def render_model_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
                             }
 
                             subparts_data.append(subparts_element)
+
+def scenario_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
+    scenario_def = merged_defs["scnr"]
+    root = tag_dict["Data"]
+
+    unique_id = random.randint(0, 100000)
+
+    scenario_header = tag_dict.get("TagBlockHeader_scenario")
+    if scenario_header is not None and scenario_header["version"] == 0:
+        root["chapter title text"] = root.pop("ingame help text", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
+        root["environment objects"] = root.pop("Block", [])
+
+    scenery_block = root.get("scenery")
+    scenery_header = root.get("TagBlockHeader_scenery")
+    if scenery_block is not None and scenery_header is not None:
+        for scenery_element in scenery_block:
+            if scenery_header["version"] == 0:
+                scenery_element["placement flags"] = scenery_element.pop("not placed", 0)
+
+                # Tools don't do this bit but it just makes sense so why not - Gen
+                scenery_element["unique id"] = unique_id
+                scenery_element["origin bsp index"] = -1
+                scenery_element["type_1"] = 6 # Scenery
+                scenery_element["source"] = 1
+                scenery_element["ShortBlockIndex"] = -1
+                unique_id += 1
+
+                scenery_element["Lightmapping policy"] = upgrade_lightmap_policy(scenery_element.pop("Lightmapping policy", 0))
+                
+    bipeds_block = root.get("bipeds")
+    bipeds_header = root.get("TagBlockHeader_bipeds")
+    if bipeds_block is not None and bipeds_header is not None:
+        for biped_element in bipeds_block:
+            if bipeds_header["version"] == 0:
+                biped_element["placement flags"] = biped_element.pop("not placed", 0)
+
+                # Tools don't do this bit but it just makes sense so why not - Gen
+                biped_element["unique id"] = unique_id
+                biped_element["origin bsp index"] = -1
+                biped_element["type_1"] = 0 # Biped
+                biped_element["source"] = 1
+                biped_element["ShortBlockIndex"] = -1
+                unique_id += 1
+
+    vehicles_block = root.get("vehicles")
+    vehicles_header = root.get("TagBlockHeader_vehicles")
+    if vehicles_block is not None and vehicles_header is not None:
+        for vehicle_element in vehicles_block:
+            if vehicles_header["version"] == 0:
+                vehicle_element["placement flags"] = vehicle_element.pop("not placed", 0)
+
+                # Tools don't do this bit but it just makes sense so why not - Gen
+                vehicle_element["unique id"] = unique_id
+                vehicle_element["origin bsp index"] = -1
+                vehicle_element["type_1"] = 1 # Vehicle
+                vehicle_element["source"] = 1
+                vehicle_element["ShortBlockIndex"] = -1
+                unique_id += 1
+
+    equipment_block = root.get("equipment")
+    equipment_header = root.get("TagBlockHeader_equipment")
+    if equipment_block is not None and equipment_header is not None:
+        for equipment_element in equipment_block:
+            if equipment_header["version"] == 0:
+                equipment_element["placement flags"] = equipment_element.pop("not placed", 0)
+
+                # Tools don't do this bit but it just makes sense so why not - Gen
+                equipment_element["unique id"] = unique_id
+                equipment_element["origin bsp index"] = -1
+                equipment_element["type_1"] = 3 # Equipment
+                equipment_element["source"] = 1
+                equipment_element["ShortBlockIndex"] = -1
+                unique_id += 1
+
+    weapons_block = root.get("weapons")
+    weapons_header = root.get("TagBlockHeader_weapons")
+    if weapons_block is not None and weapons_header is not None:
+        for weapon_element in weapons_block:
+            if weapons_header["version"] == 0:
+                weapon_element["placement flags"] = weapon_element.pop("not placed", 0)
+
+                # Tools don't do this bit but it just makes sense so why not - Gen
+                weapon_element["unique id"] = unique_id
+                weapon_element["origin bsp index"] = -1
+                weapon_element["type_1"] = 2 # Weapon
+                weapon_element["source"] = 1
+                weapon_element["ShortBlockIndex"] = -1
+                unique_id += 1
+
+    machines_block = root.get("machines")
+    machines_header = root.get("TagBlockHeader_machines")
+    if machines_block is not None and machines_header is not None:
+        for machine_element in machines_block:
+            if machines_header["version"] == 0:
+                machine_element["placement flags"] = machine_element.pop("not placed", 0)
+
+                # Tools don't do this bit but it just makes sense so why not - Gen
+                machine_element["unique id"] = unique_id
+                machine_element["origin bsp index"] = -1
+                machine_element["type_1"] = 7 # Machine
+                machine_element["source"] = 1
+                machine_element["ShortBlockIndex"] = -1
+                unique_id += 1
+
+                machine_element["flags"] = machine_element.pop("flags_1", 0)
+                machine_element["flags_1"] = machine_element.pop("flags", 0)
+
+    controls_block = root.get("controls")
+    controls_header = root.get("TagBlockHeader_controls")
+    if controls_block is not None and controls_header is not None:
+        for control_element in controls_block:
+            if controls_header["version"] == 0:
+                control_element["placement flags"] = control_element.pop("not placed", 0)
+
+                # Tools don't do this bit but it just makes sense so why not - Gen
+                control_element["unique id"] = unique_id
+                control_element["origin bsp index"] = -1
+                control_element["type_1"] = 8 # Control
+                control_element["source"] = 1
+                control_element["ShortBlockIndex"] = -1
+                unique_id += 1
+
+                control_element["flags"] = control_element.pop("flags_1", 0)
+                control_element["flags_1"] = control_element.pop("flags", 0)
 
 def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     scenario_structure_bsp_def = merged_defs["sbsp"]
@@ -1735,7 +1873,7 @@ def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_d
         for pathfinding_data_element in pathfinding_data_block:
             links_block = pathfinding_data_element.get("links")
             links_header = pathfinding_data_element.get("TagBlockHeader_links")
-            if links_block is not None and links_header is not None and clusters_header["version"] == 0:
+            if links_block is not None and links_header is not None and links_header["version"] == 0:
                 for link_element in links_block:
                     link_element["vertex 1"] = link_element.pop("Index", 0)
                     link_element["vertex 2"] = link_element.pop("Index2 (for vertex-indices)", 0)
@@ -2361,11 +2499,11 @@ def sound_looping_postprocess(merged_defs, tag_dict, file_endian, tag_directory)
                 gain = track_element.pop("gain", 0.0)
                 track_element["gain"] = gain
 
-                track_element["in"] = track_element.pop("start", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
-                track_element["loop"] = track_element.pop("loop", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
-                track_element["out"] = track_element.pop("end", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
-                track_element["alt loop"] = track_element.pop("alternate loop", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
-                track_element["alt out"] = track_element.pop("alternate end", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+                track_element["in"] = track_element.pop("start", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
+                track_element["loop"] = track_element.pop("loop", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
+                track_element["out"] = track_element.pop("end", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
+                track_element["alt loop"] = track_element.pop("alternate loop", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
+                track_element["alt out"] = track_element.pop("alternate end", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
 
     detail_sounds_block = root.get("detail sounds")
     detail_sounds_header = root.get("TagBlockHeader_detail sounds")
@@ -2375,7 +2513,7 @@ def sound_looping_postprocess(merged_defs, tag_dict, file_endian, tag_directory)
                 detail_sound_element["name"] = "reimport_me"
 
                 # This version does not transfer this data. Why? - Gen
-                sound_tag = detail_sound_element.pop("sound", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+                sound_tag = detail_sound_element.pop("sound", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
                 random_period_bounds = detail_sound_element.pop("random period bounds", {"Min": 0.0, "Max": 0.0})
                 gain = detail_sound_element.pop("gain", 0.0)
                 flags = detail_sound_element.pop("flags", 0)
@@ -2472,8 +2610,8 @@ def weapon_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
             if weapon_header["version"] == 0:
                 root["weapon power-on time"] = root.pop("light power-on time", 0.0)
                 root["weapon power-off time"] = root.pop("light power-on time", 0.0)
-                root["weapon power-on effect"] = root.pop("light power-on effect", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
-                root["weapon power-off effect"] = root.pop("light power-off effect", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+                root["weapon power-on effect"] = root.pop("light power-on effect", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
+                root["weapon power-off effect"] = root.pop("light power-off effect", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
 
             first_person_block = root.get("TagBlock_first person")
             first_person_header = root.get("TagBlockHeader_first person")
@@ -2485,8 +2623,8 @@ def weapon_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
             if first_person_data is None:
                 first_person_data = root["first person"] = []
 
-            fp_model = root.pop("first person model", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
-            fp_anim = root.pop("first person animations", {"group name": -1," unk1": 0," length": 0," unk2": -1," path": ""})
+            fp_model = root.pop("first person model", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
+            fp_anim = root.pop("first person animations", {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""})
 
             first_person_spartan_element = {
                                 "first person model": fp_model, 
@@ -2501,12 +2639,12 @@ def weapon_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
             if elite_fp_model.path.startswith(spartan_path):
                 elite_fp_model_path = os.path.join(tag_directory, "%s.render_model" % elite_fp_model.path.replace(spartan_path, elite_path, 1))
                 if os.path.isfile(elite_fp_model_path):
-                    elite_fp_model = {"group name": "mode"," unk1": 0," length": len(elite_fp_model_path)," unk2": -1," path": elite_fp_model_path}
+                    elite_fp_model = {"group name": "mode", "unk1": 0, "length": len(elite_fp_model_path), "unk2": -1, "path": elite_fp_model_path}
 
             if elite_fp_anim.path.startswith(spartan_path):
                 elite_fp_anim_path = os.path.join(tag_directory, "%s.model_animation_graph" % elite_fp_anim.path.replace(spartan_path, elite_path, 1))
                 if os.path.isfile(elite_fp_anim_path):
-                    elite_fp_anim = {"group name": "jmad"," unk1": 0," length": len(elite_fp_model_path)," unk2": -1," path": elite_fp_anim_path}
+                    elite_fp_anim = {"group name": "jmad", "unk1": 0, "length": len(elite_fp_model_path), "unk2": -1, "path": elite_fp_anim_path}
 
             first_person_elite_element = {
                                 "first person model": elite_fp_model, 

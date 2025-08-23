@@ -2001,9 +2001,9 @@ def h2_single_json():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.scenario_structure_lightmap"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.scenario"
 
-    with open(r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag3.json", "r", encoding="utf8") as json_file:
+    with open(r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.json", "r", encoding="utf8") as json_file:
         tag_dict = json.load(json_file)
 
         write_file(merged_defs, tag_dict, obfuscation_buffer_prepare(), output_path)
