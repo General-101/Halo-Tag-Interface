@@ -104,7 +104,7 @@ GENERATE_CHECKSUM = True
 CONVERT_RADIANS = True
 PRESERVE_STRINGS = False
 PRESERVE_PADDING = False
-PRESERVE_VERSION = True
+PRESERVE_VERSION = False
 PRESERVE_SIZE = False
 
 def read_field_header(tag_stream, field_endian="<", is_legacy=False):
@@ -627,7 +627,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                 else:    
                     block_stream.write(struct.pack(struct_string, field_default))
     elif field_tag == "CustomShortBlockIndex":
-        field_default = 0
+        field_default = -1
         field_size = 2
         if return_size:
             return field_size
@@ -1242,7 +1242,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                 else:    
                     block_stream.write(struct.pack(struct_string, *field_default, color_pad_result))
     elif field_tag == "ShortBlockIndex":
-        field_default = 0
+        field_default = -1
         field_size = 2
         if return_size:
             return field_size
@@ -1545,7 +1545,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                 else:
                     write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=0, append_terminator=False)
     elif field_tag == "TagReference":
-        field_default = (-1, 0, 0, -1, "")
+        field_default = (None, 0, 0, -1, "")
         field_size = 16
         if return_size:
             return field_size
@@ -1555,7 +1555,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
             struct_string = uppercase_struct_letters(struct_string)
             struct_default_string = uppercase_struct_letters(struct_default_string)
         if FILE_MODE == FileModeEnum.read:
-            tag_block_fields[field_key] = {"group name": -1, "unk1": 0, "length": 0, "unk2": -1, "path": ""}
+            tag_block_fields[field_key] = {"group name": None, "unk1": 0, "length": 0, "unk2": -1, "path": ""}
             result = field_default
             if not unread_data_size < field_size:
                 tag_group, unk1, length, unk2 = struct.unpack(struct_string, block_stream.read(16))
@@ -1987,8 +1987,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.scenario_structure_lightmap"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag3.scenario_structure_lightmap"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\incompetent\default_object.model"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.model"
     tag_directory = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags"
 
     tag_dict = read_file(merged_defs, tag_directory, read_path)
@@ -2158,4 +2158,4 @@ def h2_directory():
                     log_file.write(f"\nInvalid File:\n"
                                 f"  File: {read_path}\n")
                     traceback.print_exc(file=log_file)
-h2_single_json()
+h2_directory()
