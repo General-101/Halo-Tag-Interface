@@ -2395,7 +2395,7 @@ def sound_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
                         if raw_info_data is None:
                             raw_info_data = language_permutation_info_element["raw info block v3"] = []
 
-                        decoded_data = base64.b64decode(root["processed pixel data"]["encoded"])
+                        decoded_data = base64.b64decode(data["encoded"])
                         # Why this value? It seems like the unknown value for the sound info block can be generated with with this value but how and why?
                         # Found this out by taking the LongInteger value from existing tags and dividing it by the length of the sound data. - Gen
                         unk_val = round(3.555555555555556 * len(decoded_data))
@@ -2416,7 +2416,7 @@ def sound_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
                         raw_info_data = language_permutation_info_element.pop("raw info block", [])
                         language_permutation_info_element["raw info block v3"] = raw_info_data
                         for raw_info_element in language_permutation_info_element["raw info block v3"]:
-                            decoded_data = base64.b64decode(root["processed pixel data"]["encoded"])
+                            decoded_data = base64.b64decode(data["encoded"])
                             unk_val = round(3.555555555555556 * len(decoded_data))
                             raw_info_element["LongInteger"] = unk_val
 
