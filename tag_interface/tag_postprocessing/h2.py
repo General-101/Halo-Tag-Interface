@@ -47,7 +47,7 @@ class FunctionTypeEnum(Enum):
     exponent = auto()
     spline2 = auto()
 
-class OutputTypeFlags(Flag):
+class MappingFlags(Flag):
     scalar_intensity = 0
     _range = 1
     constant = 16
@@ -147,11 +147,17 @@ def read_real(function_stream, unsigned_key, field_key, tag_block_fields, endian
     result = (struct.unpack(struct_string, function_stream.read(4)))[0]
     set_result(field_key, tag_block_fields, result)
 
-def write_real(function_stream, struct_string, result):
-    if result is not None:
-        function_stream.write(struct.pack(struct_string, result))
-    else:
-        function_stream.write(struct.pack(struct_string, 0.0))
+def write_real(function_stream, endian_override, value):
+    struct_string = '%sf' % endian_override
+    function_stream.write(struct.pack(struct_string, value))
+
+def write_bgra(function_stream, endian_override, argb):
+    struct_string = '%s4B' % endian_override
+    function_stream.write(struct.pack(struct_string, *reversed(argb.values())))
+
+def write_real_point_2d(function_stream, endian_override, value):
+    struct_string = '%s2f' % endian_override
+    function_stream.write(struct.pack(struct_string, *value))
 
 def upgrade_lightmap_policy(old_val):
     new_val = 0
@@ -199,12 +205,9 @@ def upgrade_function(merged_defs, field_element, tag_block_fields, endian_overri
                 function_stream.write(struct.pack(struct_string, *(0, 0, 0), color_pad_result))
 
         elif field_tag == "Block":
-            struct_string = '%sf' % endian_override
-            if unsigned_key:
-                struct_string = uppercase_struct_letters(struct_string)
             tag_block_value = field_element.pop(field_key, [])
             for tag_element in tag_block_value:
-                write_real(function_stream, struct_string, tag_element["Value"])
+                write_real(function_stream, endian_override, tag_element["Value"])
 
         elif field_tag == "CharInteger":
             struct_string = '%sb' % endian_override
@@ -247,28 +250,127 @@ def upgrade_function(merged_defs, field_element, tag_block_fields, endian_overri
             field_element["TagBlock_%s" % field_key] = {"unk1": 0,"unk2": 0}
             field_element["TagBlockHeader_%s" % field_key] = {"name": "tbfd", "version": 0, "size": 1}
 
-def upgrade_effect_function(function_type, function_1_value, min_value, field_element, tag_block_fields, endian_override):
-    field_set = None
-    for layout in tag_block_fields:
-        for struct_field_set in layout:
-            if int(struct_field_set.attrib.get('version')) == 1:
-                field_set = struct_field_set
+def normalize_list(value, size, default=0):
+    if not isinstance(value, list):
+        return [default] * size
+    
+    return (value + [default] * size)[:size]
 
+def create_function(struct_field_set, tag_block_fields, endian_override, function_type=0, flags=0, function_1=0, function_2=0, mapping_inputs=[], function_inputs=[], 
+                    is_legacy=False):
     function_stream = io.BytesIO()
-    function_stream.write(struct.pack('%sb' % endian_override, function_type)) # Transition function type
-    function_stream.write(struct.pack('%sb' % endian_override, 0))
-    function_stream.write(struct.pack('%sb' % endian_override, function_1_value))
-    function_stream.write(struct.pack('%sb' % endian_override, 0))
-    function_stream.write(struct.pack('%s4B' % endian_override, *(0, 0, 0), 0))
-    function_stream.write(struct.pack('%s4B' % endian_override, *(0, 0, 0), 0))
-    function_stream.write(struct.pack('%s4B' % endian_override, *(0, 0, 0), 0))
-    function_stream.write(struct.pack('%s4B' % endian_override, *(0, 0, 0), 0))
-    write_real(function_stream, '%sf' % endian_override, min_value)
-    write_real(function_stream, '%sf' % endian_override, 0.0)
-    write_real(function_stream, '%sf' % endian_override, 0.0)
-    write_real(function_stream, '%sf' % endian_override, 0.0)
+    function_stream.write(struct.pack('%sb' % endian_override, function_type))
+    function_stream.write(struct.pack('%sb' % endian_override, flags))
+    function_stream.write(struct.pack('%sb' % endian_override, function_1))
+    function_stream.write(struct.pack('%sb' % endian_override, function_2))
+    mapping_flags = MappingFlags(flags)
+    if MappingFlags._2_color in mapping_flags:
+        color_inputs = normalize_list(mapping_inputs, 2, (0, 0, 0, 0))
+        write_bgra(function_stream, endian_override, color_inputs[0]) # Color A
+        function_stream.write(bytes(8))
+        write_bgra(function_stream, endian_override, color_inputs[1]) # Color B
 
-    for field_node_element in field_set:
+    elif MappingFlags._3_color in mapping_flags:
+        color_inputs = normalize_list(mapping_inputs, 3, (0, 0, 0, 0))
+        write_bgra(function_stream, endian_override, color_inputs[0]) # Color A
+        write_bgra(function_stream, endian_override, color_inputs[1]) # Color B
+        function_stream.write(bytes(4))
+        write_bgra(function_stream, endian_override, color_inputs[2]) # Color C
+
+    elif MappingFlags._4_color in mapping_flags:
+        color_inputs = normalize_list(mapping_inputs, 4, (0, 0, 0, 0))
+        write_bgra(function_stream, endian_override, color_inputs[0]) # Color A
+        write_bgra(function_stream, endian_override, color_inputs[1]) # Color B
+        write_bgra(function_stream, endian_override, color_inputs[2]) # Color C
+        write_bgra(function_stream, endian_override, color_inputs[4]) # Color D
+
+    else:
+        float_inputs = normalize_list(mapping_inputs, 2, 0.0)
+        write_real(function_stream, endian_override, float_inputs[0]) # Lower Bound
+        write_real(function_stream, endian_override, float_inputs[1]) # Upper Bound
+        function_stream.write(bytes(8))
+
+    if FunctionTypeEnum.constant == FunctionTypeEnum(function_type):
+        function_stream.write(bytes(8))
+
+    elif FunctionTypeEnum.transition == FunctionTypeEnum(function_type):
+        float_inputs = normalize_list(function_inputs, 4, 0.0)
+        write_real(function_stream, endian_override, float_inputs[0]) # Function Min
+        write_real(function_stream, endian_override, float_inputs[1]) # Function Max
+        write_real(function_stream, endian_override, float_inputs[2]) # Range Function Min
+        write_real(function_stream, endian_override, float_inputs[3]) # Range Function Max
+
+    elif FunctionTypeEnum.periodic == FunctionTypeEnum(function_type):
+        float_inputs = normalize_list(function_inputs, 8, 0.0)
+        write_real(function_stream, endian_override, float_inputs[0]) # Frequency
+        write_real(function_stream, endian_override, float_inputs[1]) # Phase
+        write_real(function_stream, endian_override, float_inputs[2]) # Function Min
+        write_real(function_stream, endian_override, float_inputs[3]) # Function Max
+        write_real(function_stream, endian_override, float_inputs[4]) # Range Frequency
+        write_real(function_stream, endian_override, float_inputs[5]) # Range Phase
+        write_real(function_stream, endian_override, float_inputs[6]) # Range Function Min
+        write_real(function_stream, endian_override, float_inputs[7]) # Range Function Max
+
+    elif FunctionTypeEnum.linear == FunctionTypeEnum(function_type):
+        point_inputs = normalize_list(function_inputs, 4, (0.0, 0.0))
+        for point_input in point_inputs[0:2]:
+            write_real_point_2d(function_stream, endian_override, point_input)
+
+        function_stream.write(bytes(8))
+        for point_input in point_inputs[2:4]:
+            write_real_point_2d(function_stream, endian_override, point_input)
+
+        function_stream.write(bytes(8))
+
+    elif FunctionTypeEnum.linear_key == FunctionTypeEnum(function_type):
+        point_inputs = normalize_list(function_inputs, 8, (0.0, 0.0))
+        for point_input in point_inputs[0:4]:
+            write_real_point_2d(function_stream, endian_override, point_input)
+
+        function_stream.write(bytes(48))
+        for point_input in point_inputs[4:8]:
+           write_real_point_2d(function_stream, endian_override, point_input)
+
+        function_stream.write(bytes(48))
+
+    elif FunctionTypeEnum.multi_linear_key == FunctionTypeEnum(function_type):
+        function_stream.write(bytes(256))
+
+    elif FunctionTypeEnum.spline == FunctionTypeEnum(function_type):
+        point_inputs = normalize_list(function_inputs, 8, (0.0, 0.0))
+        for point_input in point_inputs[0:4]:
+            write_real_point_2d(function_stream, endian_override, point_input)
+
+        function_stream.write(bytes(16))
+        for point_input in point_inputs[4:8]:
+            write_real_point_2d(function_stream, endian_override, point_input)
+
+        function_stream.write(bytes(16))
+
+    elif FunctionTypeEnum.multi_spline == FunctionTypeEnum(function_type):
+        function_stream.write(bytes(40))
+
+    elif FunctionTypeEnum.exponent == FunctionTypeEnum(function_type):
+        float_inputs = normalize_list(function_inputs, 6, 0.0)
+        write_real(function_stream, endian_override, float_inputs[0]) # Function Min
+        write_real(function_stream, endian_override, float_inputs[1]) # Function Max
+        write_real(function_stream, endian_override, float_inputs[2]) # Exponent
+        write_real(function_stream, endian_override, float_inputs[3]) # Range Function Min
+        write_real(function_stream, endian_override, float_inputs[4]) # Range Function Max
+        write_real(function_stream, endian_override, float_inputs[5]) # Range Exponent
+
+    elif FunctionTypeEnum.spline2 == FunctionTypeEnum(function_type):
+        point_inputs = normalize_list(function_inputs, 8, (0.0, 0.0))
+        for point_input in point_inputs[0:4]:
+            write_real_point_2d(function_stream, endian_override, point_input)
+
+        function_stream.write(bytes(16))
+        for point_input in point_inputs[4:8]:
+            write_real_point_2d(function_stream, endian_override, point_input)
+
+        function_stream.write(bytes(16))
+
+    for field_node_element in struct_field_set:
         unsigned_key = field_node_element.get("unsigned")
         field_endian = field_node_element.get("endianOverride")
         if field_endian:
@@ -277,13 +379,13 @@ def upgrade_effect_function(function_type, function_1_value, min_value, field_el
         field_key = field_node_element.get("name")
         field_tag = field_node_element.tag
         if field_tag == "Block":
-            tag_block = field_element[field_key] = []
+            tag_block = tag_block_fields[field_key] = []
             for byte in function_stream.getbuffer():
                 signed_byte = byte if byte < 128 else byte - 256
                 tag_block.append({"Value": signed_byte})
 
-            field_element["TagBlock_%s" % field_key] = {"unk1": 0,"unk2": 0}
-            field_element["TagBlockHeader_%s" % field_key] = {"name": "tbfd", "version": 0, "size": 1}
+            tag_block_fields["TagBlock_%s" % field_key] = {"unk1": 0,"unk2": 0}
+            tag_block_fields["TagBlockHeader_%s" % field_key] = {"name": "tbfd", "version": 0, "size": 1}
 
 def biped_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     biped_def = merged_defs["bipd"]
@@ -653,14 +755,13 @@ def damage_effect_postprocess(merged_defs, tag_dict, file_endian, tag_directory)
 
         root["duration_1"] = root.pop("duration_4", 0.0)
 
-
         vibration_function_field = damage_effect_def.find(f".//Struct[@name='{"StructHeader_dirty whore"}']")
         frequency_function_field = damage_effect_def.find(f".//Struct[@name='{"StructHeader_dirty whore_1"}']")
         scale_function_field = damage_effect_def.find(f".//Struct[@name='{"StructHeader_effect scale function"}']")
 
-        upgrade_effect_function(2, (root.pop("fade function_1", {}) or {}).get("Value", 0), root.pop("frequency", 0.0), player_response_element, vibration_function_field, file_endian)
-        upgrade_effect_function(2, (root.pop("fade function_2", {}) or {}).get("Value", 0), root.pop("frequency_1", 0.0), player_response_element, frequency_function_field, file_endian)
-        upgrade_effect_function(0, 0, 0, player_response_element, scale_function_field, file_endian)
+        create_function(vibration_function_field, player_response_element, file_endian, 2, 0, (root.pop("fade function_1", {}) or {}).get("Value", 0), 0, [], [root.pop("frequency", 0.0)])
+        create_function(frequency_function_field, player_response_element, file_endian, 2, 0, (root.pop("fade function_2", {}) or {}).get("Value", 0), 0, [], [root.pop("frequency_1", 0.0)])
+        create_function(scale_function_field, player_response_element, file_endian, 0, 0, 0, 0, [], [])
 
         player_responses_data.append(player_response_element)
 
@@ -2112,7 +2213,6 @@ def scenario_structure_bsp_postprocess(merged_defs, tag_dict, file_endian, tag_d
 def scenario_structure_lightmap_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     scenario_structure_lightmap_def = merged_defs["ltmp"]
     root = tag_dict["Data"]
-    print("test")
     lightmap_groups_block = root.get("lightmap groups")
     if lightmap_groups_block is not None:
         for lightmap_groups_element in lightmap_groups_block:
@@ -2416,7 +2516,7 @@ def sound_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
                         raw_info_data = language_permutation_info_element.pop("raw info block", [])
                         language_permutation_info_element["raw info block v3"] = raw_info_data
                         for raw_info_element in language_permutation_info_element["raw info block v3"]:
-                            decoded_data = base64.b64decode(data["encoded"])
+                            decoded_data = base64.b64decode(raw_info_element["Data"]["encoded"])
                             unk_val = round(3.555555555555556 * len(decoded_data))
                             raw_info_element["LongInteger"] = unk_val
 
@@ -2803,7 +2903,7 @@ postprocess_functions = {
     "PRTM": particle_model_postprocess,
     "pmov": particle_physics_postprocess,
     "matg": globals_postprocess,
-    "snd!": sound_postprocess,
+    "snd!": None,
     "lsnd": sound_looping_postprocess,
     "eqip": equipment_postprocess,
     "ant!": None,

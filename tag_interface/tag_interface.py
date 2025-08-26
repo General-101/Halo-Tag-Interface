@@ -37,11 +37,11 @@ import tag_postprocessing
 import xml.etree.ElementTree as ET
 
 from enum import Flag, Enum, auto
-from tag_definitions import h1, h2
+from tag_definitions import h1, h2, common
 from math import degrees, radians, copysign
 
 from tag_postprocessing.h1 import postprocess_functions as h1_postprocess_functions
-from tag_postprocessing.h2 import postprocess_functions as h2_postprocess_functions
+from tag_postprocessing.h2 import postprocess_functions as h2_postprocess_functions, create_function
 
 class EngineTag(Enum):
     # halo 1 types
@@ -297,6 +297,21 @@ def uppercase_struct_letters(struct_string):
         else:
             result.append(char)
     return ''.join(result)
+
+def validate_function_struct(current_struct_field_set, tag_block_fields):
+    valid_function = True
+    # TODO: This requires some sort of setup to check that the data is correct. Not just that it doesn't exist. - Gen
+    for field_node in current_struct_field_set:
+        field_tag = field_node.tag
+        if field_tag not in common.WHITELIST_TAGS:
+            continue
+
+        field_name = field_node.get("name")
+        if field_name not in tag_block_fields:
+            valid_function = False
+
+    if not valid_function:
+        create_function(current_struct_field_set, tag_block_fields, FIELD_ENDIAN, 1, 0, 0, 0, [], [], False)
 
 def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_node, tag_block_fields, block_idx=0, struct_offset=0, return_size=False):
     result = None
@@ -803,7 +818,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
         else:
             if not unread_data_size < field_size:
                 string_pad = get_result("%s_pad" % field_key, tag_block_fields)
-                if result is not None:
+                if result is not None or not PRESERVE_VERSION:
                     string_pad = 0
                 result = get_result(field_key, tag_block_fields)
                 if HAS_LEGACY_STRINGS:
@@ -1380,7 +1395,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
         else:
             if not unread_data_size < field_size:
                 string_pad = get_result("%s_pad" % field_key, tag_block_fields)
-                if string_pad is None:
+                if string_pad is None or not PRESERVE_VERSION:
                     string_pad = 0
                 result = get_result(field_key, tag_block_fields)
                 if result is not None:
@@ -1524,6 +1539,9 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
             struct_offset = block_stream.tell()
             if unread_data_size < struct_header["size"]:
                 struct_header["size"] = unread_data_size
+
+            if struct_header["name"] == "MAPP":
+                validate_function_struct(current_struct_field_set, tag_block_fields)
             for struct_field_node in current_struct_field_set:
                 get_fields(tag_stream, block_stream, tag_header, struct_header, struct_field_node, tag_block_fields, block_idx, struct_offset)       
     elif field_tag == "Tag":
@@ -1698,6 +1716,7 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                     block_stream.write(struct.pack(struct_string, *field_default))
 
 def read_file(merged_defs, tag_directory, file_path="", engine_tag=EngineTag.H2Latest.value, file_endian_override=None):
+    global PRESERVE_VERSION
     if engine_tag == EngineTag.H1Latest.value:
         file_endian = ">"
         if file_endian_override:
@@ -1766,6 +1785,15 @@ def read_file(merged_defs, tag_directory, file_path="", engine_tag=EngineTag.H2L
         is_string_legacy(tag_header)
         is_padding_legacy(tag_header)
 
+        sound_hack = False
+        if tag_group == "snd!" and not PRESERVE_VERSION:
+            sound_hack = True
+            #This is here because snd! tags are complicated. 
+            # Essentially version 0-3 do not have the sound_info block and generate it through some process when going to latest.
+            # It's not a simple conversion and I'm half thinking that making this work would be halfway to making a custom sound import pipeline. - Gen
+            PRESERVE_VERSION = True
+            PRESERVE_SIZE = True
+
         tag_def = merged_defs.get(tag_group)
         if tag_def is None:
             raise ValueError(f"Tag group {tag_group} not found for extension {tag_extension}.")
@@ -1812,9 +1840,17 @@ def read_file(merged_defs, tag_directory, file_path="", engine_tag=EngineTag.H2L
         if postprocess_step is not None and not PRESERVE_VERSION:
             postprocess_step(merged_defs, tag_dict, file_endian, tag_directory)
 
+        if sound_hack:
+            #This is here because snd! tags are complicated. 
+            # Essentially version 0-3 do not have the sound_info block and generate it through some process when going to latest.
+            # It's not a simple conversion and I'm half thinking that making this work would be halfway to making a custom sound import pipeline. - Gen
+            PRESERVE_VERSION = False
+            PRESERVE_SIZE = False
+
         return tag_dict
 
 def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_tag=EngineTag.H2Latest.value, file_endian_override=None):
+    global PRESERVE_VERSION
     if engine_tag == EngineTag.H1Latest.value:
         file_endian = ">"
         if file_endian_override:
@@ -1859,6 +1895,15 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
             "plugin handle": -1, 
             "engine tag": engine_tag
             }
+
+    sound_hack = False
+    if tag_group == "snd!" and not PRESERVE_VERSION:
+        sound_hack = True
+        #This is here because snd! tags are complicated. 
+        # Essentially version 0-3 do not have the sound_info block and generate it through some process when going to latest.
+        # It's not a simple conversion and I'm half thinking that making this work would be halfway to making a custom sound import pipeline. - Gen
+        PRESERVE_VERSION = True
+        PRESERVE_SIZE = True
 
     if tag_group is None or tag_extension is None or tag_def is None:
         raise ValueError(f"Tag group {tag_group} not found for extension {tag_extension}.")
@@ -1920,8 +1965,11 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
     for field_node in block_field_set:
         get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_node, root, block_idx)
 
+    # TODO: This currently doesn't fix itself to take up the space that is left. 
+    # It will start overwriting data from the next block if the previously defined size changes to be smaller so we need to resize it.
+    # This also applies to the leftover data bit in the block section in the field reader function. - Gen
     leftover_data = get_result("LeftOverData_%s" % tag_extension, tag_dict["Data"])
-    if leftover_data is not None:
+    if leftover_data is not None and PRESERVE_VERSION:
         leftover_bytes = base64.b64decode(leftover_data)
         if PRESERVE_PADDING:
             block_stream.write(leftover_bytes)
@@ -1950,6 +1998,13 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
     tag_stream.write(combined_streams.getvalue())
     with open(file_path, "wb") as f:
         f.write(tag_stream.getvalue())
+
+    if sound_hack:
+        #This is here because snd! tags are complicated. 
+        # Essentially version 0-3 do not have the sound_info block and generate it through some process when going to latest.
+        # It's not a simple conversion and I'm half thinking that making this work would be halfway to making a custom sound import pipeline. - Gen
+        PRESERVE_VERSION = False
+        PRESERVE_SIZE = False
 
 def update_interface(mode_enum=FileModeEnum.read, file_endian="<"):
     global FILE_MODE
@@ -1987,8 +2042,8 @@ def h2_single_tag():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\incompetent\default_object.model"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.model"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\sound\ambience\sound_scenery\hq_under_glass\under_glass\loop.sound"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.sound"
     tag_directory = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags"
 
     tag_dict = read_file(merged_defs, tag_directory, read_path)
@@ -2001,7 +2056,7 @@ def h2_single_json():
     output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.scenario"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.sound"
 
     with open(r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.json", "r", encoding="utf8") as json_file:
         tag_dict = json.load(json_file)
