@@ -2213,4 +2213,84 @@ def h2_directory():
                     log_file.write(f"\nInvalid File:\n"
                                 f"  File: {read_path}\n")
                     traceback.print_exc(file=log_file)
-h2_directory()
+
+def read_tag(tag_ref, tag_directory, tag_groups, engine_tag, merged_defs):
+    asset = None
+
+    tag_extension = tag_groups.get(tag_ref["group name"])
+    tag_path = tag_ref["path"]
+
+    read_path = os.path.join(tag_directory, "%s.%s" % (tag_path, tag_extension))
+    if os.path.isfile(read_path):
+        asset = read_file(merged_defs, tag_directory, read_path, engine_tag)
+
+    return asset
+
+def generate_tag_dictionary(game_title, root_tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache={}):
+    tag_group = root_tag_ref["group name"]
+    tag_path = root_tag_ref["path"]
+    if tag_group in asset_cache and tag_path in asset_cache[tag_group]:
+        return None
+
+    if tag_group not in asset_cache:
+        asset_cache[tag_group] = {}
+
+    if tag_path not in asset_cache[tag_group]:
+        asset_cache[tag_group][tag_path] = {"blender_assets": {}, "parsed_asset": None}
+
+    parsed_asset = read_tag(root_tag_ref, tag_directory, tag_groups, engine_tag, merged_defs)
+    if not parsed_asset:
+        return None
+
+    asset_cache[tag_group][tag_path]["parsed_asset"] = parsed_asset
+    tag_def = merged_defs.get(tag_group)
+
+    tag_block_fields = []
+    tag_reference_list = []
+    for layout in tag_def:
+        for field_set in layout:
+            if bool(field_set.attrib.get('isLatest')):
+                tag_block_fields.append((field_set, parsed_asset, "Data"))
+
+    while len(tag_block_fields) > 0 :
+        tag_block = None
+        block_fields, block_dict, block_name = tag_block_fields.pop(0)
+        tag_block = block_dict.get(block_name)
+        if not isinstance(tag_block, list):
+            tag_block = [tag_block]
+            
+        if tag_block is not None:
+            for tag_element in tag_block:
+                if tag_element is not None:
+                    for block_field in block_fields:
+                        block_field_tag = block_field.tag
+                        block_field_name = block_field.get("name")
+                        if block_field_tag == "Block":
+                            next_block_field_set = None
+                            for block_layout in block_field:
+                                for block_field_set in block_layout:
+                                    if bool(block_field_set.attrib.get('isLatest')):
+                                        next_block_field_set = block_field_set
+                                        break
+
+                            tag_block_fields.append((next_block_field_set, tag_element, block_field_name))
+
+                        elif block_field_tag == "Struct":
+                            next_struct_field_set = None
+                            for struct_layout in block_field:
+                                for struct_field_set in struct_layout:
+                                    if bool(struct_field_set.attrib.get('isLatest')):
+                                        next_struct_field_set = struct_field_set
+                                        break
+                
+                            tag_block_fields.append((next_struct_field_set, block_dict, block_name))
+
+                        elif block_field_tag == "TagReference":
+                            tag_ref = tag_element.get(block_field_name)
+                            if tag_ref is not None:
+                                tag_reference_list.append(tag_ref)
+
+    for tag_ref in tag_reference_list:
+        generate_tag_dictionary(game_title, tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache)
+
+    return asset_cache
