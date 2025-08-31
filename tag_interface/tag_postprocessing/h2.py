@@ -407,7 +407,7 @@ def biped_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
 
     biped_header = tag_dict["TagBlockHeader_biped"] = {"name": "tbfd", "version": 1, "size": 988}
 
-    function_struct_field = biped_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = biped_def.find(".//Struct[@name='{'StructHeader_default function'}']")
     function_block = root.get("functions")
     if function_block is not None:
         for function_element in function_block:
@@ -465,15 +465,15 @@ def breakable_surface_postprocess(merged_defs, tag_dict, file_endian, tag_direct
     breakable_surface_def = merged_defs["bsdt"]
     root = tag_dict["Data"]
 
-    mapping_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping"}']")
-    mapping_1_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_1"}']")
-    mapping_2_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_2"}']")
-    mapping_3_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_3"}']")
-    mapping_4_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_4"}']")
-    mapping_5_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_5"}']")
-    mapping_6_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_6"}']")
-    mapping_7_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_7"}']")
-    mapping_8_struct_field = breakable_surface_def.find(f".//Struct[@name='{"StructHeader_Mapping_8"}']")
+    mapping_struct_field = breakable_surface_def.find(".//Struct[@name='{'StructHeader_Mapping'}']")
+    mapping_1_struct_field = breakable_surface_def.find(".//Struct[@name='{'StructHeader_Mapping_1'}']")
+    mapping_2_struct_field = breakable_surface_def.find(".//Struct[@name='{'StructHeader_Mapping_2'}']")
+    mapping_3_struct_field = breakable_surface_def.find(".//Struct[@name='{'StructHeader_Mapping_3'}']")
+    mapping_4_struct_field = breakable_surface_def.find(".//Struct[@name='{'StructHeader_Mapping_4'}']")
+    mapping_5_struct_field = breakable_surface_def.find(".//Struct[@name='{'StructHeader_Mapping_5'}']")
+    mapping_6_struct_field = breakable_surface_def.find(".//Struct[@name='{'StructHeader_Mapping_6'}']")
+    mapping_7_struct_field = breakable_surface_def.find(".//Struct[@name='{'StructHeader_Mapping_7'}']")
+    mapping_8_struct_field = breakable_surface_def.find(".//Struct[@name='{'StructHeader_Mapping_8'}']")
 
     particle_effects_block = root.get("particle effects")
     if particle_effects_block is not None:
@@ -625,10 +625,10 @@ def chocolate_mountain_postprocess(merged_defs, tag_dict, file_endian, tag_direc
     chocolate_mountain_def = merged_defs["gldf"]
     root = tag_dict["Data"]
 
-    function_struct_field = chocolate_mountain_def.find(f".//Struct[@name='{"StructHeader_function"}']")
-    function_1_struct_field = chocolate_mountain_def.find(f".//Struct[@name='{"StructHeader_function_1"}']")
-    function_2_struct_field = chocolate_mountain_def.find(f".//Struct[@name='{"StructHeader_function_2"}']")
-    function_3_struct_field = chocolate_mountain_def.find(f".//Struct[@name='{"StructHeader_function 1"}']")
+    function_struct_field = chocolate_mountain_def.find(".//Struct[@name='{'StructHeader_function'}']")
+    function_1_struct_field = chocolate_mountain_def.find(".//Struct[@name='{'StructHeader_function_1'}']")
+    function_2_struct_field = chocolate_mountain_def.find(".//Struct[@name='{'StructHeader_function_2'}']")
+    function_3_struct_field = chocolate_mountain_def.find(".//Struct[@name='{'StructHeader_function 1'}']")
 
     lighting_block = root.get("lighting variables")
     if lighting_block is not None:
@@ -681,7 +681,7 @@ def crate_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     crate_def = merged_defs["bloc"]
     root = tag_dict["Data"]
 
-    function_struct_field = crate_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = crate_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -695,7 +695,7 @@ def creature_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     creature_def = merged_defs["crea"]
     root = tag_dict["Data"]
 
-    function_struct_field = creature_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = creature_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -755,9 +755,9 @@ def damage_effect_postprocess(merged_defs, tag_dict, file_endian, tag_directory)
 
         root["duration_1"] = root.pop("duration_4", 0.0)
 
-        vibration_function_field = damage_effect_def.find(f".//Struct[@name='{"StructHeader_dirty whore"}']")
-        frequency_function_field = damage_effect_def.find(f".//Struct[@name='{"StructHeader_dirty whore_1"}']")
-        scale_function_field = damage_effect_def.find(f".//Struct[@name='{"StructHeader_effect scale function"}']")
+        vibration_function_field = damage_effect_def.find(".//Struct[@name='{'StructHeader_dirty whore'}']")
+        frequency_function_field = damage_effect_def.find(".//Struct[@name='{'StructHeader_dirty whore_1'}']")
+        scale_function_field = damage_effect_def.find(".//Struct[@name='{'StructHeader_effect scale function'}']")
 
         create_function(vibration_function_field, player_response_element, file_endian, 2, 0, (root.pop("fade function_1", {}) or {}).get("Value", 0), 0, [], [root.pop("frequency", 0.0)])
         create_function(frequency_function_field, player_response_element, file_endian, 2, 0, (root.pop("fade function_2", {}) or {}).get("Value", 0), 0, [], [root.pop("frequency_1", 0.0)])
@@ -769,7 +769,7 @@ def device_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     device_def = merged_defs["devi"]
     root = tag_dict["Data"]
 
-    function_struct_field = device_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = device_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -783,7 +783,7 @@ def device_control_postprocess(merged_defs, tag_dict, file_endian, tag_directory
     device_control_def = merged_defs["ctrl"]
     root = tag_dict["Data"]
 
-    function_struct_field = device_control_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = device_control_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -797,7 +797,7 @@ def device_light_fixture_postprocess(merged_defs, tag_dict, file_endian, tag_dir
     device_light_fixture_def = merged_defs["lifi"]
     root = tag_dict["Data"]
 
-    function_struct_field = device_light_fixture_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = device_light_fixture_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -811,7 +811,7 @@ def device_machine_postprocess(merged_defs, tag_dict, file_endian, tag_directory
     device_machine_def = merged_defs["mach"]
     root = tag_dict["Data"]
 
-    function_struct_field = device_machine_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = device_machine_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -825,21 +825,21 @@ def effect_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     effect_def = merged_defs["effe"]
     root = tag_dict["Data"]
 
-    function_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function"}']")
-    function_1_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function_1"}']")
-    function_2_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function_2"}']")
-    function_3_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function_3"}']")
-    function_4_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function_4"}']")
-    function_5_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_function_5"}']")
-    mapping_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping"}']")
-    mapping_1_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_1"}']")
-    mapping_2_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_2"}']")
-    mapping_3_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_3"}']")
-    mapping_4_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_4"}']")
-    mapping_5_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_5"}']")
-    mapping_6_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_6"}']")
-    mapping_7_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_7"}']")
-    mapping_8_struct_field = effect_def.find(f".//Struct[@name='{"StructHeader_Mapping_8"}']")
+    function_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_function'}']")
+    function_1_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_function_1'}']")
+    function_2_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_function_2'}']")
+    function_3_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_function_3'}']")
+    function_4_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_function_4'}']")
+    function_5_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_function_5'}']")
+    mapping_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_Mapping'}']")
+    mapping_1_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_Mapping_1'}']")
+    mapping_2_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_Mapping_2'}']")
+    mapping_3_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_Mapping_3'}']")
+    mapping_4_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_Mapping_4'}']")
+    mapping_5_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_Mapping_5'}']")
+    mapping_6_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_Mapping_6'}']")
+    mapping_7_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_Mapping_7'}']")
+    mapping_8_struct_field = effect_def.find(".//Struct[@name='{'StructHeader_Mapping_8'}']")
 
     events_block = root.get("events")
     if events_block is not None:
@@ -918,7 +918,7 @@ def equipment_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     equipment_def = merged_defs["eqip"]
     root = tag_dict["Data"]
 
-    function_struct_field = equipment_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = equipment_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -932,7 +932,7 @@ def garbage_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     garbage_def = merged_defs["garb"]
     root = tag_dict["Data"]
 
-    function_struct_field = garbage_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = garbage_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -964,7 +964,7 @@ def item_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     item_def = merged_defs["item"]
     root = tag_dict["Data"]
 
-    function_struct_field = item_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = item_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -1302,7 +1302,7 @@ def object_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     object_def = merged_defs["obje"]
     root = tag_dict["Data"]
 
-    function_struct_field = object_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = object_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -1567,7 +1567,7 @@ def projectile_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     projectile_def = merged_defs["proj"]
     root = tag_dict["Data"]
 
-    function_struct_field = projectile_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = projectile_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     projectile_header = tag_dict.get("TagBlockHeader_projectile")
     if projectile_header is not None and projectile_header["version"] == 0:
@@ -2308,7 +2308,7 @@ def scenery_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     scenery_def = merged_defs["scen"]
     root = tag_dict["Data"]
 
-    function_struct_field = scenery_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = scenery_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -2746,7 +2746,7 @@ def sound_scenery_postprocess(merged_defs, tag_dict, file_endian, tag_directory)
     sound_scenery_def = merged_defs["ssce"]
     root = tag_dict["Data"]
 
-    function_struct_field = sound_scenery_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = sound_scenery_def.find(".//Struct[@name='{'StructHeader_default function'}']")
 
     function_block = root.get("functions")
     if function_block is not None:
@@ -2760,7 +2760,7 @@ def unit_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     unit_def = merged_defs["unit"]
     root = tag_dict["Data"]
 
-    function_struct_field = unit_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = unit_def.find(".//Struct[@name='{'StructHeader_default function'}']")
     function_block = root.get("functions")
     if function_block is not None:
         for function_element in function_block:
@@ -2789,7 +2789,7 @@ def vehicle_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
     vehicle_def = merged_defs["vehi"]
     root = tag_dict["Data"]
 
-    function_struct_field = vehicle_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = vehicle_def.find(".//Struct[@name='{'StructHeader_default function'}']")
     function_block = root.get("functions")
     if function_block is not None:
         for function_element in function_block:
@@ -2868,7 +2868,7 @@ def weapon_postprocess(merged_defs, tag_dict, file_endian, tag_directory):
             first_person_data.append(first_person_spartan_element)
             first_person_data.append(first_person_elite_element)
 
-    function_struct_field = weapon_def.find(f".//Struct[@name='{"StructHeader_default function"}']")
+    function_struct_field = weapon_def.find(".//Struct[@name='{'StructHeader_default function'}']")
     function_block = root.get("functions")
     if function_block is not None:
         for function_element in function_block:

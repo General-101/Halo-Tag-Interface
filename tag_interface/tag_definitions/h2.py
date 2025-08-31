@@ -24,8 +24,11 @@
 #
 # ##### END MIT LICENSE BLOCK #####
 
-import tag_common
-
+try:
+    from .. import tag_common
+except ImportError:
+    import tag_common
+    
 from .common import initialize_definitions, parse_all_xmls, dump_merged_xml, merge_parent_tag, DUMP_XML
 
 def generate_defs(base_dir, output_dir):

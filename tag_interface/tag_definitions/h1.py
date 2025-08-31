@@ -26,11 +26,14 @@
 
 import os
 import json
-import tag_common
 import xml.etree.ElementTree as ET
 
-from .common import initialize_definitions, merge_parent_tag, dump_merged_xml, DUMP_XML
-
+try:
+    from .. import tag_common
+except ImportError:
+    import tag_common
+    
+from .common import initialize_definitions, parse_all_xmls, dump_merged_xml, merge_parent_tag, DUMP_XML
 
 def get_pad_size(field_node):
     return int(field_node.attrib.get('length', 0))

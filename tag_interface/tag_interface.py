@@ -32,16 +32,22 @@ import struct
 import json
 import hashlib
 import traceback
-import tag_common
-import tag_postprocessing
 import xml.etree.ElementTree as ET
 
 from enum import Flag, Enum, auto
-from tag_definitions import h1, h2, common
 from math import degrees, radians, copysign
 
-from tag_postprocessing.h1 import postprocess_functions as h1_postprocess_functions
-from tag_postprocessing.h2 import postprocess_functions as h2_postprocess_functions, create_function
+try:
+    from . import tag_common
+    from .tag_definitions import h1, h2, common
+    from .tag_postprocessing.h1 import postprocess_functions as h1_postprocess_functions
+    from .tag_postprocessing.h2 import postprocess_functions as h2_postprocess_functions, create_function
+except ImportError:
+    import tag_common
+    from tag_definitions import h1, h2, common
+    from tag_postprocessing.h1 import postprocess_functions as h1_postprocess_functions
+    from tag_postprocessing.h2 import postprocess_functions as h2_postprocess_functions, create_function
+
 
 class EngineTag(Enum):
     # halo 1 types
