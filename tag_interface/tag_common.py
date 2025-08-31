@@ -242,6 +242,9 @@ h2_tag_groups = {
 h1_tag_extensions = {ext: group for group, ext in h1_tag_groups.items()}
 h2_tag_extensions = {ext: group for group, ext in h2_tag_groups.items()}
 
+h1_tag_groups_tuple=[(key, val, f"{val} tag") for key, val in h1_tag_groups.items()]
+h2_tag_groups_tuple=[(key, val, f"{val} tag") for key, val in h2_tag_groups.items()]
+
 invader_key_conversion = {
     "Angle": "Angle",
     "ColorARGBFloat": "RealArgbColor",
