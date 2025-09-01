@@ -266,6 +266,8 @@ def unpack_function_buffer(data_block, endian_override="<"):
         for value_idx in range(12):
             function_dict["Values"].append(read_real_point_2d(function_stream, endian_override)) 
 
+    return function_dict
+
 def upgrade_function(merged_defs, field_element, tag_block_fields, endian_override):
     field_set_0 = None
     field_set_1 = None
