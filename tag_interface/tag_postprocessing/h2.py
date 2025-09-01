@@ -139,13 +139,21 @@ def set_result(field_key, tag_block_fields, result):
     else:
         tag_block_fields[field_key] = replace_neg_zero(result)
 
-def read_real(function_stream, unsigned_key, field_key, tag_block_fields, endian_override):
-    struct_string = '%sf' % endian_override
-    if unsigned_key:
-        struct_string = uppercase_struct_letters(struct_string)
+def read_byte(function_stream, endian_override):
+    struct_string = '%sb' % endian_override
+    return (struct.unpack(struct_string, function_stream.read(1)))[0]
 
-    result = (struct.unpack(struct_string, function_stream.read(4)))[0]
-    set_result(field_key, tag_block_fields, result)
+def read_real(function_stream, endian_override):
+    struct_string = '%sf' % endian_override
+    return (struct.unpack(struct_string, function_stream.read(4)))[0]
+
+def read_bgra(function_stream, endian_override):
+    struct_string = '%s4B' % endian_override
+    return reversed((struct.unpack(struct_string, function_stream.read(4))))
+
+def read_real_point_2d(function_stream, endian_override):
+    struct_string = '%s2f' % endian_override
+    return (struct.unpack(struct_string, function_stream.read(8)))
 
 def write_real(function_stream, endian_override, value):
     struct_string = '%sf' % endian_override
@@ -171,6 +179,92 @@ def upgrade_lightmap_policy(old_val):
         new_val = 2
 
     return new_val
+
+def unpack_function_buffer(data_block, endian_override="<"):
+    struct_string = '%sb' % endian_override
+    function_stream = io.BytesIO()
+    function_dict = {
+                    "Function Type": 0,
+                    "Flags": 0,
+                    "Function 1": 0,
+                    "Function 2": 0,
+                    "Color 0": (0, 0, 0, 0),
+                    "Color 1": (0, 0, 0, 0),
+                    "Color 2": (0, 0, 0, 0),
+                    "Color 3": (0, 0, 0, 0),
+                    "Values": []
+                    }
+
+    for data_element in data_block:
+        data_value = data_element["Value"]
+        function_stream.write(struct.pack(struct_string, data_value))
+
+    function_dict["Function Type"] = read_byte(function_stream, endian_override)
+    function_dict["Flags"] = read_byte(function_stream, endian_override)
+    function_dict["Function 1"] = read_byte(function_stream, endian_override)
+    function_dict["Function 2"] = read_byte(function_stream, endian_override)
+    mapping_flags = MappingFlags(function_dict["Flags"])
+    if MappingFlags._2_color in mapping_flags:
+        function_dict["Color 0"] = read_bgra(function_stream, endian_override) # Color A
+        function_stream.read(8)
+        function_dict["Color 1"] = read_bgra(function_stream, endian_override) # Color B
+
+    elif MappingFlags._3_color in mapping_flags:
+        function_dict["Color 0"] = read_bgra(function_stream, endian_override) # Color A
+        function_dict["Color 1"] = read_bgra(function_stream, endian_override) # Color B
+        function_stream.read(4)
+        function_dict["Color 2"] = read_bgra(function_stream, endian_override) # Color C
+
+    elif MappingFlags._4_color in mapping_flags:
+        function_dict["Color 0"] = read_bgra(function_stream, endian_override) # Color A
+        function_dict["Color 1"] = read_bgra(function_stream, endian_override) # Color B
+        function_dict["Color 3"] = read_bgra(function_stream, endian_override) # Color C
+        function_dict["Color 4"] = read_bgra(function_stream, endian_override) # Color D
+
+    else:
+        function_dict["Color 0"] = read_real(function_stream, endian_override) # Lower Bound
+        function_dict["Color 1"] = read_real(function_stream, endian_override) # Upper Bound
+        function_stream.read(8)
+
+    if FunctionTypeEnum.constant == FunctionTypeEnum(function_dict["Function Type"]):
+        for value_idx in range(2):
+            function_dict["Values"].append(read_real(function_stream, endian_override)) 
+
+    elif FunctionTypeEnum.transition == FunctionTypeEnum(function_dict["Function Type"]):
+        for value_idx in range(4):
+            function_dict["Values"].append(read_real(function_stream, endian_override)) 
+
+    elif FunctionTypeEnum.periodic == FunctionTypeEnum(function_dict["Function Type"]):
+        for value_idx in range(8):
+            function_dict["Values"].append(read_real(function_stream, endian_override)) 
+
+    elif FunctionTypeEnum.linear == FunctionTypeEnum(function_dict["Function Type"]):
+        for value_idx in range(6):
+            function_dict["Values"].append(read_real_point_2d(function_stream, endian_override)) 
+
+    elif FunctionTypeEnum.linear_key == FunctionTypeEnum(function_dict["Function Type"]):
+        for value_idx in range(20):
+            function_dict["Values"].append(read_real_point_2d(function_stream, endian_override)) 
+
+    elif FunctionTypeEnum.multi_linear_key == FunctionTypeEnum(function_dict["Function Type"]):
+        for value_idx in range(32):
+            function_dict["Values"].append(read_real_point_2d(function_stream, endian_override)) 
+
+    elif FunctionTypeEnum.spline == FunctionTypeEnum(function_dict["Function Type"]):
+        for value_idx in range(12):
+            function_dict["Values"].append(read_real_point_2d(function_stream, endian_override)) 
+
+    elif FunctionTypeEnum.multi_spline == FunctionTypeEnum(function_dict["Function Type"]):
+        for value_idx in range(5):
+            function_dict["Values"].append(read_real_point_2d(function_stream, endian_override)) 
+
+    elif FunctionTypeEnum.exponent == FunctionTypeEnum(function_dict["Function Type"]):
+        for value_idx in range(6):
+            function_dict["Values"].append(read_real(function_stream, endian_override)) 
+
+    elif FunctionTypeEnum.spline2 == FunctionTypeEnum(function_dict["Function Type"]):
+        for value_idx in range(12):
+            function_dict["Values"].append(read_real_point_2d(function_stream, endian_override)) 
 
 def upgrade_function(merged_defs, field_element, tag_block_fields, endian_override):
     field_set_0 = None
