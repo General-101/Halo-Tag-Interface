@@ -319,17 +319,17 @@
         "name": "BitmapColorPlate",
         "fields": [
             {
-                "name": "width",
+                "name": "color plate width",
                 "type": "uint16",
                 "unit": "pixels"
             },
             {
-                "name": "height",
+                "name": "color plate height",
                 "type": "uint16",
                 "unit": "pixels"
             },
             {
-                "name": "compressed data",
+                "name": "compressed color plate data",
                 "type": "Data",
                 "limit": 1073741824
             }

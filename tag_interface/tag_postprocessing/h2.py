@@ -149,7 +149,7 @@ def read_real(function_stream, endian_override):
 
 def read_bgra(function_stream, endian_override):
     struct_string = '%s4B' % endian_override
-    return reversed((struct.unpack(struct_string, function_stream.read(4))))
+    return struct.unpack(struct_string, function_stream.read(4))[::-1]
 
 def read_real_point_2d(function_stream, endian_override):
     struct_string = '%s2f' % endian_override
@@ -199,6 +199,7 @@ def unpack_function_buffer(data_block, endian_override="<"):
         data_value = data_element["Value"]
         function_stream.write(struct.pack(struct_string, data_value))
 
+    function_stream.seek(0)  
     function_dict["Function Type"] = read_byte(function_stream, endian_override)
     function_dict["Flags"] = read_byte(function_stream, endian_override)
     function_dict["Function 1"] = read_byte(function_stream, endian_override)
