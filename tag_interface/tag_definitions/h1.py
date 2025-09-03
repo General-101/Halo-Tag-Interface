@@ -325,6 +325,6 @@ def generate_defs(base_dir, output_dir):
         initialize_definitions(merged_cache[tag_def], regolith_map)
 
     if DUMP_XML:
-        dump_merged_xml(merged_cache, output_dir, tag_common.h1_tag_extensions)
+        dump_merged_xml(merged_cache, output_dir, tag_common.h1_tag_groups)
 
     return merged_cache
