@@ -24,6 +24,7 @@
 #
 # ##### END MIT LICENSE BLOCK #####
 
+import re
 import os
 import json
 import xml.etree.ElementTree as ET
@@ -86,6 +87,12 @@ def resolve_inherited_fields(struct_def, root_lookup):
     fields.extend(struct_def.get('fields', []))
 
     return fields
+
+def split_words(name):
+    s1 = re.sub(r'([a-z])([A-Z])', r'\1 \2', name)
+    s1 = s1.replace("_", " ")
+
+    return s1.split()
 
 def generate_defs(base_dir, output_dir):
     all_data = []
@@ -264,6 +271,7 @@ def generate_defs(base_dir, output_dir):
                 ref_struct = root_lookup.get(field_type)
                 if ref_struct:
                     actual_type = ref_struct.get('type')
+                    actual_name = ref_struct.get('name') or ref_struct.get('heading') or actual_type
                     key = f"bitfield{ref_struct.get('width')}" if actual_type == 'bitfield' else actual_type
                     xml_tag = tag_common.invader_key_conversion.get(key)
                     if not xml_tag:
@@ -284,6 +292,54 @@ def generate_defs(base_dir, output_dir):
                             ref_fields = resolve_inherited_fields(ref_struct, root_lookup)
                             add_fields(ref_fields, inner_fieldset)
                             calculate_fieldset_size(inner_fieldset)
+
+                        if actual_type == "bitfield" or actual_type == "enum":
+                            words = split_words(actual_name)
+                            c_style = "_".join(w.lower() for w in words)
+                            pascal_style = "".join(w.capitalize() for w in words)
+
+                            options = ET.SubElement(
+                                struct_node,
+                                "Options",
+                                regolithID=f"enum:{c_style}",
+                                CStyleName=c_style,
+                                pascalStyleName=pascal_style
+                            )
+                            if actual_type == "bitfield":
+                                field_items = ref_struct.get("fields", [])
+                                for entry in field_items:
+                                    entry_name = entry.get("name") if isinstance(entry, dict) else entry
+                                    if not entry_name:
+                                        print(entry_name)
+                                        continue
+
+                                    bit_c = entry_name.replace(" ", "_").lower() + "_bit"
+                                    bit_p = "".join(w.capitalize() for w in entry_name.split(" ")) + "Bit"
+                                    ET.SubElement(
+                                        options,
+                                        "Bit",
+                                        name=entry_name,
+                                        CStyleName=bit_c,
+                                        pascalStyleName=bit_p
+                                    )
+                            
+                            if actual_type == "enum":
+                                field_items = ref_struct.get("options", [])
+                                for entry in field_items:
+                                    entry_name = entry.get("name") if isinstance(entry, dict) else entry
+                                    if not entry_name:
+                                        print(entry_name)
+                                        continue
+
+                                    enum_c = entry_name.replace(" ", "_").lower()
+                                    enum_p = "".join(w.capitalize() for w in entry_name.split(" "))
+                                    ET.SubElement(
+                                        options,
+                                        "Enum",
+                                        name=entry_name,
+                                        CStyleName=enum_c,
+                                        pascalStyleName=enum_p
+                                    )
 
                     continue
 
