@@ -284,6 +284,14 @@ def restore_neg_zero(val):
         val =  -0.0
     return val
 
+def prepare_float_field(result):
+    if isinstance(result, (list, tuple)):
+        result = type(result)(restore_neg_zero(item) for item in result)
+    else:
+        result = restore_neg_zero(result)
+
+    return result
+
 def get_result(field_key, tag_block_fields):
     result = tag_block_fields.get(field_key)
 
