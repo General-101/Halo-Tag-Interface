@@ -48,7 +48,6 @@ except ImportError:
     from tag_postprocessing.h1 import postprocess_functions as h1_postprocess_functions
     from tag_postprocessing.h2 import postprocess_functions as h2_postprocess_functions, create_function
 
-
 class EngineTag(Enum):
     # halo 1 types
     H1 = "blam"
@@ -326,6 +325,27 @@ def validate_function_struct(current_struct_field_set, tag_block_fields):
 
     if not valid_function:
         create_function(current_struct_field_set, tag_block_fields, FIELD_ENDIAN, 1, 0, 0, 0, [], [], False)
+
+def check_header(input_stream):
+    valid_header = False
+    valid_engine = ('blam', 'BLM!', 'LAMB', 'BALM')
+
+    input_stream.seek(36) # Position of tag group in all tags
+    tag_group = input_stream.read(4).decode('utf-8', 'replace')
+    input_stream.seek(60) # Position of engine tag in all tags
+    engine_tag = input_stream.read(4).decode('utf-8', 'replace')
+    input_stream.seek(0)
+
+    tag_groups = tag_common.h1_tag_groups
+    if engine_tag != "blam":
+        tag_groups = tag_common.h2_tag_groups
+        tag_group = tag_group[::-1]
+        engine_tag = engine_tag[::-1]
+
+    if tag_group in tag_groups and engine_tag in valid_engine:
+        valid_header = True
+
+    return valid_header, tag_group, engine_tag
 
 def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_node, tag_block_fields, block_idx=0, struct_offset=0, return_size=False):
     result = None
@@ -693,7 +713,12 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
             if not unread_data_size < field_size:
                 result = get_result(field_key, tag_block_fields)
                 if result is not None:
-                    length, unk1, unk2, unk3, unk4, encoded = result.values()
+                    length = result.get("length", 0)
+                    unk1 = result.get("unk1", 0)
+                    unk2 = result.get("unk2", 0)
+                    unk3 = result.get("unk3", 0)
+                    unk4 = result.get("unk4", 0)
+                    encoded = result.get("encoded", "")
                     byte_data = base64.b64decode(encoded)
                     if PRESERVE_PADDING:
                         block_stream.write(struct.pack(struct_string, len(byte_data), unk1, unk2, unk3, unk4))
@@ -1605,7 +1630,11 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
             if not unread_data_size < field_size:
                 result = get_result(field_key, tag_block_fields)
                 if result is not None:
-                    tag_group, unk1, length, unk2, path = result.values()
+                    tag_group = result.get("group name", -1)
+                    unk1 = result.get("unk1", 0)
+                    length = result.get("length", 0)
+                    unk2 = result.get("unk2", -1)
+                    path = result.get("path", "")
                     if not PRESERVE_PADDING:
                         unk1 = 0
                         unk2 = -1
@@ -2240,7 +2269,7 @@ def read_tag(tag_ref, tag_directory, tag_groups, engine_tag, merged_defs):
 
     return asset
 
-def generate_tag_dictionary(game_title, root_tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache={}):
+def generate_tag_dictionary(game_title, root_tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache={}, prepare_for_blender=True):
     tag_group = root_tag_ref["group name"]
     tag_path = root_tag_ref["path"]
     if tag_group in asset_cache and tag_path in asset_cache[tag_group]:
@@ -2279,6 +2308,7 @@ def generate_tag_dictionary(game_title, root_tag_ref, tag_directory, tag_groups,
                     for block_field in block_fields:
                         block_field_tag = block_field.tag
                         block_field_name = block_field.get("name")
+                        field_element = tag_element.get(block_field_name)
                         if block_field_tag == "Block":
                             next_block_field_set = None
                             for block_layout in block_field:
@@ -2302,7 +2332,13 @@ def generate_tag_dictionary(game_title, root_tag_ref, tag_directory, tag_groups,
                         elif block_field_tag == "TagReference":
                             tag_ref = tag_element.get(block_field_name)
                             if tag_ref is not None:
+                                if game_title == "halo1" and tag_ref["group name"] == "mode":
+                                    tag_ref["group name"] = "mod2"
+
                                 tag_reference_list.append(tag_ref)
+
+                        elif prepare_for_blender and block_field_tag in tag_common.float_fields and field_element is not None:
+                            tag_element[block_field_name] = prepare_float_field(field_element)
 
     for tag_ref in tag_reference_list:
         generate_tag_dictionary(game_title, tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache)

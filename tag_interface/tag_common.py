@@ -346,3 +346,25 @@ field_sizes = {
 }
 
 pad_tags = {"Pad", "Skip", "UselessPad"}
+
+float_fields = (
+    "Angle",
+    "AngleBounds",
+    "Real",
+    "RealArgbColor",
+    "RealBounds",
+    "RealEulerAngles2D",
+    "RealEulerAngles3D",
+    "RealFraction",
+    "RealFractionBounds",
+    "RealPlane2D",
+    "RealPlane3D",
+    "RealPoint2D",
+    "RealPoint3D",
+    "RealQuaternion",
+    "RealRgbColor",
+    "RealVector2D",
+    "RealVector3D",
+    "Rectangle2D",
+    "Matrix3x3"
+)

@@ -112,7 +112,7 @@
           </FieldSet>
         </Layout>
       </Struct>
-      <Block CStyleName="bitmap_group_sequence" pascalStyleName="BitmapGroupSequence" name="bitmap group sequence" maxElementCount="32767">
+      <Block CStyleName="sequences" pascalStyleName="Sequences" name="sequences" maxElementCount="32767">
         <Layout regolithID="block:bitmap group sequence" internalName="bitmap group sequence_block" name="bitmap group sequence_block">
           <FieldSet version="0" sizeofValue="64" isLatest="true">
             <String CStyleName="name" pascalStyleName="Name" name="name" />
@@ -136,7 +136,7 @@
           </FieldSet>
         </Layout>
       </Block>
-      <Block CStyleName="bitmap_data" pascalStyleName="BitmapData" name="bitmap data" maxElementCount="{'mcc-cea': 65536, 'default': 2048}">
+      <Block CStyleName="bitmaps" pascalStyleName="Bitmaps" name="bitmaps" maxElementCount="{'mcc-cea': 65536, 'default': 2048}">
         <Layout regolithID="block:bitmap data" internalName="bitmap data_block" name="bitmap data_block">
           <FieldSet version="0" sizeofValue="48" isLatest="true">
             <Tag CStyleName="signature" pascalStyleName="Signature" name="signature" />
