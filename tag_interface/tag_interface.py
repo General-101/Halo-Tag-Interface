@@ -332,6 +332,7 @@ def check_header(input_stream):
 
     input_stream.seek(36) # Position of tag group in all tags
     tag_group = input_stream.read(4).decode('utf-8', 'replace')
+    checksum = input_stream.read(4)
     input_stream.seek(60) # Position of engine tag in all tags
     engine_tag = input_stream.read(4).decode('utf-8', 'replace')
     input_stream.seek(0)
@@ -341,11 +342,14 @@ def check_header(input_stream):
         tag_groups = tag_common.h2_tag_groups
         tag_group = tag_group[::-1]
         engine_tag = engine_tag[::-1]
+        checksum = struct.unpack('<I', checksum)[0]
+    else:
+        checksum = struct.unpack('>I', checksum)[0]
 
     if tag_group in tag_groups and engine_tag in valid_engine:
         valid_header = True
 
-    return valid_header, tag_group, engine_tag
+    return valid_header, tag_group, checksum, engine_tag
 
 def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_node, tag_block_fields, block_idx=0, struct_offset=0, return_size=False):
     result = None
@@ -2257,90 +2261,203 @@ def h2_directory():
                                 f"  File: {read_path}\n")
                     traceback.print_exc(file=log_file)
 
-def read_tag(tag_ref, tag_directory, tag_groups, engine_tag, merged_defs):
+def read_tag(tag_path, tag_group, tag_directory, tag_groups, engine_tag, merged_defs):
     asset = None
 
-    tag_extension = tag_groups.get(tag_ref["group name"])
-    tag_path = tag_ref["path"]
-
+    tag_extension = tag_groups.get(tag_group)
     read_path = os.path.join(tag_directory, "%s.%s" % (tag_path, tag_extension))
     if os.path.isfile(read_path):
         asset = read_file(merged_defs, tag_directory, read_path, engine_tag)
 
     return asset
 
-def generate_tag_dictionary(game_title, root_tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache={}, prepare_for_blender=True):
-    tag_group = root_tag_ref["group name"]
-    tag_path = root_tag_ref["path"]
-    if tag_group in asset_cache and tag_path in asset_cache[tag_group]:
-        return None
+#This is just here to make tag importing not take forever during the Blender import process. 
+# Add whatever you need or just get rid of the check in get_tag_reference if you just want to import everything - Gen
+TAG_WHITELIST = ("bipd", "bitm", "trak", "coll", "bloc", "crea", "ctrl", "lifi", "mach", "eqip", "mod2", "itmc", "ligh", "MGS2", "hlmt", "coll", "phmo", "mode", 
+                 "ai**", "*ipd", "cin*", "clu*", "/**/", "*rea", "dec*", "dc*s", "dgr*", "*qip", "*igh", "*cen", "*sce", "sbsp", "sslt", "ltmp", "trg*", "*ehi", 
+                 "*eap", "scen", "shad", "senv", "soso", "stem", "schi", "scex", "sotr", "sgla", "smet", "spla", "swat", "sky ", "ssce", "vehi", "vehc", "weap")
 
-    if tag_group not in asset_cache:
+def get_tag_references(field_node, tag_block_fields, tag_references, game_title, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache, prepare_for_blender):
+    field_tag = field_node.tag
+    field_key = field_node.get("name")
+    field_element = tag_block_fields.get(field_key)
+    if field_tag in tag_common.float_fields:
+        if prepare_for_blender and field_element is not None:
+            tag_block_fields[field_key] = prepare_float_field(field_element)
+
+    elif field_tag == "Block":
+        tag_block_dict = tag_block_fields.get(field_key)
+        if tag_block_dict is not None and len(tag_block_dict) > 0:
+            latest_field_set = None
+            for layout in field_node:
+                for field_set in layout:
+                    if bool(field_set.attrib.get('isLatest')):
+                        latest_field_set = field_set
+                        break
+
+            if latest_field_set is None:
+                raise ValueError(f"Latest field set not found.")
+
+            for tag_block_element in tag_block_dict:
+                for block_field_node in latest_field_set:
+                    get_tag_references(block_field_node, tag_block_element, tag_references, game_title, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache, prepare_for_blender)
+
+    elif field_tag == "Struct":
+        latest_struct_field_set = None
+        for struct_layout in field_node:
+            for struct_field_set in struct_layout:
+                if int(struct_field_set.attrib.get('version')) == 0:
+                    latest_struct_field_set = struct_field_set
+
+        if latest_struct_field_set is None:
+            raise ValueError(f"Latest field set not found.")
+
+        for struct_field_node in latest_struct_field_set:
+            get_tag_references(struct_field_node, tag_block_fields, tag_references, game_title, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache, prepare_for_blender)
+    
+    elif field_tag == "TagReference":
+        tag_reference_dict = tag_block_fields.get(field_key)
+        if tag_reference_dict is not None:
+            if game_title == "halo1" and tag_reference_dict["group name"] == "mode":
+                tag_reference_dict["group name"] = "mod2"
+
+            if tag_reference_dict["group name"] in TAG_WHITELIST:
+                tag_references.append(tag_reference_dict)
+
+def string_empty_check(string):
+    is_empty = False
+    if not string == None and (len(string) == 0 or string.isspace()):
+        is_empty = True
+
+    return is_empty
+
+def get_disk_asset(tag_path, tag_extension):
+    asset_dump = None
+    disk_asset_path = os.path.join(os.path.expanduser("~"), "Blender Halo Toolset", "Asset Cache", "%s_%s.json" % (tag_path, tag_extension))
+    if os.path.isfile(disk_asset_path):
+        with open(disk_asset_path, 'r', encoding='utf8') as json_file:
+            asset_dump = json.load(json_file)
+
+    return asset_dump
+
+def generate_tag_dictionary(game_title, root_tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache={}, prepare_for_blender=True):
+    tag_group = root_tag_ref.get("group name", "")
+    tag_extension = tag_groups.get(tag_group)
+    tag_path = root_tag_ref.get("path", "")
+    
+    disk_asset_path = os.path.join(os.path.expanduser("~"), "Blender Halo Toolset", "Asset Cache", "%s_%s.json" % (tag_path, tag_extension))
+    if string_empty_check(tag_path):
+        return asset_cache
+
+    if asset_cache.get(tag_group) is None:
         asset_cache[tag_group] = {}
 
-    if tag_path not in asset_cache[tag_group]:
-        asset_cache[tag_group][tag_path] = {"blender_assets": {}, "parsed_asset": None}
+    if asset_cache[tag_group].get(tag_path) is None:
+        asset_cache[tag_group][tag_path] = {"blender_assets": {}, "has_disk_asset": False, "matching_checksum": False}
 
-    parsed_asset = read_tag(root_tag_ref, tag_directory, tag_groups, engine_tag, merged_defs)
-    if not parsed_asset:
-        return None
+    if os.path.isfile(disk_asset_path):
+        asset_cache[tag_group][tag_path]["has_disk_asset"] = True
 
-    asset_cache[tag_group][tag_path]["parsed_asset"] = parsed_asset
-    tag_def = merged_defs.get(tag_group)
+    if asset_cache[tag_group][tag_path]["has_disk_asset"]:
+        if not asset_cache[tag_group][tag_path]["matching_checksum"]:
+            with open(os.path.join(tag_directory, "%s.%s" % (tag_path, tag_extension)), 'rb') as input_stream:
+                valid_header, disk_tag_group, disk_checksum, disk_engine_tag = check_header(input_stream)
 
-    tag_block_fields = []
-    tag_reference_list = []
-    for layout in tag_def:
-        for field_set in layout:
-            if bool(field_set.attrib.get('isLatest')):
-                tag_block_fields.append((field_set, parsed_asset, "Data"))
+            parsed_asset = get_disk_asset(tag_path, tag_extension)
+            if disk_checksum == parsed_asset["Header"]["checksum"]:
+                asset_cache[tag_group][tag_path]["matching_checksum"] = True
 
-    while len(tag_block_fields) > 0 :
-        tag_block = None
-        block_fields, block_dict, block_name = tag_block_fields.pop(0)
-        tag_block = block_dict.get(block_name)
-        if not isinstance(tag_block, list):
-            tag_block = [tag_block]
-            
-        if tag_block is not None:
-            for tag_element in tag_block:
-                if tag_element is not None:
-                    for block_field in block_fields:
-                        block_field_tag = block_field.tag
-                        block_field_name = block_field.get("name")
-                        field_element = tag_element.get(block_field_name)
-                        if block_field_tag == "Block":
-                            next_block_field_set = None
-                            for block_layout in block_field:
-                                for block_field_set in block_layout:
-                                    if bool(block_field_set.attrib.get('isLatest')):
-                                        next_block_field_set = block_field_set
-                                        break
+                tag_def = merged_defs.get(tag_group)
 
-                            tag_block_fields.append((next_block_field_set, tag_element, block_field_name))
+                block_count = 1
+                latest_field_set = None
+                for layout in tag_def:
+                    for field_set in layout:
+                        if bool(field_set.attrib.get('isLatest')):
+                            latest_field_set = field_set
+                            break
 
-                        elif block_field_tag == "Struct":
-                            next_struct_field_set = None
-                            for struct_layout in block_field:
-                                for struct_field_set in struct_layout:
-                                    if bool(struct_field_set.attrib.get('isLatest')):
-                                        next_struct_field_set = struct_field_set
-                                        break
-                
-                            tag_block_fields.append((next_struct_field_set, block_dict, block_name))
+                if latest_field_set is None:
+                    raise ValueError(f"Latest field set not found.")
 
-                        elif block_field_tag == "TagReference":
-                            tag_ref = tag_element.get(block_field_name)
-                            if tag_ref is not None:
-                                if game_title == "halo1" and tag_ref["group name"] == "mode":
-                                    tag_ref["group name"] = "mod2"
+                tag_references = []
+                for block_idx in range(block_count):
+                    for field_node in latest_field_set:
+                        get_tag_references(field_node, parsed_asset["Data"], tag_references, game_title, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache, prepare_for_blender)
 
-                                tag_reference_list.append(tag_ref)
+                for tag_ref in tag_references:
+                    generate_tag_dictionary(game_title, tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache, prepare_for_blender)
 
-                        elif prepare_for_blender and block_field_tag in tag_common.float_fields and field_element is not None:
-                            tag_element[block_field_name] = prepare_float_field(field_element)
+            else:
+                parsed_asset = read_tag(tag_path, tag_group, tag_directory, tag_groups, engine_tag, merged_defs)
+                if parsed_asset is None:
+                    return asset_cache
+                else:
+                    asset_cache[tag_group][tag_path]["has_disk_asset"] = True
+                    asset_cache[tag_group][tag_path]["matching_checksum"] = True
 
-    for tag_ref in tag_reference_list:
-        generate_tag_dictionary(game_title, tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache)
+                tag_def = merged_defs.get(tag_group)
+
+                block_count = 1
+                latest_field_set = None
+                for layout in tag_def:
+                    for field_set in layout:
+                        if bool(field_set.attrib.get('isLatest')):
+                            latest_field_set = field_set
+                            break
+
+                if latest_field_set is None:
+                    raise ValueError(f"Latest field set not found.")
+
+                tag_references = []
+                for block_idx in range(block_count):
+                    for field_node in latest_field_set:
+                        get_tag_references(field_node, parsed_asset["Data"], tag_references, game_title, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache, prepare_for_blender)
+
+                directory_dump = os.path.dirname(disk_asset_path)
+                if not os.path.exists(directory_dump):
+                    os.makedirs(directory_dump)
+
+                with open(disk_asset_path, 'w', encoding='utf8') as json_file:
+                    json.dump(parsed_asset, json_file, ensure_ascii=True, indent=4)
+
+                for tag_ref in tag_references:
+                    generate_tag_dictionary(game_title, tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache, prepare_for_blender)
+
+    else:
+        parsed_asset = read_tag(tag_path, tag_group, tag_directory, tag_groups, engine_tag, merged_defs)
+        if parsed_asset is None:
+            return asset_cache
+        else:
+            asset_cache[tag_group][tag_path]["has_disk_asset"] = True
+            asset_cache[tag_group][tag_path]["matching_checksum"] = True
+
+        tag_def = merged_defs.get(tag_group)
+
+        block_count = 1
+        latest_field_set = None
+        for layout in tag_def:
+            for field_set in layout:
+                if bool(field_set.attrib.get('isLatest')):
+                    latest_field_set = field_set
+                    break
+
+        if latest_field_set is None:
+            raise ValueError(f"Latest field set not found.")
+
+        tag_references = []
+        for block_idx in range(block_count):
+            for field_node in latest_field_set:
+                get_tag_references(field_node, parsed_asset["Data"], tag_references, game_title, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache, prepare_for_blender)
+
+        directory_dump = os.path.dirname(disk_asset_path)
+        if not os.path.exists(directory_dump):
+            os.makedirs(directory_dump)
+
+        with open(disk_asset_path, 'w', encoding='utf8') as json_file:
+            json.dump(parsed_asset, json_file, ensure_ascii=True, indent=4)
+
+        for tag_ref in tag_references:
+            generate_tag_dictionary(game_title, tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache, prepare_for_blender)
 
     return asset_cache
