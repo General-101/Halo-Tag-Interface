@@ -29,7 +29,6 @@ import io
 import base64
 import struct
 import random
-import xml.etree.ElementTree as ET
 
 from math import copysign, radians
 from enum import Flag, Enum, auto
@@ -150,7 +149,7 @@ def read_real(function_stream, endian_override):
 def read_bgra(function_stream, endian_override):
     struct_string = '%s4B' % endian_override
     a, r, g, b = struct.unpack(struct_string, function_stream.read(4))[::-1]
-    return {"A": a,"R": r, "G": g, "B": b}
+    return {"A": a/255,"R": r/255, "G": g/255, "B": b/255}
 
 def read_real_point_2d(function_stream, endian_override):
     struct_string = '%s2f' % endian_override

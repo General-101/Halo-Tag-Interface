@@ -244,7 +244,7 @@ def set_enum_result(field_key, field_node, tag_block_fields, result):
 def set_color_result(field_key, tag_block_fields, result, has_alpha=False):
     if has_alpha:
         A, R, G, B = result
-        formatted_field = {"A": A,"R": R, "G": G, "B": B}
+        formatted_field = {"A": A, "R": R, "G": G, "B": B}
     else:
         R, G, B = result
         formatted_field = {"R": R, "G": G, "B": B}
@@ -1602,9 +1602,9 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
             if not unread_data_size < field_size:
                 result = get_result(field_key, tag_block_fields)
                 if result is not None:
-                    write_variable_string(block_stream, result, ">", fixed_length=field_size, terminator_length=0, append_terminator=False)
+                    write_variable_string(block_stream, result, "<", fixed_length=field_size, terminator_length=0, append_terminator=False)
                 else:
-                    write_variable_string(block_stream, field_default, ">", fixed_length=field_size, terminator_length=0, append_terminator=False)
+                    write_variable_string(block_stream, field_default, "<", fixed_length=field_size, terminator_length=0, append_terminator=False)
     elif field_tag == "TagReference":
         field_default = (None, 0, 0, -1, "")
         field_size = 16
@@ -1927,6 +1927,7 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
         tag_def = merged_defs.get(tag_group)
 
     else:
+        tag_def = merged_defs.get(tag_extensions.get(file_extension))
         tag_header = {
             "unk1": 0, 
             "flags": 0, 
@@ -2061,11 +2062,11 @@ def update_interface(mode_enum=FileModeEnum.read, file_endian="<"):
     FIELD_ENDIAN = file_endian
 
 def h1_single_tag():
-    output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "merged_output")
+    output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "h1_merged_output")
     merged_defs = h1.generate_defs(tag_common.h1_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\camera\airplane_large_loose.camera_track"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\tag2.camera_track"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\effects\blood aoe elite.effect"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\blood aoe elite.effect"
     tag_directory = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags"
 
     tag_dict = read_file(merged_defs, tag_directory, read_path, engine_tag=EngineTag.H1Latest.value)
@@ -2075,7 +2076,7 @@ def h1_single_tag():
     write_file(merged_defs, tag_dict, obfuscation_buffer_prepare(), output_path, engine_tag=EngineTag.H1Latest.value)
 
 def h1_single_json():
-    output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "merged_output")
+    output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "h1_merged_output")
     merged_defs = h1.generate_defs(tag_common.h1_defs_directory, output_dir)
 
     output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\tag2.camera_track"
@@ -2086,11 +2087,11 @@ def h1_single_json():
         write_file(merged_defs, tag_dict, obfuscation_buffer_prepare(), output_path, engine_tag=EngineTag.H1Latest.value)
 
 def h2_single_tag():
-    output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
+    output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "h2_merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
-    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\sound\ambience\sound_scenery\hq_under_glass\under_glass\loop.sound"
-    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.sound"
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.biped"
+    output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag2.biped"
     tag_directory = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags"
 
     tag_dict = read_file(merged_defs, tag_directory, read_path)
@@ -2100,7 +2101,7 @@ def h2_single_tag():
     write_file(merged_defs, tag_dict, obfuscation_buffer_prepare(), output_path)
 
 def h2_single_json():
-    output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
+    output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "h2_merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
     output_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags\tag1.sound"
@@ -2121,7 +2122,7 @@ def compute_file_hash(path):
 def h1_directory():
     input_dir = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags"
 
-    output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "merged_output")
+    output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "h1_merged_output")
     merged_defs = h1.generate_defs(tag_common.h1_defs_directory, output_dir)
 
     vanilla_root = os.path.dirname(input_dir)
@@ -2190,7 +2191,7 @@ def h1_directory():
 def h2_directory():
     input_dir = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\2\Vanilla\tags"
 
-    output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "merged_output")
+    output_dir = os.path.join(os.path.dirname(tag_common.h2_defs_directory), "h2_merged_output")
     merged_defs = h2.generate_defs(tag_common.h2_defs_directory, output_dir)
 
     vanilla_root = os.path.dirname(input_dir)
@@ -2461,3 +2462,17 @@ def generate_tag_dictionary(game_title, root_tag_ref, tag_directory, tag_groups,
             generate_tag_dictionary(game_title, tag_ref, tag_directory, tag_groups, engine_tag, merged_defs, asset_cache, prepare_for_blender)
 
     return asset_cache
+
+def print_skeleton_info():
+    output_dir = os.path.join(os.path.dirname(tag_common.h1_defs_directory), "h1_merged_output")
+    merged_defs = h1.generate_defs(tag_common.h1_defs_directory, output_dir)
+
+    read_path = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags\characters\cyborg\cyborg.gbxmodel"
+    tag_directory = r"E:\Program Files (x86)\Steam\steamapps\common\Halo MCCEK\Halo Assets\1\Vanilla\tags"
+
+    tag_dict = read_file(merged_defs, tag_directory, read_path, engine_tag=EngineTag.H1Latest.value)
+    node_count = len(tag_dict["Data"]["nodes"])
+    node_checksum = tag_dict["Data"]["node list checksum"]
+    print("(%s, %s): (" % (node_count, node_checksum))
+    for node in tag_dict["Data"]["nodes"]:
+        print('        ["%s",        %s, %s, %s],' % (node["name"], node["first child node"], node["next sibling node"], node["parent node"]))
