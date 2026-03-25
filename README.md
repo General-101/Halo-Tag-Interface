@@ -1,5 +1,12 @@
 # Halo-Tag-Interface
+
+[Discord for my tools](https://discord.gg/Z2qHv2XffF)
+
 Python script for parsing and writing Halo 1 and Halo 2 tag files
+
+Please consider supporting me on KoFi at the following link.
+
+https://ko-fi.com/general101
 
 ## Usage
 tag_interface.py has some example functions on running on a single file or a directory. All you have to worry about in most instances is setting:
