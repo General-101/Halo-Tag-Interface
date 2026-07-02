@@ -319,7 +319,7 @@ def validate_function_struct(current_struct_field_set, tag_block_fields):
 
 def check_header(input_stream):
     valid_header = False
-    valid_engine = ('blam', 'BLM!', 'LAMB', 'BALM')
+    valid_engine = ('blam', 'BLM!', 'LAMB', 'BALM', 'malb', '!MLB', 'BMAL', 'MLAB')
 
     input_stream.seek(36) # Position of tag group in all tags
     tag_group = input_stream.read(4).decode('utf-8', 'replace')
