@@ -31,6 +31,7 @@ Definitions are borrowed from the provided repositories but are not unedited. Yo
 
  * Discord user num0005
    * For creating the Halo 2 tag definitions used in this project and Pytolith that was used as reference
+   * Also for making the definitions used in foundation_split.py
    * [Pytolith](https://github.com/num0005/Pytolith)
    * [Halo2TagLayouts](https://github.com/num0005/Halo2TagLayouts)
 
