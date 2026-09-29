@@ -1801,7 +1801,8 @@ def get_fields(tag_stream, block_stream, tag_header, tag_block_header, field_nod
                 else:    
                     block_stream.write(struct.pack(struct_string, *field_default))
 
-def read_file(merged_defs, tag_directory, file_path="", engine_tag=tag_common.EngineTag.H2Latest.value, file_endian_override=None, engine_version=None):
+def read_file(merged_defs, tag_directory, file_path="", engine_tag=tag_common.EngineTag.H2Latest.value, file_endian_override=None, tag_groups=None, tag_extensions=None, 
+              postprocess_functions=None, is_prerelease=False):
     global PRESERVE_VERSION
     global HAS_LEGACY_FIELDS
     if engine_tag == tag_common.EngineTag.H1Latest.value:
@@ -1854,19 +1855,22 @@ def read_file(merged_defs, tag_directory, file_path="", engine_tag=tag_common.En
     
         tag_header = tag_dict["Header"]
         if tag_header["engine tag"] == tag_common.EngineTag.H1Latest.value:
-            if engine_version == tag_common.H1Versions._20000525:
-                tag_groups = tag_common.h1_20000525_tag_groups
-                tag_extensions = tag_common.h1_20000525_tag_extensions
-                postprocess_functions = None
-                HAS_LEGACY_FIELDS = True
-            else:
+            if tag_groups is None:
                 tag_groups = tag_common.h1_tag_groups
+            if tag_extensions is None: 
                 tag_extensions = tag_common.h1_tag_extensions
+            if postprocess_functions is None and not is_prerelease:
                 postprocess_functions =  h1_postprocess_functions
+            if is_prerelease:
+                HAS_LEGACY_FIELDS = True
+
         else:
-            tag_groups = tag_common.h2_tag_groups
-            tag_extensions = tag_common.h2_tag_extensions
-            postprocess_functions =  h2_postprocess_functions
+            if tag_groups is None:
+                tag_groups = tag_common.h2_tag_groups
+            if tag_extensions is None: 
+                tag_extensions = tag_common.h2_tag_extensions
+            if postprocess_functions is None and not is_prerelease:
+                postprocess_functions =  h2_postprocess_functions
 
         if not is_header_valid(tag_header, tag_groups):
             return {}
@@ -1944,22 +1948,22 @@ def read_file(merged_defs, tag_directory, file_path="", engine_tag=tag_common.En
 
         return tag_dict
 
-def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_tag=tag_common.EngineTag.H2Latest.value, file_endian_override=None, engine_version=None):
+def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_tag=tag_common.EngineTag.H2Latest.value, file_endian_override=None, tag_groups=None, 
+               tag_extensions=None, postprocess_functions=None, is_prerelease=False):
     global PRESERVE_VERSION
     global HAS_LEGACY_FIELDS
     if engine_tag == tag_common.EngineTag.H1Latest.value:
         file_endian = ">"
         if file_endian_override:
             file_endian = file_endian_override
-        if engine_version == tag_common.H1Versions._20000525:
-            tag_groups = tag_common.h1_20000525_tag_groups
-            tag_extensions = tag_common.h1_20000525_tag_extensions
-            postprocess_functions = None
-            HAS_LEGACY_FIELDS = True
-        else:
+        if tag_groups is None:
             tag_groups = tag_common.h1_tag_groups
+        if tag_extensions is None: 
             tag_extensions = tag_common.h1_tag_extensions
+        if postprocess_functions is None and not is_prerelease:
             postprocess_functions =  h1_postprocess_functions
+        if is_prerelease:
+            HAS_LEGACY_FIELDS = True
 
         upgrade_functions =  None
         downgrade_functions = None
@@ -1968,9 +1972,13 @@ def write_file(merged_defs, tag_dict, obfuscation_buffer, file_path="", engine_t
         file_endian="<"
         if file_endian_override:
             file_endian = file_endian_override
-        tag_groups = tag_common.h2_tag_groups
-        tag_extensions = tag_common.h2_tag_extensions
-        postprocess_functions =  h2_postprocess_functions
+        if tag_groups is None:
+            tag_groups = tag_common.h2_tag_groups
+        if tag_extensions is None: 
+            tag_extensions = tag_common.h2_tag_extensions
+        if postprocess_functions is None and not is_prerelease:
+            postprocess_functions =  h2_postprocess_functions
+
         upgrade_functions =  h1_upgrade_functions
         downgrade_functions = None
 

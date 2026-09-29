@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8-sig'?>
-<TagGroup group="snd!" name="sounds" version="1">
+<TagGroup group="snd!" name="sounds" version="3">
   <Layout regolithID="block:sounds" internalName="sounds_block" name="sounds">
     <FieldSet version="0" sizeofValue="136" sizeofSource="sizeof(struct sounds_group)" isLatest="true">
       <LongFlags CStyleName="flags" pascalStyleName="Flags" name="flags">

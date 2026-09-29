@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8-sig'?>
-<TagGroup group="bitm" name="bitmaps" version="1">
+<TagGroup group="bitm" name="bitmaps" version="2">
   <Layout regolithID="block:bitmaps" internalName="bitmaps_block" name="bitmaps">
     <FieldSet version="0" sizeofValue="64" sizeofSource="sizeof(struct bitmaps_group)" isLatest="true">
       <ShortEnum CStyleName="type" pascalStyleName="Type" name="type">
