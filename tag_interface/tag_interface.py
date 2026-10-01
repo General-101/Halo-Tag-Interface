@@ -102,6 +102,7 @@ CONVERT_RADIANS = True
 PRESERVE_STRINGS = False
 PRESERVE_PADDING = False
 PRESERVE_VERSION = False
+PRESERVE_NEG_ZERO = False
 PRESERVE_SIZE = False
 
 def read_field_header(tag_stream, field_endian="<", is_legacy=False):
@@ -219,8 +220,10 @@ def is_padding_legacy(tag_header):
         HAS_LEGACY_PADDING = True
 
 def replace_neg_zero(val):
-    if isinstance(val, float) and val == 0.0 and copysign(1.0, val) == -1.0:
-        val = "-0"
+    if PRESERVE_NEG_ZERO:
+        if isinstance(val, float) and val == 0.0 and copysign(1.0, val) == -1.0:
+            val = "-0"
+
     return val
 
 def set_result(field_key, tag_block_fields, result):

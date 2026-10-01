@@ -40,7 +40,7 @@
       <Block CStyleName="sequences" pascalStyleName="Sequences" name="sequences">
         <Layout regolithID="block:sequences" internalName="sequences_block" name="sequences_block">
           <FieldSet version="0" sizeofValue="64" isLatest="true">
-            <String CStyleName="name" pascalStyleName="Name" name="name" />
+            <Tag CStyleName="name" pascalStyleName="Name" name="name" />
             <ShortInteger CStyleName="first_bitmap_index" pascalStyleName="FirstBitmapIndex" name="first bitmap index" />
             <ShortInteger CStyleName="bitmap_count" pascalStyleName="BitmapCount" name="bitmap count" />
             <Pad name="pad" length="16" />

@@ -31,7 +31,7 @@
       <Block CStyleName="bitmaps" pascalStyleName="Bitmaps" name="bitmaps">
         <Layout regolithID="block:bitmaps" internalName="bitmaps_block" name="bitmaps_block">
           <FieldSet version="0" sizeofValue="76" isLatest="true">
-            <StringId CStyleName="signature" pascalStyleName="Signature" name="signature" />
+            <Tag CStyleName="signature" pascalStyleName="Signature" name="signature" />
             <ShortInteger CStyleName="width" pascalStyleName="Width" name="width" />
             <ShortInteger CStyleName="height" pascalStyleName="Height" name="height" />
             <ShortInteger CStyleName="bytes_per_row" pascalStyleName="BytesPerRow" name="bytes per row" />
