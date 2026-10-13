@@ -37,7 +37,7 @@ from enum import Flag, Enum, auto
 from tag_definitions import h1, h2, common
 from tag_upgrading.h1 import upgrade_functions as h1_upgrade_functions
 from tag_upgrading.h2 import upgrade_functions as h2_upgrade_functions
-from tag_interface import read_file, write_file, obfuscation_buffer_prepare
+from tag_interface import read_file, write_file, obfuscation_buffer_prepare, check_header
 from tag_postprocessing.h1 import postprocess_functions as h1_postprocess_functions
 from tag_postprocessing.h2 import postprocess_functions as h2_postprocess_functions, create_function
 
@@ -732,35 +732,88 @@ def dump_bitmap_data(file_path, output_directory, game_version):
                 if not texture_image == None:
                     texture_image.save(new_path, "TIFF", compression='raw')
 
-def decode_island(pixel_data, encoding=OldEncodingEnum._16bit_565):
+def decode_island(pixel_data, encoding=OldEncodingEnum._16bit_565, image_dimensions=(64, 64)):
     image = None
     if Image:
-        image = Image.new('RGB', (64, 64), color=0)
+        x = image_dimensions[0]
+        y = image_dimensions[1]
+        image = Image.new('RGB', (x, y), color=0)
         if encoding == OldEncodingEnum._16bit_565:
-            pixels = list(DecodeBitmap565(64, 64, 0, pixel_data))
+            pixels = list(DecodeBitmap565(x, y, 0, pixel_data))
         elif encoding == OldEncodingEnum._32bit:
-            pixels = list(DecodeBitmap8888(64, 64, 0, pixel_data))
+            pixels = list(DecodeBitmap8888(x, y, 0, pixel_data))
         elif encoding == OldEncodingEnum._16bit_4444:
-            pixels = list(DecodeBitmap4444(64, 64, 0, pixel_data))
+            pixels = list(DecodeBitmap4444(x, y, 0, pixel_data))
         elif encoding == OldEncodingEnum._8bit_intensity:
-            pixels = list(DecodeBitmap8BitIntensity(64, 64, 0, pixel_data))
+            pixels = list(DecodeBitmap8BitIntensity(x, y, 0, pixel_data))
         
         image.putdata(pixels)
         image.putalpha(255)
 
     return image
 
-def dump_island_texture1(tag_dict, file_path, output_directory):
-    tag_data = tag_dict["Data"]
-    file_name = os.path.basename(file_path)
+def stitch_cells(cell_textures, file_name, output_directory, texture_type=None):
+    image_count = len(cell_textures)
+    if image_count > 0:
+        columns = math.ceil(math.sqrt(image_count))
+        rows = math.ceil(image_count / columns)
 
-    #field_name = "submesh textures"
-    #field_name = "low detail texture"
-    field_name = "overhead map texture"
-    pixel_bytes = base64.b64decode(tag_data[field_name]["encoded"])
-    pixel_data = io.BytesIO(pixel_bytes)
+        missing_cells = (rows - (image_count % rows)) % rows
 
-    if False:
+        width, height = cell_textures[0].size
+
+        result_width = columns * width
+        result_height = rows * height
+
+        island_image = Image.new("RGBA",(result_width, result_height), color=(0, 0, 0, 0))
+
+        for column_idx in range(columns):
+            for row_idx in range(rows):
+                cell_index = (column_idx * columns) + row_idx
+                if cell_index >= image_count:
+                    break
+
+                cell_image = cell_textures[cell_index]
+                x = height * column_idx
+                if column_idx == columns - 1 and missing_cells > 0:
+                    y = width * (row_idx + missing_cells)
+                else:
+                    y = width * row_idx
+
+                island_image.paste(cell_image, (x, y))
+
+        world_name = file_name.rsplit(" ", 1)[0]
+        final_name = "overhead_map_%s.tiff" % world_name
+        if texture_type is not None:
+            final_name = "%s_%s.tiff" % (texture_type, world_name)
+
+        new_path = os.path.join(output_directory, final_name) 
+        island_image.save(new_path, "TIFF", compression='raw')
+
+def dump_texture_pages(file_path, output_directory, merged_defs, engine_tag, tag_groups, tag_extensions, postprocess_functions, is_prerelease):
+    directory_path = os.path.dirname(file_path)
+    submesh_textures = []
+    for file_name in os.listdir(directory_path):
+        file_path = os.path.join(directory_path, file_name)
+        if not os.path.isfile(file_path):
+            continue
+
+        with open(file_path, "rb") as input_stream:
+            valid_header, tag_group, checksum, engine_tag = check_header(input_stream, tag_groups)
+
+        if not valid_header:
+            continue
+
+        tag_dict = read_file(merged_defs, "", file_path, engine_tag=engine_tag, tag_groups=tag_groups, tag_extensions=tag_extensions, postprocess_functions=postprocess_functions, is_prerelease=is_prerelease)
+        if tag_dict == None:
+            continue
+
+        tag_data = tag_dict["Data"]
+        file_name = os.path.basename(file_path)
+
+        pixel_bytes = base64.b64decode(tag_data["submesh textures"]["encoded"])
+        pixel_data = io.BytesIO(pixel_bytes)
+
         bytes_per_cell = 8192
         cells_per_submesh = 16
         bytes_per_submesh = bytes_per_cell * cells_per_submesh
@@ -787,24 +840,85 @@ def dump_island_texture1(tag_dict, file_path, output_directory):
                         raise ValueError("Unexpected end of pixel data")
 
                     cell_image = decode_island(cell_data)
-
-                    x = x_index * submesh_size + column_idx * cell_size
-                    y = y_index * submesh_size + row_idx * cell_size
+                    x = y_index * submesh_size + row_idx * cell_size
+                    y = x_index * submesh_size + column_idx * cell_size
 
                     island_image.paste(cell_image, (x, y))
 
-        new_path = os.path.join(output_directory, "%s.tiff" % file_name) 
-        island_image.save(new_path, "TIFF", compression='raw')
-    else:
-        image_count = tag_data[field_name]["length"] / 8192
+        submesh_textures.append(island_image)
+
+    stitch_cells(submesh_textures, file_name, output_directory)
+
+def dump_texture_pages_data(file_path, output_directory, game_version):
+    game_defs, engine_tag, tag_defs, tag_groups, tag_extensions, postprocess_functions, is_prerelease = get_version_args(game_version)
+    output_dir = os.path.join(os.path.dirname(tag_defs), "%s_merged_output" % os.path.basename(tag_defs))
+    merged_defs = game_defs.generate_defs(tag_defs, output_dir, tag_groups, tag_extensions)
+    if game_version == 19981008:
+        dump_texture_pages(file_path, output_directory, merged_defs, engine_tag, tag_groups, tag_extensions, postprocess_functions, is_prerelease)
+    if game_version == 19981022:
+        dump_texture_pages(file_path, output_directory, merged_defs, engine_tag, tag_groups, tag_extensions, postprocess_functions, is_prerelease)
+    if game_version == 19990225:
+        dump_texture_pages(file_path, output_directory, merged_defs, engine_tag, tag_groups, tag_extensions, postprocess_functions, is_prerelease)
+    elif game_version == 19990302:
+        dump_texture_pages(file_path, output_directory, merged_defs, engine_tag, tag_groups, tag_extensions, postprocess_functions, is_prerelease)
+
+def dump_static_pages(file_path, output_directory, merged_defs, engine_tag, tag_groups, tag_extensions, postprocess_functions, is_prerelease):
+    directory_path = os.path.dirname(file_path)
+    low_detail_textures = []
+    overhead_map_textures = []
+    for file_name in os.listdir(directory_path):
+        file_path = os.path.join(directory_path, file_name)
+        if not os.path.isfile(file_path):
+            continue
+
+        with open(file_path, "rb") as input_stream:
+            valid_header, tag_group, checksum, engine_tag = check_header(input_stream, tag_groups)
+
+        if not valid_header:
+            continue
+
+        tag_dict = read_file(merged_defs, "", file_path, engine_tag=engine_tag, tag_groups=tag_groups, tag_extensions=tag_extensions, postprocess_functions=postprocess_functions, is_prerelease=is_prerelease)
+        if tag_dict == None:
+            continue
+
+        tag_data = tag_dict["Data"]
+        file_name = os.path.basename(file_path)
+
+        image_count = tag_data["low detail texture"]["length"] / 32768
+        pixel_bytes = base64.b64decode(tag_data["low detail texture"]["encoded"])
+        pixel_data = io.BytesIO(pixel_bytes)
+        for row_idx in range(int(image_count)):
+            cell_data = pixel_data.read(32768)
+            cell_image = decode_island(cell_data, OldEncodingEnum._16bit_565, image_dimensions=(128, 128))
+
+            low_detail_textures.append(cell_image)
+
+        image_count = tag_data["overhead map texture"]["length"] / 8192
+        pixel_bytes = base64.b64decode(tag_data["overhead map texture"]["encoded"])
+        pixel_data = io.BytesIO(pixel_bytes)
         for row_idx in range(int(image_count)):
             cell_data = pixel_data.read(8192)
-            cell_image = decode_island(cell_data, OldEncodingEnum._16bit_4444)
+            cell_image = decode_island(cell_data, OldEncodingEnum._16bit_4444, image_dimensions=(64, 64))
 
-            new_path = os.path.join(output_directory, "%s_%s.tiff" % (file_name, row_idx) )
-            cell_image.save(new_path, "TIFF", compression='raw')
+            overhead_map_textures.append(cell_image)
 
-def dump_island_texture2(tag_dict, file_path, output_directory):
+    stitch_cells(low_detail_textures, file_name, output_directory, "low_detail")
+    stitch_cells(overhead_map_textures, file_name, output_directory, "overhead_map")
+
+def dump_static_pages_data(file_path, output_directory, game_version):
+    game_defs, engine_tag, tag_defs, tag_groups, tag_extensions, postprocess_functions, is_prerelease = get_version_args(game_version)
+    output_dir = os.path.join(os.path.dirname(tag_defs), "%s_merged_output" % os.path.basename(tag_defs))
+    merged_defs = game_defs.generate_defs(tag_defs, output_dir, tag_groups, tag_extensions)
+    if game_version == 19981008:
+        dump_static_pages(file_path, output_directory, merged_defs, engine_tag, tag_groups, tag_extensions, postprocess_functions, is_prerelease)
+    if game_version == 19981022:
+        dump_static_pages(file_path, output_directory, merged_defs, engine_tag, tag_groups, tag_extensions, postprocess_functions, is_prerelease)
+    if game_version == 19990225:
+        dump_static_pages(file_path, output_directory, merged_defs, engine_tag, tag_groups, tag_extensions, postprocess_functions, is_prerelease)
+    elif game_version == 19990302:
+        dump_static_pages(file_path, output_directory, merged_defs, engine_tag, tag_groups, tag_extensions, postprocess_functions, is_prerelease)
+
+def dump_island_texture(tag_dict, file_path, output_directory):
     tag_data = tag_dict["Data"]
     file_name = os.path.basename(file_path)
 
@@ -837,9 +951,8 @@ def dump_island_texture2(tag_dict, file_path, output_directory):
                     raise ValueError("Unexpected end of pixel data")
 
                 cell_image = decode_island(cell_data)
-
-                x = x_index * submesh_size + column_idx * cell_size
-                y = y_index * submesh_size + row_idx * cell_size
+                x = y_index * submesh_size + row_idx * cell_size
+                y = x_index * submesh_size + column_idx * cell_size
 
                 island_image.paste(cell_image, (x, y))
 
@@ -852,48 +965,22 @@ def dump_island_texture_data(file_path, output_directory, game_version):
     merged_defs = game_defs.generate_defs(tag_defs, output_dir, tag_groups, tag_extensions)
     
     tag_dict = read_file(merged_defs, "", file_path, engine_tag=engine_tag, tag_groups=tag_groups, tag_extensions=tag_extensions, postprocess_functions=postprocess_functions, is_prerelease=is_prerelease)
-    if game_version == 19981008:
-        dump_island_texture1(tag_dict, file_path, output_directory)
-    if game_version == 19981022:
-        tag_data = tag_dict["Data"]
-        file_name = os.path.basename(file_path)
-        for bitmap_idx, bitmap_element in enumerate(tag_data["bitmaps"]):
-            new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
-            texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
-            if not texture_image == None:
-                texture_image.save(new_path, "TIFF", compression='raw')
-    if game_version == 19990225:
-        tag_data = tag_dict["Data"]
-        file_name = os.path.basename(file_path)
-        for bitmap_idx, bitmap_element in enumerate(tag_data["bitmaps"]):
-            new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
-            texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
-            if not texture_image == None:
-                texture_image.save(new_path, "TIFF", compression='raw')
-    elif game_version == 19990302:
-        tag_data = tag_dict["Data"]
-        file_name = os.path.basename(file_path)
-        for bitmap_idx, bitmap_element in enumerate(tag_data["bitmaps"]):
-            new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
-            texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
-            if not texture_image == None:
-                texture_image.save(new_path, "TIFF", compression='raw')
-    elif game_version == 19990426:
-        dump_island_texture2(tag_dict, file_path, output_directory)
+    if game_version == 19990426:
+        dump_island_texture(tag_dict, file_path, output_directory)
     elif game_version == 19990608:
-        dump_island_texture2(tag_dict, file_path, output_directory)
+        dump_island_texture(tag_dict, file_path, output_directory)
     elif game_version == 19990623:
-        dump_island_texture2(tag_dict, file_path, output_directory)
+        dump_island_texture(tag_dict, file_path, output_directory)
     elif game_version == 19990730:
-        dump_island_texture2(tag_dict, file_path, output_directory)
+        dump_island_texture(tag_dict, file_path, output_directory)
     elif game_version == 19990924:
-        dump_island_texture2(tag_dict, file_path, output_directory)
+        dump_island_texture(tag_dict, file_path, output_directory)
     elif game_version == 19990930:
-        dump_island_texture2(tag_dict, file_path, output_directory)
+        dump_island_texture(tag_dict, file_path, output_directory)
     elif game_version == 19991021:
-        dump_island_texture2(tag_dict, file_path, output_directory)
+        dump_island_texture(tag_dict, file_path, output_directory)
     elif game_version == 20001005:
-        dump_island_texture2(tag_dict, file_path, output_directory)
+        dump_island_texture(tag_dict, file_path, output_directory)
 
 def main():
     if len(sys.argv) < 2:
@@ -901,7 +988,7 @@ def main():
         return
 
     file_path = sys.argv[1]
-    game_version = 19981008
+    game_version = 19990302
     if len(sys.argv) >= 3:
         game_version = int(sys.argv[2])
 
@@ -911,7 +998,7 @@ def main():
         export_tag(file_path, game_version)
     else:
         output = r"C:\Users\Steven\Desktop\output"
-        dump_island_texture_data(file_path, output, game_version)
+        dump_static_pages_data(file_path, output, game_version)
 
 if __name__ == "__main__":
         main()

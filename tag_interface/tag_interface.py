@@ -324,9 +324,12 @@ def validate_function_struct(current_struct_field_set, tag_block_fields):
     if not valid_function:
         create_function(current_struct_field_set, tag_block_fields, FIELD_ENDIAN, 1, 0, 0, 0, [], [], False)
 
-def check_header(input_stream):
+def check_header(input_stream, tag_groups_override=None):
     valid_header = False
     valid_engine = ('blam', 'BLM!', 'LAMB', 'BALM', 'malb', '!MLB', 'BMAL', 'MLAB')
+
+    if os.fstat(input_stream.fileno()).st_size < 64:
+        return valid_header, None, None, None
 
     input_stream.seek(36) # Position of tag group in all tags
     tag_group = input_stream.read(4).decode('utf-8', 'replace')
@@ -336,6 +339,8 @@ def check_header(input_stream):
     input_stream.seek(0)
 
     tag_groups = tag_common.h1_tag_groups
+    if tag_groups_override is not None:
+        tag_groups = tag_groups_override
     if engine_tag != "blam":
         tag_groups = tag_common.h2_tag_groups
         tag_group = tag_group[::-1]
