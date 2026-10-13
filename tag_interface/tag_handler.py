@@ -59,6 +59,11 @@ class OldEncodingEnum(Enum):
     _16bit_8palette_plus_8alpha = auto()
     _32bit = auto()
 
+class OldBitmapFormatEnum(Enum):
+    _16_bit = 0
+    _32_bit = auto()
+    compressed = auto()
+
 class EncodingEnum(Enum):
     _8bit = 0
     _8bit_intensity = auto()
@@ -718,7 +723,7 @@ def dump_bitmap_data(file_path, output_directory, game_version):
         file_name = os.path.basename(file_path)
         for format_element in tag_data["formats"]:
             for bitmap_idx, bitmap_element in enumerate(format_element["bitmaps"]):
-                new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, BitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
+                new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, OldBitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
                 texture_image = dump_bitmap2(bitmap_element["width"], bitmap_element["height"], bitmap_element["pixels offset"], base64.b64decode(format_element["pixels"]["encoded"]), EncodingEnum(bitmap_element["format"]["value"]))
                 if not texture_image == None:
                     texture_image.save(new_path, "TIFF", compression='raw')
@@ -988,7 +993,7 @@ def main():
         return
 
     file_path = sys.argv[1]
-    game_version = 19990302
+    game_version = 20000525
     if len(sys.argv) >= 3:
         game_version = int(sys.argv[2])
 
@@ -998,7 +1003,7 @@ def main():
         export_tag(file_path, game_version)
     else:
         output = r"C:\Users\Steven\Desktop\output"
-        dump_static_pages_data(file_path, output, game_version)
+        dump_bitmap_data(file_path, output, game_version)
 
 if __name__ == "__main__":
         main()
