@@ -40,6 +40,7 @@ from tag_upgrading.h2 import upgrade_functions as h2_upgrade_functions
 from tag_interface import read_file, write_file, obfuscation_buffer_prepare, check_header
 from tag_postprocessing.h1 import postprocess_functions as h1_postprocess_functions
 from tag_postprocessing.h2 import postprocess_functions as h2_postprocess_functions, create_function
+from tag_utilities.h1_prerelease.foundation_split import dump_foundation
 
 # SET ME
 SOX_TOOL = r"sox.exe"
@@ -250,7 +251,7 @@ def get_version_args(game_version):
         tag_groups = tag_common.h1_20001116_tag_groups
         tag_extensions = tag_common.h1_20001116_tag_extensions
         postprocess_functions = None
-        is_prerelease = True
+        is_prerelease = False
     elif game_version == 20011115:
         game_defs = h1
         engine_tag = tag_common.EngineTag.H1Latest.value
@@ -292,12 +293,15 @@ def export_tag(file_path, game_version=20011115):
         write_file(merged_defs, tag_dict, obfuscation_buffer_prepare(), output_path, engine_tag=engine_tag, tag_groups=tag_groups, tag_extensions=tag_extensions, 
                    postprocess_functions=postprocess_functions, is_prerelease=is_prerelease)
 
-def dump_sound1(tag_dict, file_path, output_directory):
+def dump_sound1(tag_dict, file_path, output_directory, field_name="permutations"):
     tag_data = tag_dict["Data"]
     sound_folder_path = os.path.join(output_directory, os.path.basename(file_path))
-    for permutation_element in tag_data["permutations"]:
+    for permutation_element in tag_data[field_name]:
         filename_raw = "%s.raw" % permutation_element["permutation name"]
         file_output = os.path.join(sound_folder_path, filename_raw)
+
+        if not os.path.exists(sound_folder_path):
+            os.makedirs(sound_folder_path)
 
         with open(file_output, "wb") as output_stream:
             output_stream.write(base64.b64decode(permutation_element["sound samples"]["encoded"]))
@@ -326,6 +330,9 @@ def dump_sound2(tag_dict, file_path, output_directory):
 
         filename = "%s.raw" % os.path.basename(file_path)
         file_output = os.path.join(output_directory, filename)
+
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
 
         with open(file_output, "wb") as output_stream:
             output_stream.write(base64.b64decode(tag_data["sound samples"]["encoded"]))
@@ -397,14 +404,25 @@ def dump_sound_data(file_path, output_directory, game_version):
     game_defs, engine_tag, tag_defs, tag_groups, tag_extensions, postprocess_functions, is_prerelease = get_version_args(game_version)
     output_dir = os.path.join(os.path.dirname(tag_defs), "%s_merged_output" % os.path.basename(tag_defs))
     merged_defs = game_defs.generate_defs(tag_defs, output_dir, tag_groups, tag_extensions)
+    print(file_path)
+    with open(file_path, "rb") as input_stream:
+        valid_header, tag_group, checksum, engine_tag = check_header(input_stream, tag_groups)
+
+    if not valid_header:
+        print("INVALID TAG HEADER")
+        return
 
     tag_dict = read_file(merged_defs, "", file_path, engine_tag=engine_tag, tag_groups=tag_groups, tag_extensions=tag_extensions, postprocess_functions=postprocess_functions, is_prerelease=is_prerelease)
+    if tag_dict is None:
+        print("FAILED TO READ TAG")
+        return
+    
     if game_version == 19990225:
         # snd!/sounds
-        dump_sound1(tag_dict, file_path, output_directory)
+        dump_sound1(tag_dict, file_path, output_directory, "sound permutations")
     elif game_version == 19990302:
         # snd!/sounds
-        dump_sound1(tag_dict, file_path, output_directory)
+        dump_sound1(tag_dict, file_path, output_directory, "sound permutations")
     elif game_version == 19990426:
         # snd!/sounds
         dump_sound1(tag_dict, file_path, output_directory)
@@ -573,8 +591,17 @@ def dump_bitmap_data(file_path, output_directory, game_version):
     game_defs, engine_tag, tag_defs, tag_groups, tag_extensions, postprocess_functions, is_prerelease = get_version_args(game_version)
     output_dir = os.path.join(os.path.dirname(tag_defs), "%s_merged_output" % os.path.basename(tag_defs))
     merged_defs = game_defs.generate_defs(tag_defs, output_dir, tag_groups, tag_extensions)
+    print(file_path)
+    with open(file_path, "rb") as input_stream:
+        valid_header, tag_group, checksum, engine_tag = check_header(input_stream, tag_groups)
+
+    if not valid_header:
+        return
     
     tag_dict = read_file(merged_defs, "", file_path, engine_tag=engine_tag, tag_groups=tag_groups, tag_extensions=tag_extensions, postprocess_functions=postprocess_functions, is_prerelease=is_prerelease)
+    if tag_dict is None:
+        return
+
     if game_version == 19980319:
         tag_data = tag_dict["Data"]
         file_name = os.path.basename(file_path)
@@ -582,6 +609,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
             new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
             texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
             if not texture_image == None:
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
                 texture_image.save(new_path, "TIFF", compression='raw')
     if game_version == 19980403:
         tag_data = tag_dict["Data"]
@@ -590,6 +619,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
             new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
             texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
             if not texture_image == None:
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
                 texture_image.save(new_path, "TIFF", compression='raw')
     if game_version == 19980512:
         tag_data = tag_dict["Data"]
@@ -598,6 +629,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
             new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
             texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
             if not texture_image == None:
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
                 texture_image.save(new_path, "TIFF", compression='raw')
     if game_version == 19980514:
         tag_data = tag_dict["Data"]
@@ -606,6 +639,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
             new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
             texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
             if not texture_image == None:
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
                 texture_image.save(new_path, "TIFF", compression='raw')
     if game_version == 19980624:
         tag_data = tag_dict["Data"]
@@ -614,6 +649,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
             new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
             texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
             if not texture_image == None:
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
                 texture_image.save(new_path, "TIFF", compression='raw')
     if game_version == 19980708:
         tag_data = tag_dict["Data"]
@@ -622,6 +659,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
             new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
             texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
             if not texture_image == None:
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
                 texture_image.save(new_path, "TIFF", compression='raw')
     if game_version == 19981008:
         tag_data = tag_dict["Data"]
@@ -630,6 +669,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
             new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
             texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
             if not texture_image == None:
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
                 texture_image.save(new_path, "TIFF", compression='raw')
     if game_version == 19981022:
         tag_data = tag_dict["Data"]
@@ -638,6 +679,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
             new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
             texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
             if not texture_image == None:
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
                 texture_image.save(new_path, "TIFF", compression='raw')
     if game_version == 19990225:
         tag_data = tag_dict["Data"]
@@ -646,6 +689,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
             new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
             texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
             if not texture_image == None:
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
                 texture_image.save(new_path, "TIFF", compression='raw')
     elif game_version == 19990302:
         tag_data = tag_dict["Data"]
@@ -654,6 +699,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
             new_path = os.path.join(output_directory, "%s_%s_%s.tiff" % (file_name, OldEncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
             texture_image = dump_bitmap1(bitmap_element["width"], bitmap_element["height"], 0, base64.b64decode(bitmap_element["pixels"]["encoded"]), OldEncodingEnum(bitmap_element["format"]["value"]))
             if not texture_image == None:
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
                 texture_image.save(new_path, "TIFF", compression='raw')
     elif game_version == 19990426:
         tag_data = tag_dict["Data"]
@@ -663,6 +710,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
                 new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, BitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
                 texture_image = dump_bitmap2(bitmap_element["width"], bitmap_element["height"], bitmap_element["pixels offset"], base64.b64decode(format_element["pixels"]["encoded"]), EncodingEnum(bitmap_element["format"]["value"]))
                 if not texture_image == None:
+                    if not os.path.exists(output_directory):
+                        os.makedirs(output_directory)
                     texture_image.save(new_path, "TIFF", compression='raw')
     elif game_version == 19990608:
         tag_data = tag_dict["Data"]
@@ -672,6 +721,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
                 new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, BitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
                 texture_image = dump_bitmap2(bitmap_element["width"], bitmap_element["height"], bitmap_element["pixels offset"], base64.b64decode(format_element["pixels"]["encoded"]), EncodingEnum(bitmap_element["format"]["value"]))
                 if not texture_image == None:
+                    if not os.path.exists(output_directory):
+                        os.makedirs(output_directory)
                     texture_image.save(new_path, "TIFF", compression='raw')
     elif game_version == 19990623:
         tag_data = tag_dict["Data"]
@@ -681,6 +732,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
                 new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, BitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
                 texture_image = dump_bitmap2(bitmap_element["width"], bitmap_element["height"], bitmap_element["pixels offset"], base64.b64decode(format_element["pixels"]["encoded"]), EncodingEnum(bitmap_element["format"]["value"]))
                 if not texture_image == None:
+                    if not os.path.exists(output_directory):
+                        os.makedirs(output_directory)
                     texture_image.save(new_path, "TIFF", compression='raw')
     elif game_version == 19990730:
         tag_data = tag_dict["Data"]
@@ -690,6 +743,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
                 new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, BitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
                 texture_image = dump_bitmap2(bitmap_element["width"], bitmap_element["height"], bitmap_element["pixels offset"], base64.b64decode(format_element["pixels"]["encoded"]), EncodingEnum(bitmap_element["format"]["value"]))
                 if not texture_image == None:
+                    if not os.path.exists(output_directory):
+                        os.makedirs(output_directory)
                     texture_image.save(new_path, "TIFF", compression='raw')
     elif game_version == 19990924:
         tag_data = tag_dict["Data"]
@@ -699,6 +754,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
                 new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, BitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
                 texture_image = dump_bitmap2(bitmap_element["width"], bitmap_element["height"], bitmap_element["pixels offset"], base64.b64decode(format_element["pixels"]["encoded"]), EncodingEnum(bitmap_element["format"]["value"]))
                 if not texture_image == None:
+                    if not os.path.exists(output_directory):
+                        os.makedirs(output_directory)
                     texture_image.save(new_path, "TIFF", compression='raw')
     elif game_version == 19990930:
         tag_data = tag_dict["Data"]
@@ -708,6 +765,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
                 new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, BitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
                 texture_image = dump_bitmap2(bitmap_element["width"], bitmap_element["height"], bitmap_element["pixels offset"], base64.b64decode(format_element["pixels"]["encoded"]), EncodingEnum(bitmap_element["format"]["value"]))
                 if not texture_image == None:
+                    if not os.path.exists(output_directory):
+                        os.makedirs(output_directory)
                     texture_image.save(new_path, "TIFF", compression='raw')
     elif game_version == 19991021:
         tag_data = tag_dict["Data"]
@@ -717,6 +776,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
                 new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, BitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
                 texture_image = dump_bitmap2(bitmap_element["width"], bitmap_element["height"], bitmap_element["pixels offset"], base64.b64decode(format_element["pixels"]["encoded"]), EncodingEnum(bitmap_element["format"]["value"]))
                 if not texture_image == None:
+                    if not os.path.exists(output_directory):
+                        os.makedirs(output_directory)
                     texture_image.save(new_path, "TIFF", compression='raw')
     elif game_version == 20000525:
         tag_data = tag_dict["Data"]
@@ -726,6 +787,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
                 new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, OldBitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
                 texture_image = dump_bitmap2(bitmap_element["width"], bitmap_element["height"], bitmap_element["pixels offset"], base64.b64decode(format_element["pixels"]["encoded"]), EncodingEnum(bitmap_element["format"]["value"]))
                 if not texture_image == None:
+                    if not os.path.exists(output_directory):
+                        os.makedirs(output_directory)
                     texture_image.save(new_path, "TIFF", compression='raw')
     elif game_version == 20001005:
         tag_data = tag_dict["Data"]
@@ -735,6 +798,8 @@ def dump_bitmap_data(file_path, output_directory, game_version):
                 new_path = os.path.join(output_directory, "%s_%s_%s_%s.tiff" % (file_name, BitmapFormatEnum(format_element["format"]["value"]).name, EncodingEnum(bitmap_element["format"]["value"]).name, bitmap_idx))
                 texture_image = dump_bitmap2(bitmap_element["width"], bitmap_element["height"], bitmap_element["pixels offset"], base64.b64decode(format_element["pixels"]["encoded"]), EncodingEnum(bitmap_element["format"]["value"]))
                 if not texture_image == None:
+                    if not os.path.exists(output_directory):
+                        os.makedirs(output_directory)
                     texture_image.save(new_path, "TIFF", compression='raw')
 
 def decode_island(pixel_data, encoding=OldEncodingEnum._16bit_565, image_dimensions=(64, 64)):
@@ -791,6 +856,9 @@ def stitch_cells(cell_textures, file_name, output_directory, texture_type=None):
         final_name = "overhead_map_%s.tiff" % world_name
         if texture_type is not None:
             final_name = "%s_%s.tiff" % (texture_type, world_name)
+
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
 
         new_path = os.path.join(output_directory, final_name) 
         island_image.save(new_path, "TIFF", compression='raw')
@@ -876,6 +944,7 @@ def dump_static_pages(file_path, output_directory, merged_defs, engine_tag, tag_
         if not os.path.isfile(file_path):
             continue
 
+        print(file_path)
         with open(file_path, "rb") as input_stream:
             valid_header, tag_group, checksum, engine_tag = check_header(input_stream, tag_groups)
 
@@ -961,6 +1030,9 @@ def dump_island_texture(tag_dict, file_path, output_directory):
 
                 island_image.paste(cell_image, (x, y))
 
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+
     new_path = os.path.join(output_directory, "%s.tiff" % file_name) 
     island_image.save(new_path, "TIFF", compression='raw')
 
@@ -968,8 +1040,18 @@ def dump_island_texture_data(file_path, output_directory, game_version):
     game_defs, engine_tag, tag_defs, tag_groups, tag_extensions, postprocess_functions, is_prerelease = get_version_args(game_version)
     output_dir = os.path.join(os.path.dirname(tag_defs), "%s_merged_output" % os.path.basename(tag_defs))
     merged_defs = game_defs.generate_defs(tag_defs, output_dir, tag_groups, tag_extensions)
+
+    print(file_path)
+    with open(file_path, "rb") as input_stream:
+        valid_header, tag_group, checksum, engine_tag = check_header(input_stream, tag_groups)
+
+    if not valid_header:
+        return
     
     tag_dict = read_file(merged_defs, "", file_path, engine_tag=engine_tag, tag_groups=tag_groups, tag_extensions=tag_extensions, postprocess_functions=postprocess_functions, is_prerelease=is_prerelease)
+    if tag_dict is None:
+        return
+
     if game_version == 19990426:
         dump_island_texture(tag_dict, file_path, output_directory)
     elif game_version == 19990608:
@@ -987,6 +1069,121 @@ def dump_island_texture_data(file_path, output_directory, game_version):
     elif game_version == 20001005:
         dump_island_texture(tag_dict, file_path, output_directory)
 
+def process_tag_directory(game_directory, game_version):
+    output_path = os.path.join(game_directory, "output")
+    local_path = os.path.join(game_directory, "local")
+    foundation_path = os.path.join(game_directory, "foundation")
+    tag_path = os.path.join(game_directory, "tags")
+    large_install = os.path.join(tag_path, "large install")
+    medium_install = os.path.join(tag_path, "medium install")
+    small_install = os.path.join(tag_path, "small install")
+    if os.path.isfile(large_install):
+        dump_foundation(large_install, game_version, foundation_path)
+    if os.path.isfile(medium_install):
+        dump_foundation(medium_install, game_version, foundation_path)
+    if os.path.isfile(small_install):
+        dump_foundation(small_install, game_version, foundation_path)
+
+    if not game_version == 20001116: 
+        bitmaps_local_directory = os.path.join(local_path, "bitmaps")
+        bitmaps_foundation_directory = os.path.join(foundation_path, "bitmaps")
+        bitmaps_local_output = os.path.join(output_path, "local", "bitmaps")
+        bitmaps_foundation_output = os.path.join(output_path, "foundation", "bitmaps")
+        if os.path.isdir(bitmaps_local_directory):
+            for file_name in os.listdir(bitmaps_local_directory):
+                file_path = os.path.join(bitmaps_local_directory, file_name)
+                if os.path.isfile(file_path):
+                    dump_bitmap_data(file_path, bitmaps_local_output, game_version)
+
+        if os.path.isdir(bitmaps_foundation_directory):
+            issues = []
+            for file_name in os.listdir(bitmaps_foundation_directory):
+                file_path = os.path.join(bitmaps_foundation_directory, file_name)
+                if os.path.isfile(file_path):
+                    dump_bitmap_data(file_path, bitmaps_foundation_output, game_version)
+
+    static_pages_local_directory = os.path.join(local_path, "worlds.static pages")
+    static_pages_foundation_directory = os.path.join(foundation_path, "worlds.static pages")
+    static_pages_local_output = os.path.join(output_path, "local", "worlds.static pages")
+    static_pages_foundation_output = os.path.join(output_path, "foundation", "worlds.static pages")
+    if os.path.isdir(static_pages_local_directory):
+        for file_name in os.listdir(static_pages_local_directory):
+            file_path = os.path.join(static_pages_local_directory, file_name)
+            if os.path.isfile(file_path):
+                dump_static_pages_data(file_path, static_pages_local_output, game_version)
+
+    if os.path.isdir(static_pages_foundation_directory):
+        for file_name in os.listdir(static_pages_foundation_directory):
+            file_path = os.path.join(static_pages_foundation_directory, file_name)
+            if os.path.isfile(file_path):
+                dump_static_pages_data(file_path, static_pages_foundation_output, game_version)
+
+    texture_pages_local_directory = os.path.join(local_path, "worlds.texture pages")
+    texture_pages_foundation_directory = os.path.join(foundation_path, "worlds.texture pages")
+    texture_pages_local_output = os.path.join(output_path, "local", "worlds.texture pages")
+    texture_pages_foundation_output = os.path.join(output_path, "foundation", "worlds.texture pages")
+    if os.path.isdir(texture_pages_local_directory):
+        for file_name in os.listdir(texture_pages_local_directory):
+            file_path = os.path.join(texture_pages_local_directory, file_name)
+            if os.path.isfile(file_path):
+                dump_texture_pages_data(file_path, texture_pages_local_output, game_version)
+
+    if os.path.isdir(texture_pages_foundation_directory):
+        for file_name in os.listdir(texture_pages_foundation_directory):
+            file_path = os.path.join(texture_pages_foundation_directory, file_name)
+            if os.path.isfile(file_path):
+                dump_texture_pages_data(file_path, texture_pages_foundation_output, game_version)
+
+    islands_textures_local_directory = os.path.join(local_path, "islands.textures")
+    islands_textures_foundation_directory = os.path.join(foundation_path, "islands.textures")
+    islands_textures_local_output = os.path.join(output_path, "local", "islands.textures")
+    islands_textures_foundation_output = os.path.join(output_path, "foundation", "islands.textures")
+    if os.path.isdir(islands_textures_local_directory):
+        for file_name in os.listdir(islands_textures_local_directory):
+            file_path = os.path.join(islands_textures_local_directory, file_name)
+            if os.path.isfile(file_path):
+                dump_island_texture_data(file_path, islands_textures_local_output, game_version)
+
+    if os.path.isdir(islands_textures_foundation_directory):
+        for file_name in os.listdir(islands_textures_foundation_directory):
+            file_path = os.path.join(islands_textures_foundation_directory, file_name)
+            if os.path.isfile(file_path):
+                dump_island_texture_data(file_path, islands_textures_foundation_output, game_version)
+
+    sound_set = (19990225, 19990302, 19990426, 20000525, 20001116)
+    if game_version in sound_set: 
+        sounds_local_directory = os.path.join(local_path, "sounds")
+        sounds_foundation_directory = os.path.join(foundation_path, "sounds")
+        sounds_local_output = os.path.join(output_path, "local", "sounds")
+        sounds_foundation_output = os.path.join(output_path, "foundation", "sounds")
+        if os.path.isdir(sounds_local_directory):
+            for file_name in os.listdir(sounds_local_directory):
+                file_path = os.path.join(sounds_local_directory, file_name)
+                if os.path.isfile(file_path):
+                    dump_sound_data(file_path, sounds_local_output, game_version)
+
+        if os.path.isdir(sounds_foundation_directory):
+            for file_name in os.listdir(sounds_foundation_directory):
+                file_path = os.path.join(sounds_foundation_directory, file_name)
+                if os.path.isfile(file_path):
+                    dump_sound_data(file_path, sounds_foundation_output, game_version)
+    else:
+        sounds_samples_local_directory = os.path.join(local_path, "sounds.samples")
+        sounds_samples_foundation_directory = os.path.join(foundation_path, "sounds.samples")
+        sounds_samples_local_output = os.path.join(output_path, "local", "sounds.samples")
+        sounds_samples_foundation_output = os.path.join(output_path, "foundation", "sounds.samples")
+        if os.path.isdir(sounds_samples_local_directory):
+            for file_name in os.listdir(sounds_samples_local_directory):
+                file_path = os.path.join(sounds_samples_local_directory, file_name)
+                if os.path.isfile(file_path):
+                    dump_sound_data(file_path, sounds_samples_local_output, game_version)
+
+        if os.path.isdir(sounds_samples_foundation_directory):
+            for file_name in os.listdir(sounds_samples_foundation_directory):
+                file_path = os.path.join(sounds_samples_foundation_directory, file_name)
+                if os.path.isfile(file_path):
+                    dump_sound_data(file_path, sounds_samples_foundation_output, game_version)
+
 def main():
     if len(sys.argv) < 2:
         print("Drag a file onto this script.")
@@ -997,13 +1194,10 @@ def main():
     if len(sys.argv) >= 3:
         game_version = int(sys.argv[2])
 
-    if not os.path.isfile(file_path):
-        return print("Not a valid file path. Check that the file exists on your system.")
     if file_path.lower().endswith(".json"):
         export_tag(file_path, game_version)
     else:
-        output = r"C:\Users\Steven\Desktop\output"
-        dump_bitmap_data(file_path, output, game_version)
+        process_tag_directory(file_path, game_version)
 
 if __name__ == "__main__":
         main()

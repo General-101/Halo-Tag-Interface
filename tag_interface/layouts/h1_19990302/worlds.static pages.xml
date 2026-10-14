@@ -41,7 +41,7 @@
       </Block>
       <Block CStyleName="detail_objects" pascalStyleName="DetailObjects" name="detail objects">
         <Layout regolithID="block:detail objects" internalName="detail objects_block" name="detail objects _block">
-          <FieldSet version="0" sizeofValue="100" isLatest="true">
+          <FieldSet version="0" sizeofValue="4" isLatest="true">
             <Real CStyleName="vector" pascalStyleName="Vector" name="vector" />
           </FieldSet>
         </Layout>
